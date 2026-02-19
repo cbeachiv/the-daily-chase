@@ -12,5 +12,9 @@
     "displayName": "Pot of Hugga",
     "description": "A St. Patrick's Day scavenger hunt experience at Hugga Retreats. Guests explore the trails, solve clues, and hunt for hidden gold across the property.",
     "siteUrl": "https://potofhugga.vercel.app"
+  },
+  "hugga": {
+    "displayName": "Guests First",
+    "description": "Hugga internal team app for turnovers, QA, and guest feedback."
   }
 }
