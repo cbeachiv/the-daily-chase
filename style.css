@@ -50,7 +50,7 @@ main {
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 8px;
-  background: linear-gradient(135deg, var(--coral), var(--amber) 40%, var(--teal));
+  background: linear-gradient(135deg, var(--sky), var(--indigo) 50%, var(--teal));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
