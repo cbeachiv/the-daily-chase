@@ -81,8 +81,8 @@
     card.className = "project-card";
     card.innerHTML = `
       <h3><a href="${repo.html_url}" target="_blank" rel="noopener">${displayName}</a></h3>
-      <p class="description">${description}</p>
       ${siteUrl ? `<a href="${siteUrl}" target="_blank" rel="noopener" class="visit-site">Visit Site</a>` : ""}
+      <p class="description">${description}</p>
       <span class="updated">Updated ${timeAgo(repo.updated_at)}</span>
     `;
     return card;
