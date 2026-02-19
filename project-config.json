@@ -6,12 +6,12 @@
   "visitmariemont": {
     "displayName": "Visit Mariemont",
     "description": "An interactive itinerary builder I use to plan personalized visits for friends and family coming to town. Restaurants, walks, coffee, and the perfect day mapped out.",
-    "siteUrl": "https://visitmariemont.vercel.app"
+    "siteUrl": "https://www.visitmariemont.com"
   },
   "potofhugga": {
     "displayName": "Pot of Hugga",
     "description": "A St. Patrick's Day scavenger hunt experience at Hugga Retreats. Guests explore the trails, solve clues, and hunt for hidden gold across the property.",
-    "siteUrl": "https://potofhugga.vercel.app"
+    "siteUrl": "https://www.potofhugga.com"
   },
   "hugga": {
     "displayName": "Guests First",
