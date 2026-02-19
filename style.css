@@ -172,6 +172,19 @@ main {
   flex: 1;
 }
 
+.project-card .visit-site {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--indigo);
+  text-decoration: none;
+  margin-bottom: 12px;
+  transition: color 0.15s;
+}
+
+.project-card .visit-site:hover {
+  text-decoration: underline;
+}
+
 .project-card .updated {
   font-size: 0.8rem;
   color: var(--color-text-secondary);

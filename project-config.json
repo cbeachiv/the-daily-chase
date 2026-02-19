@@ -1,5 +1,16 @@
 {
-  "the-daily-chase": { "displayName": "The Daily Chase" },
-  "visitmariemont": { "displayName": "Visit Mariemont" },
-  "potofhugga": { "displayName": "Pot of Hugga" }
+  "the-daily-chase": {
+    "displayName": "The Daily Chase",
+    "description": "My long running home on the internet. Started as a WordPress blog in 2013 and has evolved through many versions into a place to document what I'm building, learning, and thinking about."
+  },
+  "visitmariemont": {
+    "displayName": "Visit Mariemont",
+    "description": "An interactive itinerary builder I use to plan personalized visits for friends and family coming to town. Restaurants, walks, coffee, and the perfect day mapped out.",
+    "siteUrl": "https://visitmariemont.vercel.app"
+  },
+  "potofhugga": {
+    "displayName": "Pot of Hugga",
+    "description": "A St. Patrick's Day scavenger hunt experience at Hugga Retreats. Guests explore the trails, solve clues, and hunt for hidden gold across the property.",
+    "siteUrl": "https://potofhugga.vercel.app"
+  }
 }

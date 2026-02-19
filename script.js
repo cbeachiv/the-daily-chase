@@ -72,13 +72,17 @@
   // --- Rendering ---
 
   function renderCard(repo, config) {
-    const displayName = config[repo.name]?.displayName || titleCase(repo.name);
+    const cfg = config[repo.name] || {};
+    const displayName = cfg.displayName || titleCase(repo.name);
+    const description = cfg.description || repo.description || "No description provided.";
+    const siteUrl = cfg.siteUrl;
 
     const card = document.createElement("div");
     card.className = "project-card";
     card.innerHTML = `
       <h3><a href="${repo.html_url}" target="_blank" rel="noopener">${displayName}</a></h3>
-      <p class="description">${repo.description || "No description provided."}</p>
+      <p class="description">${description}</p>
+      ${siteUrl ? `<a href="${siteUrl}" target="_blank" rel="noopener" class="visit-site">Visit Site</a>` : ""}
       <span class="updated">Updated ${timeAgo(repo.updated_at)}</span>
     `;
     return card;
