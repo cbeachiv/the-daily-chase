@@ -16,5 +16,9 @@
   "hugga": {
     "displayName": "Guests First",
     "description": "Hugga internal team app for turnovers, QA, and guest feedback."
+  },
+  "hugga-picklelodge-partnership": {
+    "displayName": "Hugga x Pickle Lodge",
+    "description": "Partnership between Hugga and The Pickle Lodge to cross-promote both brands and reach each other's customer base."
   }
 }
