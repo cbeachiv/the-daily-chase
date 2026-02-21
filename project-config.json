@@ -17,6 +17,10 @@
     "displayName": "Guests First",
     "description": "Hugga internal team app for turnovers, QA, and guest feedback."
   },
+  "NCLLC-Alfred": {
+    "displayName": "Alfred Agent",
+    "description": "Personal operations coordinator. Handles daily check-ins, health tracking, and weekly reviews via Telegram."
+  },
   "NCLLC-Viggo": {
     "displayName": "Viggo Agent",
     "description": "Automated guest messaging agent for Hugga Retreats. Handles inbound Hostfully messages and drafts responses."
