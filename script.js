@@ -113,3 +113,110 @@
     grid.innerHTML = '<div class="error">Could not load projects. Please try again later.</div>';
   }
 })();
+
+// --- Code Activity Chart ---
+
+(function () {
+  const weeks = ["Feb 9", "Feb 16"];
+
+  const repos = [
+    { name: "Visit Mariemont",       color: "#6366f1", data: [0, 7971] },
+    { name: "Hugga Retreats Website", color: "#14b8a6", data: [0, 3444] },
+    { name: "Viggo Agent",           color: "#ff6b6b", data: [0, 2188] },
+    { name: "Pot of Hugga",          color: "#f59e0b", data: [0, 2041] },
+    { name: "NCLLC",                 color: "#ec4899", data: [0, 1505] },
+    { name: "NC Agent Core",         color: "#0ea5e9", data: [0, 874] },
+    { name: "The Daily Chase",       color: "#8b5cf6", data: [0, 606] },
+    { name: "Guests First iOS",      color: "#10b981", data: [19789, 77] },
+  ];
+
+  const ctx = document.getElementById("code-activity-chart");
+  if (!ctx) return;
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: weeks,
+      datasets: repos.map((r) => ({
+        label: r.name,
+        data: r.data,
+        backgroundColor: r.color,
+        borderRadius: 3,
+        borderSkipped: false,
+      })),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      interaction: {
+        mode: "index",
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            usePointStyle: true,
+            pointStyle: "circle",
+            padding: 16,
+            font: {
+              family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              size: 12,
+            },
+            color: "#64748b",
+          },
+        },
+        tooltip: {
+          backgroundColor: "#1a1a1a",
+          titleFont: {
+            family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            size: 13,
+            weight: "600",
+          },
+          bodyFont: {
+            family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            size: 12,
+          },
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function (context) {
+              if (context.raw === 0) return null;
+              return " " + context.dataset.label + ": " + context.raw.toLocaleString() + " lines";
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+          border: { display: false },
+          ticks: {
+            font: {
+              family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              size: 12,
+              weight: "500",
+            },
+            color: "#64748b",
+          },
+        },
+        y: {
+          stacked: true,
+          grid: { color: "#f0e6db" },
+          border: { display: false },
+          ticks: {
+            font: {
+              family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              size: 11,
+            },
+            color: "#64748b",
+            callback: function (value) {
+              return value >= 1000 ? (value / 1000).toFixed(0) + "k" : value;
+            },
+          },
+        },
+      },
+    },
+  });
+})();

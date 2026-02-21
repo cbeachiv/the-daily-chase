@@ -10,6 +10,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.thedailychase.com">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <main>
@@ -35,6 +36,13 @@
       <h2>What I'm Building</h2>
       <div id="projects-grid" class="projects-grid">
         <div class="loading">Loading projects...</div>
+      </div>
+    </section>
+
+    <section class="code-activity">
+      <h2>Code Activity</h2>
+      <div class="chart-card">
+        <canvas id="code-activity-chart"></canvas>
       </div>
     </section>
 
