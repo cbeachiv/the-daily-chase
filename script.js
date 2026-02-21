@@ -76,11 +76,15 @@
     const displayName = cfg.displayName || titleCase(repo.name);
     const description = cfg.description || repo.description || "No description provided.";
     const siteUrl = cfg.siteUrl;
+    const isPrivate = repo.isPrivate || cfg.isPrivate;
 
     const card = document.createElement("div");
     card.className = "project-card";
+    const titleEl = isPrivate
+      ? `<span>${displayName}</span>`
+      : `<a href="${repo.html_url}" target="_blank" rel="noopener">${displayName}</a>`;
     card.innerHTML = `
-      <h3><a href="${repo.html_url}" target="_blank" rel="noopener">${displayName}</a></h3>
+      <h3>${titleEl}</h3>
       ${siteUrl ? `<a href="${siteUrl}" target="_blank" rel="noopener" class="visit-site">Visit Site</a>` : ""}
       <p class="description">${description}</p>
       <span class="updated">Updated ${timeAgo(repo.updated_at)}</span>
@@ -93,8 +97,18 @@
   try {
     const [repos, config] = await Promise.all([fetchRepos(), fetchConfig()]);
 
+    const privateRepos = Object.entries(config)
+      .filter(([key, cfg]) => !key.startsWith("_") && cfg.isPrivate && cfg.lastUpdated)
+      .map(([key, cfg]) => ({
+        name: key,
+        html_url: null,
+        updated_at: cfg.lastUpdated,
+        description: null,
+        isPrivate: true,
+      }));
+
     const cutoff = Date.now() - ONE_YEAR;
-    const recent = repos
+    const recent = [...repos, ...privateRepos]
       .filter((r) => new Date(r.updated_at).getTime() > cutoff)
       .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
 
@@ -108,6 +122,19 @@
     for (const repo of recent) {
       grid.appendChild(renderCard(repo, config));
     }
+
+    const agentsConfig = config._agents || {};
+    document.querySelectorAll(".agent-card[data-agent]").forEach((card) => {
+      const key = card.dataset.agent;
+      const agentCfg = agentsConfig[key];
+      if (!agentCfg) return;
+      const repoMatch = agentCfg.repoName && repos.find((r) => r.name === agentCfg.repoName);
+      const updatedAt = repoMatch ? repoMatch.updated_at : agentCfg.lastUpdated;
+      if (updatedAt) {
+        const span = card.querySelector(".updated");
+        if (span) span.textContent = `Updated ${timeAgo(updatedAt)}`;
+      }
+    });
   } catch (err) {
     console.error("Failed to load projects:", err);
     grid.innerHTML = '<div class="error">Could not load projects. Please try again later.</div>';

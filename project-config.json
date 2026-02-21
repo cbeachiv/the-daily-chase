@@ -28,5 +28,25 @@
   "hugga-picklelodge-partnership": {
     "displayName": "Hugga x Pickle Lodge",
     "description": "Partnership between Hugga and The Pickle Lodge to cross-promote both brands and reach each other's customer base."
+  },
+  "hugga-retreats-website": {
+    "displayName": "Hugga Retreats",
+    "description": "42 acres with four cabins in Hocking Hills.",
+    "isPrivate": true,
+    "lastUpdated": "2026-02-21T08:10:11-05:00"
+  },
+  "guests-first-ios": {
+    "displayName": "Guests First iOS",
+    "description": "App for Hugga team to keep track of cleans, maintenance, and guest feedback.",
+    "isPrivate": true,
+    "lastUpdated": "2026-02-21T10:52:05-05:00"
+  },
+  "_agents": {
+    "alfred": {
+      "repoName": "NCLLC-Alfred"
+    },
+    "viggo": {
+      "repoName": "NCLLC-Viggo"
+    }
   }
 }
