@@ -17,6 +17,10 @@
     "displayName": "Guests First",
     "description": "Hugga internal team app for turnovers, QA, and guest feedback."
   },
+  "NCLLC-Viggo": {
+    "displayName": "Viggo Agent",
+    "description": "Automated guest messaging agent for Hugga Retreats. Handles inbound Hostfully messages and drafts responses."
+  },
   "hugga-picklelodge-partnership": {
     "displayName": "Hugga x Pickle Lodge",
     "description": "Partnership between Hugga and The Pickle Lodge to cross-promote both brands and reach each other's customer base."
