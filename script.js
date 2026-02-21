@@ -124,7 +124,7 @@
     { name: "Hugga Retreats Website", color: "#14b8a6", data: [0, 3444] },
     { name: "Viggo Agent",           color: "#ff6b6b", data: [0, 2188] },
     { name: "Pot of Hugga",          color: "#f59e0b", data: [0, 2041] },
-    { name: "NCLLC",                 color: "#ec4899", data: [0, 1505] },
+    { name: "Alfred Agent",           color: "#ec4899", data: [0, 1505] },
     { name: "NC Agent Core",         color: "#0ea5e9", data: [0, 874] },
     { name: "The Daily Chase",       color: "#8b5cf6", data: [0, 606] },
     { name: "Guests First iOS",      color: "#10b981", data: [19789, 77] },
