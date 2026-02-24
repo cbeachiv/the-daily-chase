@@ -27,19 +27,22 @@
   },
   "hugga-picklelodge-partnership": {
     "displayName": "Hugga x Pickle Lodge",
-    "description": "Partnership between Hugga and The Pickle Lodge to cross-promote both brands and reach each other's customer base."
+    "description": "Partnership between Hugga and The Pickle Lodge to cross-promote both brands and reach each other's customer base.",
+    "siteUrl": "https://hugga-picklelodge-partnership.vercel.app/"
   },
   "hugga-retreats-website": {
     "displayName": "Hugga Retreats",
     "description": "42 acres with four cabins in Hocking Hills.",
     "isPrivate": true,
-    "lastUpdated": "2026-02-21T08:10:11-05:00"
+    "lastUpdated": "2026-02-21T08:10:11-05:00",
+    "siteUrl": "https://www.huggaretreats.com"
   },
   "guests-first-ios": {
     "displayName": "Guests First iOS",
     "description": "App for Hugga team to keep track of cleans, maintenance, and guest feedback.",
     "isPrivate": true,
-    "lastUpdated": "2026-02-21T10:52:05-05:00"
+    "lastUpdated": "2026-02-21T10:52:05-05:00",
+    "appUrl": "https://apps.apple.com/us/app/guests-first/id6759132620"
   },
   "_agents": {
     "alfred": {
@@ -54,8 +57,8 @@
     "description": "Email newsletter system for Hugga Retreats — welcome series, seasonal campaigns, and The Slow Post editorial newsletter."
   },
   "leucadia": {
-    "displayName": "Leucadia",
-    "description": "Community project to answer the question: where does Leucadia start?",
+    "displayName": "Where Does Leucadia Start?",
+    "description": "Curiosity driven initiative to figure out where Encinitas ends and Leucadia begins.",
     "siteUrl": "https://leucadia.vercel.app"
   }
 }

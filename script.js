@@ -76,6 +76,7 @@
     const displayName = cfg.displayName || titleCase(repo.name);
     const description = cfg.description || repo.description || "No description provided.";
     const siteUrl = cfg.siteUrl;
+    const appUrl = cfg.appUrl;
     const isPrivate = repo.isPrivate || cfg.isPrivate;
 
     const card = document.createElement("div");
@@ -83,9 +84,14 @@
     const titleEl = isPrivate
       ? `<span>${displayName}</span>`
       : `<a href="${repo.html_url}" target="_blank" rel="noopener">${displayName}</a>`;
+
+    const links = [];
+    if (siteUrl) links.push(`<a href="${siteUrl}" target="_blank" rel="noopener" class="visit-site">Visit Site</a>`);
+    if (appUrl) links.push(`<a href="${appUrl}" target="_blank" rel="noopener" class="visit-site">Visit App</a>`);
+
     card.innerHTML = `
       <h3>${titleEl}</h3>
-      ${siteUrl ? `<a href="${siteUrl}" target="_blank" rel="noopener" class="visit-site">Visit Site</a>` : ""}
+      ${links.join("\n      ")}
       <p class="description">${description}</p>
       <span class="updated">Updated ${timeAgo(repo.updated_at)}</span>
     `;
@@ -153,7 +159,7 @@
     { name: "Hugga x Pickle Lodge",     color: "#f97316", data: [0, 2566, 0] },
     { name: "Hugga Email Newsletter",   color: "#a855f7", data: [0, 0, 2231] },
     { name: "Pot of Hugga",             color: "#f59e0b", data: [0, 2101, 0] },
-    { name: "Leucadia",                 color: "#06b6d4", data: [0, 1983, 0] },
+    { name: "Where Does Leucadia Start?", color: "#06b6d4", data: [0, 1983, 0] },
     { name: "Alfred Agent",             color: "#ec4899", data: [0, 1750, 0] },
     { name: "NC Agent Core",            color: "#0ea5e9", data: [0, 874, 0] },
     { name: "The Daily Chase",          color: "#8b5cf6", data: [0, 770, 0] },
