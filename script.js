@@ -144,17 +144,20 @@
 // --- Code Activity Chart ---
 
 (function () {
-  const weeks = ["Feb 9", "Feb 16"];
+  const weeks = ["Feb 9", "Feb 16", "Feb 23"];
 
   const repos = [
-    { name: "Visit Mariemont",       color: "#6366f1", data: [0, 7971] },
-    { name: "Hugga Retreats Website", color: "#14b8a6", data: [0, 3444] },
-    { name: "Viggo Agent",           color: "#ff6b6b", data: [0, 2188] },
-    { name: "Pot of Hugga",          color: "#f59e0b", data: [0, 2041] },
-    { name: "Alfred Agent",           color: "#ec4899", data: [0, 1505] },
-    { name: "NC Agent Core",         color: "#0ea5e9", data: [0, 874] },
-    { name: "The Daily Chase",       color: "#8b5cf6", data: [0, 606] },
-    { name: "Guests First iOS",      color: "#10b981", data: [19789, 77] },
+    { name: "Visit Mariemont",          color: "#6366f1", data: [0, 8147, 0] },
+    { name: "Hugga Retreats Website",   color: "#14b8a6", data: [0, 4081, 100] },
+    { name: "Viggo Agent",              color: "#ff6b6b", data: [0, 2874, 0] },
+    { name: "Hugga x Pickle Lodge",     color: "#f97316", data: [0, 2566, 0] },
+    { name: "Hugga Email Newsletter",   color: "#a855f7", data: [0, 0, 2231] },
+    { name: "Pot of Hugga",             color: "#f59e0b", data: [0, 2101, 0] },
+    { name: "Leucadia",                 color: "#06b6d4", data: [0, 1983, 0] },
+    { name: "Alfred Agent",             color: "#ec4899", data: [0, 1750, 0] },
+    { name: "NC Agent Core",            color: "#0ea5e9", data: [0, 874, 0] },
+    { name: "The Daily Chase",          color: "#8b5cf6", data: [0, 770, 0] },
+    { name: "Guests First iOS",         color: "#10b981", data: [20665, 171, 0] },
   ];
 
   const ctx = document.getElementById("code-activity-chart");

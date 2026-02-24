@@ -48,5 +48,14 @@
     "viggo": {
       "repoName": "NCLLC-Viggo"
     }
+  },
+  "hugga-email-newsletter": {
+    "displayName": "Hugga Email Newsletter",
+    "description": "Email newsletter system for Hugga Retreats — welcome series, seasonal campaigns, and The Slow Post editorial newsletter."
+  },
+  "leucadia": {
+    "displayName": "Leucadia",
+    "description": "Community project to answer the question: where does Leucadia start?",
+    "siteUrl": "https://leucadia.vercel.app"
   }
 }
