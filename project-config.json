@@ -1,4 +1,18 @@
 {
+  "sbi-website": {
+    "displayName": "Sarah Beach Interiors",
+    "description": "Custom website for Sarah Beach Interiors, an interior design studio."
+  },
+  "NC-Agent-Core": {
+    "displayName": "NC Agent Core",
+    "description": "Shared agent engine powering Alfred and Viggo — handles scheduling, tool routing, and Telegram integration across NC LLC agents.",
+    "isPrivate": true,
+    "lastUpdated": "2026-03-18T12:41:39Z"
+  },
+  "left-vs-right-brain": {
+    "displayName": "Left vs Right Brain",
+    "description": "Left vs Right Brain — an AI podcast by Greg and Chase."
+  },
   "the-daily-chase": {
     "displayName": "The Daily Chase",
     "description": "My long running home on the internet. Started as a WordPress blog in 2013 and has evolved through many versions into a place to document what I'm building, learning, and thinking about."
@@ -34,14 +48,14 @@
     "displayName": "Hugga Retreats",
     "description": "42 acres with four cabins in Hocking Hills.",
     "isPrivate": true,
-    "lastUpdated": "2026-02-21T08:10:11-05:00",
+    "lastUpdated": "2026-03-17T16:41:11Z",
     "siteUrl": "https://www.huggaretreats.com"
   },
   "guests-first-ios": {
     "displayName": "Guests First iOS",
     "description": "App for Hugga team to keep track of cleans, maintenance, and guest feedback.",
     "isPrivate": true,
-    "lastUpdated": "2026-02-21T10:52:05-05:00",
+    "lastUpdated": "2026-03-16T13:02:14Z",
     "appUrl": "https://apps.apple.com/us/app/guests-first/id6759132620"
   },
   "_agents": {
