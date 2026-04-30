@@ -210,53 +210,42 @@ main {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Agents */
-
-.agents {
-  padding-bottom: 80px;
-}
-
-.agents h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 24px;
-}
-
-.agents-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.agent-card {
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius);
-  padding: 24px;
-  border-left: 3px solid var(--teal);
+.chart-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.2s, transform 0.2s;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
-.agent-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+.chart-toggle {
+  display: inline-flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 3px;
 }
 
-.agent-card:nth-child(1) { border-left-color: var(--indigo); }
-.agent-card:nth-child(2) { border-left-color: var(--teal); }
-
-.agent-card h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.agent-card .description {
-  font-size: 0.9rem;
+.chart-toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chart-toggle-btn:hover {
+  color: var(--color-text);
+}
+
+.chart-toggle-btn.active {
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 /* Previous Projects */
@@ -290,6 +279,12 @@ main {
 
 .previous-card:nth-child(1) { border-left-color: var(--indigo); }
 .previous-card:nth-child(2) { border-left-color: var(--amber); }
+.previous-card:nth-child(3) { border-left-color: var(--coral); }
+.previous-card:nth-child(4) { border-left-color: var(--sky); }
+.previous-card:nth-child(5) { border-left-color: var(--teal); }
+.previous-card:nth-child(6) { border-left-color: var(--pink); }
+.previous-card:nth-child(7) { border-left-color: var(--indigo); }
+.previous-card:nth-child(8) { border-left-color: var(--amber); }
 
 .previous-card-header {
   display: flex;
@@ -319,6 +314,11 @@ main {
 .badge-wound-down {
   background: #fef3c7;
   color: #b45309;
+}
+
+.badge-completed {
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .previous-card .description {
@@ -374,8 +374,7 @@ main {
 
 @media (max-width: 480px) {
   .projects-grid,
-  .previous-grid,
-  .agents-grid {
+  .previous-grid {
     grid-template-columns: 1fr;
   }
 

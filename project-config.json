@@ -7,7 +7,8 @@
     "displayName": "NC Agent Core",
     "description": "Shared agent engine powering Alfred and Viggo — handles scheduling, tool routing, and Telegram integration across NC LLC agents.",
     "isPrivate": true,
-    "lastUpdated": "2026-04-30T12:25:44Z"
+    "lastUpdated": "2026-04-30T12:25:44Z",
+    "isPrevious": true
   },
   "left-vs-right-brain": {
     "displayName": "Left vs Right Brain",
@@ -25,24 +26,18 @@
   "potofhugga": {
     "displayName": "Pot of Hugga",
     "description": "A St. Patrick's Day scavenger hunt experience at Hugga Retreats. Guests explore the trails, solve clues, and hunt for hidden gold across the property.",
-    "siteUrl": "https://www.potofhugga.com"
+    "siteUrl": "https://www.potofhugga.com",
+    "isPrevious": true
   },
   "hugga": {
     "displayName": "Guests First",
     "description": "Hugga internal team app for turnovers, QA, and guest feedback."
   },
-  "NCLLC-Alfred": {
-    "displayName": "Alfred Agent",
-    "description": "Personal operations coordinator. Handles daily check-ins, health tracking, and weekly reviews via Telegram."
-  },
-  "NCLLC-Viggo": {
-    "displayName": "Viggo Agent",
-    "description": "Automated guest messaging agent for Hugga Retreats. Handles inbound Hostfully messages and drafts responses."
-  },
   "hugga-picklelodge-partnership": {
     "displayName": "Hugga x Pickle Lodge",
     "description": "Partnership between Hugga and The Pickle Lodge to cross-promote both brands and reach each other's customer base.",
-    "siteUrl": "https://hugga-picklelodge-partnership.vercel.app/"
+    "siteUrl": "https://hugga-picklelodge-partnership.vercel.app/",
+    "isPrevious": true
   },
   "hugga-retreats-website": {
     "displayName": "Hugga Retreats",
@@ -58,14 +53,6 @@
     "lastUpdated": "2026-04-30T17:30:56Z",
     "appUrl": "https://apps.apple.com/us/app/guests-first/id6759132620"
   },
-  "_agents": {
-    "alfred": {
-      "repoName": "NCLLC-Alfred"
-    },
-    "viggo": {
-      "repoName": "NCLLC-Viggo"
-    }
-  },
   "hugga-integrations": {
     "displayName": "Hugga Integrations",
     "description": "Hostfully pre-arrival form to Mailchimp sync for Hugga Retreats guest communications.",
@@ -80,5 +67,10 @@
     "displayName": "Where Does Leucadia Start?",
     "description": "Curiosity driven initiative to figure out where Encinitas ends and Leucadia begins.",
     "siteUrl": "https://leucadia.vercel.app"
+  },
+  "siding-quote-generator": {
+    "displayName": "Siding Quote Generator",
+    "description": "Quoting tool for a siding contractor.",
+    "isPrevious": true
   }
 }

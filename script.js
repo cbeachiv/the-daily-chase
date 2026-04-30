@@ -104,7 +104,7 @@
     const [repos, config] = await Promise.all([fetchRepos(), fetchConfig()]);
 
     const privateRepos = Object.entries(config)
-      .filter(([key, cfg]) => !key.startsWith("_") && cfg.isPrivate && cfg.lastUpdated)
+      .filter(([key, cfg]) => !key.startsWith("_") && cfg.isPrivate && cfg.lastUpdated && !cfg.isPrevious)
       .map(([key, cfg]) => ({
         name: key,
         html_url: null,
@@ -116,6 +116,7 @@
     const cutoff = Date.now() - ONE_YEAR;
     const recent = [...repos, ...privateRepos]
       .filter((r) => new Date(r.updated_at).getTime() > cutoff)
+      .filter((r) => !config[r.name]?.isPrevious)
       .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
 
     grid.innerHTML = "";
@@ -128,19 +129,6 @@
     for (const repo of recent) {
       grid.appendChild(renderCard(repo, config));
     }
-
-    const agentsConfig = config._agents || {};
-    document.querySelectorAll(".agent-card[data-agent]").forEach((card) => {
-      const key = card.dataset.agent;
-      const agentCfg = agentsConfig[key];
-      if (!agentCfg) return;
-      const repoMatch = agentCfg.repoName && repos.find((r) => r.name === agentCfg.repoName);
-      const updatedAt = repoMatch ? repoMatch.updated_at : agentCfg.lastUpdated;
-      if (updatedAt) {
-        const span = card.querySelector(".updated");
-        if (span) span.textContent = `Updated ${timeAgo(updatedAt)}`;
-      }
-    });
   } catch (err) {
     console.error("Failed to load projects:", err);
     grid.innerHTML = '<div class="error">Could not load projects. Please try again later.</div>';
@@ -172,17 +160,41 @@
   const ctx = document.getElementById("code-activity-chart");
   if (!ctx) return;
 
-  new Chart(ctx, {
+  // Group weeks by their month prefix (e.g. "Mar 23" -> "Mar"), preserving order.
+  const weekMonthAbbr = weeks.map((w) => w.split(" ")[0]);
+  const monthAbbrs = weekMonthAbbr.filter((m, i) => weekMonthAbbr.indexOf(m) === i);
+  const monthFullNames = {
+    Jan: "January", Feb: "February", Mar: "March", Apr: "April",
+    May: "May", Jun: "June", Jul: "July", Aug: "August",
+    Sep: "September", Oct: "October", Nov: "November", Dec: "December",
+  };
+  const monthLabels = monthAbbrs.map((m) => monthFullNames[m] || m);
+
+  function aggregateToMonths(weeklyData) {
+    const buckets = monthAbbrs.map(() => 0);
+    weeklyData.forEach((val, i) => {
+      buckets[monthAbbrs.indexOf(weekMonthAbbr[i])] += val;
+    });
+    return buckets;
+  }
+
+  const reposMonthly = repos.map((r) => ({ ...r, data: aggregateToMonths(r.data) }));
+
+  function buildDatasets(repoSet) {
+    return repoSet.map((r) => ({
+      label: r.name,
+      data: r.data,
+      backgroundColor: r.color,
+      borderRadius: 3,
+      borderSkipped: false,
+    }));
+  }
+
+  const chart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: weeks,
-      datasets: repos.map((r) => ({
-        label: r.name,
-        data: r.data,
-        backgroundColor: r.color,
-        borderRadius: 3,
-        borderSkipped: false,
-      })),
+      datasets: buildDatasets(repos),
     },
     options: {
       responsive: true,
@@ -216,12 +228,22 @@
             family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             size: 12,
           },
+          footerFont: {
+            family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            size: 12,
+            weight: "600",
+          },
+          footerMarginTop: 8,
           padding: 12,
           cornerRadius: 8,
           callbacks: {
             label: function (context) {
               if (context.raw === 0) return null;
               return " " + context.dataset.label + ": " + context.raw.toLocaleString() + " lines";
+            },
+            footer: function (items) {
+              const total = items.reduce((sum, it) => sum + (it.parsed.y || 0), 0);
+              return "Total: " + total.toLocaleString() + " lines";
             },
           },
         },
@@ -257,5 +279,22 @@
         },
       },
     },
+  });
+
+  document.querySelectorAll(".chart-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const period = btn.dataset.period;
+      document.querySelectorAll(".chart-toggle-btn").forEach((b) =>
+        b.classList.toggle("active", b === btn)
+      );
+      if (period === "months") {
+        chart.data.labels = monthLabels;
+        chart.data.datasets = buildDatasets(reposMonthly);
+      } else {
+        chart.data.labels = weeks;
+        chart.data.datasets = buildDatasets(repos);
+      }
+      chart.update();
+    });
   });
 })();
