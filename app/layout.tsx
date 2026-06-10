@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   title: "The Daily Chase",
   description: "Private life dashboard.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/running.svg",
+    shortcut: "/running.svg",
+    apple: "/running.svg",
+  },
   appleWebApp: {
     capable: true,
     title: "The Daily Chase",
