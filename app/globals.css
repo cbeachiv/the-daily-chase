@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background: #fffbf7;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Respect the iOS safe area so the bottom nav clears the home indicator. */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+}
+
+@layer components {
+  .card {
+    @apply rounded-card border border-line bg-card shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-indigo text-white hover:opacity-90;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-card text-ink hover:bg-bg;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-card px-3 py-2 text-sm outline-none focus:border-indigo;
+  }
+  .section-title {
+    @apply text-lg font-bold text-ink;
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "The Daily Chase",
+  "short_name": "Daily Chase",
+  "description": "Private life dashboard",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#fffbf7",
+  "theme_color": "#fffbf7",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
