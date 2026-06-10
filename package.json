@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
-    "seed:quotes": "node --env-file=.env.local scripts/seed-quotes.mjs"
+    "seed:quotes": "node --env-file=.env.local scripts/seed-quotes.mjs",
+    "import:history": "node --env-file=.env.local scripts/import-history.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
