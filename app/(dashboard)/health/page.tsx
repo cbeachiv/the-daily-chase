@@ -7,12 +7,30 @@ import { addDays, todayStr } from "@/lib/dates";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
 
+const RANGES: { label: string; days: number | null }[] = [
+  { label: "1M", days: 30 },
+  { label: "3M", days: 90 },
+  { label: "6M", days: 180 },
+  { label: "1Y", days: 365 },
+  { label: "All", days: null },
+];
+
 export default function HealthPage() {
   const today = todayStr();
   const { data: weights, uid } = useCollection<WeightLog>("weightLogs");
   const { data: workouts } = useCollection<Workout>("workouts");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const [weightInput, setWeightInput] = useState("");
+  const [range, setRange] = useState("1Y");
+
+  const activeDays = RANGES.find((r) => r.label === range)?.days ?? null;
+  const startDate = activeDays === null ? null : addDays(today, -activeDays);
+  // Daily bars for short windows; weekly averages once it'd get too dense.
+  const granularity: "day" | "week" = range === "1M" || range === "3M" ? "day" : "week";
+  const weightsInRange = useMemo(
+    () => weights.filter((w) => !startDate || w.date >= startDate),
+    [weights, startDate]
+  );
 
   const sortedWeights = useMemo(
     () => [...weights].sort((a, b) => a.date.localeCompare(b.date)),
@@ -45,9 +63,24 @@ export default function HealthPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-extrabold tracking-tight">Health</h1>
-        <p className="text-sm text-muted">Weight, exercise, and calories over time.</p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight">Health</h1>
+          <p className="text-sm text-muted">Weight, exercise, and calories over time.</p>
+        </div>
+        <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
+          {RANGES.map((r) => (
+            <button
+              key={r.label}
+              onClick={() => setRange(r.label)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                range === r.label ? "bg-card text-ink shadow-card" : "text-muted"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
       </header>
 
       {/* Weight */}
@@ -66,7 +99,7 @@ export default function HealthPage() {
             </span>
           )}
         </div>
-        <WeightChart logs={weights} />
+        <WeightChart logs={weightsInRange} />
         <form onSubmit={saveWeight} className="mt-3 flex gap-2">
           <input
             type="number"
@@ -110,7 +143,7 @@ export default function HealthPage() {
       {/* Calories */}
       <section className="card p-4 sm:p-5">
         <h2 className="section-title mb-3">Calories</h2>
-        <CaloriesChart entries={foods} />
+        <CaloriesChart entries={foods} startDate={startDate} granularity={granularity} />
       </section>
     </div>
   );

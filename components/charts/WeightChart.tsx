@@ -6,7 +6,8 @@ import type { WeightLog } from "@/lib/types";
 import { prettyDate } from "@/lib/dates";
 
 export default function WeightChart({ logs }: { logs: WeightLog[] }) {
-  const sorted = [...logs].sort((a, b) => a.date.localeCompare(b.date)).slice(-60);
+  // Caller filters to the selected range; render the whole window.
+  const sorted = [...logs].sort((a, b) => a.date.localeCompare(b.date));
 
   if (sorted.length < 2) {
     return (
