@@ -70,6 +70,7 @@ export interface Travel {
 export interface HuggaTrip {
   id: string;
   date: string; // YYYY-MM-DD — when the visit happened
+  stayType?: "day" | "overnight"; // day trip vs overnight stay
   notes?: string; // free-text notes from the trip
   createdAt: string;
 }

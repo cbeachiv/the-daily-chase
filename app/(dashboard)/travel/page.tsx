@@ -213,12 +213,16 @@ export default function TravelPage() {
           <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted">
             Past
           </h2>
-          <div className="space-y-2">
+          <div className="border-l border-line pl-4">
             {past.map((t) => (
-              <article key={t.id} className="card group flex items-center justify-between p-3 opacity-70">
-                <div>
-                  <h3 className="text-sm font-semibold">{t.destination}</h3>
-                  <p className="text-xs text-muted">{dateRange(t)}</p>
+              <div
+                key={t.id}
+                className="group relative flex items-center justify-between py-2"
+              >
+                <span className="absolute -left-[1.3rem] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-line" />
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-sm font-medium text-muted">{t.destination}</h3>
+                  <p className="text-xs text-muted/70">{dateRange(t)}</p>
                 </div>
                 <div className="flex gap-3 opacity-0 transition group-hover:opacity-100">
                   <button
@@ -234,7 +238,7 @@ export default function TravelPage() {
                     Delete
                   </button>
                 </div>
-              </article>
+              </div>
             ))}
           </div>
         </section>
@@ -247,7 +251,7 @@ export default function TravelPage() {
 
 function HuggaSection() {
   const { data: trips, uid } = useCollection<HuggaTrip>("huggaTrips");
-  const emptyForm = { date: "", notes: "" };
+  const emptyForm = { date: "", stayType: "day" as "day" | "overnight", notes: "" };
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -256,6 +260,20 @@ function HuggaSection() {
     () => [...trips].sort((a, b) => b.date.localeCompare(a.date)),
     [trips]
   );
+
+  const stats = useMemo(() => {
+    if (sorted.length === 0) return null;
+    const dayMs = 86_400_000;
+    const asDay = (d: string) => new Date(d + "T00:00:00").getTime();
+    const daysSince = Math.round((Date.now() - asDay(sorted[0].date)) / dayMs);
+    let avgGap: number | null = null;
+    if (sorted.length >= 2) {
+      const newest = asDay(sorted[0].date);
+      const oldest = asDay(sorted[sorted.length - 1].date);
+      avgGap = Math.round((newest - oldest) / dayMs / (sorted.length - 1));
+    }
+    return { daysSince: Math.max(0, daysSince), avgGap };
+  }, [sorted]);
 
   function closeForm() {
     setForm(emptyForm);
@@ -266,7 +284,7 @@ function HuggaSection() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!form.date || !uid) return;
-    const payload = { date: form.date, notes: form.notes.trim() };
+    const payload = { date: form.date, stayType: form.stayType, notes: form.notes.trim() };
     if (editingId) {
       await updateItem(uid, "huggaTrips", editingId, payload);
     } else {
@@ -276,7 +294,7 @@ function HuggaSection() {
   }
 
   function startEdit(t: HuggaTrip) {
-    setForm({ date: t.date, notes: t.notes || "" });
+    setForm({ date: t.date, stayType: t.stayType || "day", notes: t.notes || "" });
     setEditingId(t.id);
     setShowForm(true);
   }
@@ -296,6 +314,23 @@ function HuggaSection() {
         </button>
       </header>
 
+      {stats && (
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-baseline gap-1.5 rounded-full bg-card border border-line px-3 py-1.5">
+            <span className="text-sm font-bold tabular-nums">{stats.daysSince}</span>
+            <span className="text-xs text-muted">
+              {stats.daysSince === 1 ? "day" : "days"} since last visit
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1.5 rounded-full bg-card border border-line px-3 py-1.5">
+            <span className="text-sm font-bold tabular-nums">
+              {stats.avgGap == null ? "—" : stats.avgGap}
+            </span>
+            <span className="text-xs text-muted">avg days between</span>
+          </div>
+        </div>
+      )}
+
       {showForm && (
         <form onSubmit={save} className="card space-y-3 p-4">
           <label className="block text-xs font-semibold text-muted">
@@ -307,6 +342,22 @@ function HuggaSection() {
               onChange={(e) => setForm({ ...form, date: e.target.value })}
             />
           </label>
+          <div className="flex gap-2">
+            {(["day", "overnight"] as const).map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setForm({ ...form, stayType: opt })}
+                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                  form.stayType === opt
+                    ? "border-indigo bg-indigo/10 text-indigo"
+                    : "border-line bg-card text-muted hover:text-ink"
+                }`}
+              >
+                {opt === "day" ? "Day trip" : "Overnight"}
+              </button>
+            ))}
+          </div>
           <textarea
             className="input min-h-[100px]"
             placeholder="Notes from the trip"
@@ -327,7 +378,12 @@ function HuggaSection() {
         {sorted.map((t) => (
           <article key={t.id} className="card group p-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{prettyDate(t.date)}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{prettyDate(t.date)}</h3>
+                <span className="rounded-full bg-bg px-2 py-0.5 text-xs font-semibold text-muted">
+                  {t.stayType === "overnight" ? "Overnight" : "Day trip"}
+                </span>
+              </div>
               <div className="flex gap-3 opacity-0 transition group-hover:opacity-100">
                 <button
                   onClick={() => startEdit(t)}
