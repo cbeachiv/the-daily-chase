@@ -41,6 +41,27 @@ export function prettyDate(dateStr: string): string {
   });
 }
 
+// ISO timestamp -> "2:15 PM"
+export function prettyTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+// Hours between an "HH:MM" bedtime and wake time, wrapping past midnight.
+// e.g. "23:30" -> "07:00" = 7.5
+export function sleepHours(bedtime: string, wakeTime: string): number | null {
+  const parse = (s: string) => {
+    const [h, m] = s.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    return h * 60 + m;
+  };
+  const bed = parse(bedtime);
+  const wake = parse(wakeTime);
+  if (bed === null || wake === null) return null;
+  let mins = wake - bed;
+  if (mins <= 0) mins += 24 * 60; // wrapped past midnight
+  return Math.round((mins / 60) * 10) / 10;
+}
+
 export function prettyDateLong(dateStr: string): string {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
     month: "long",

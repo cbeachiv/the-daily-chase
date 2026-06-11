@@ -67,6 +67,33 @@ export interface Travel {
   createdAt: string;
 }
 
+export interface HuggaTrip {
+  id: string;
+  date: string; // YYYY-MM-DD — when the visit happened
+  notes?: string; // free-text notes from the trip
+  createdAt: string;
+}
+
+export interface MoodLog {
+  id: string;
+  date: string; // YYYY-MM-DD (for grouping/filtering)
+  loggedAt: string; // ISO timestamp — the exact moment logged
+  mood: number; // 1–10
+  energy: number; // 1–10
+  // structured context factors (all optional)
+  caffeineCups?: number; // # coffees so far today
+  alcoholDrinks?: number; // # alcoholic drinks
+  exercised?: boolean; // worked out today
+  bedtime?: string; // "HH:MM" — time went to bed last night
+  wakeTime?: string; // "HH:MM" — time woke up
+  // sleep duration is derived from bedtime/wakeTime when both are set
+  // AI follow-up
+  aiQuestion?: string; // the contextual question Claude asked
+  aiAnswer?: string; // user's free-text reply (optional)
+  notes?: string;
+  createdAt: string;
+}
+
 export interface CodeActivity {
   id: string;
   weekStart: string; // YYYY-MM-DD label key (also stores the display label)

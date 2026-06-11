@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, deleteItem, updateItem } from "@/lib/data";
-import type { Travel } from "@/lib/types";
+import type { Travel, HuggaTrip } from "@/lib/types";
 import { prettyDate, todayStr } from "@/lib/dates";
 
 const ACCENTS = ["border-l-indigo", "border-l-amber", "border-l-teal", "border-l-coral", "border-l-sky", "border-l-pink"];
@@ -239,7 +239,115 @@ export default function TravelPage() {
           </div>
         </section>
       )}
+
+      <HuggaSection />
     </div>
+  );
+}
+
+function HuggaSection() {
+  const { data: trips, uid } = useCollection<HuggaTrip>("huggaTrips");
+  const emptyForm = { date: "", notes: "" };
+  const [form, setForm] = useState(emptyForm);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const sorted = useMemo(
+    () => [...trips].sort((a, b) => b.date.localeCompare(a.date)),
+    [trips]
+  );
+
+  function closeForm() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setShowForm(false);
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.date || !uid) return;
+    const payload = { date: form.date, notes: form.notes.trim() };
+    if (editingId) {
+      await updateItem(uid, "huggaTrips", editingId, payload);
+    } else {
+      await addItem(uid, "huggaTrips", payload);
+    }
+    closeForm();
+  }
+
+  function startEdit(t: HuggaTrip) {
+    setForm({ date: t.date, notes: t.notes || "" });
+    setEditingId(t.id);
+    setShowForm(true);
+  }
+
+  return (
+    <section className="space-y-3 border-t border-line pt-6">
+      <header className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-extrabold tracking-tight">Hugga Travel</h2>
+          <p className="text-sm text-muted">Visits to Hugga.</p>
+        </div>
+        <button
+          onClick={() => (showForm ? closeForm() : setShowForm(true))}
+          className="btn-primary"
+        >
+          {showForm ? "Close" : "+ Visit"}
+        </button>
+      </header>
+
+      {showForm && (
+        <form onSubmit={save} className="card space-y-3 p-4">
+          <label className="block text-xs font-semibold text-muted">
+            Date
+            <input
+              type="date"
+              className="input mt-1"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+            />
+          </label>
+          <textarea
+            className="input min-h-[100px]"
+            placeholder="Notes from the trip"
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          />
+          <button type="submit" className="btn-primary w-full">
+            {editingId ? "Save changes" : "Add visit"}
+          </button>
+        </form>
+      )}
+
+      {sorted.length === 0 && !showForm && (
+        <p className="card p-6 text-center text-sm text-muted">No Hugga visits yet.</p>
+      )}
+
+      <div className="space-y-2">
+        {sorted.map((t) => (
+          <article key={t.id} className="card group p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">{prettyDate(t.date)}</h3>
+              <div className="flex gap-3 opacity-0 transition group-hover:opacity-100">
+                <button
+                  onClick={() => startEdit(t)}
+                  className="text-xs text-muted hover:text-ink"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => uid && deleteItem(uid, "huggaTrips", t.id)}
+                  className="text-xs text-muted hover:text-coral"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            {t.notes && <p className="mt-1 whitespace-pre-wrap text-sm">{t.notes}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
