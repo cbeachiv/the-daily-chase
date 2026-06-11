@@ -140,7 +140,7 @@ export default function TravelPage() {
                 checked={form.flightsBooked}
                 onChange={(e) => setForm({ ...form, flightsBooked: e.target.checked })}
               />
-              Flights booked
+              Logistics booked
             </label>
             <label className="flex items-center gap-2 text-sm font-medium">
               <input
@@ -176,7 +176,7 @@ export default function TravelPage() {
             {t.notes && <p className="mt-1 text-sm">{t.notes}</p>}
             <div className="mt-2 flex flex-wrap gap-2">
               <BookingPill
-                label="Flights"
+                label="Logistics"
                 booked={!!t.flightsBooked}
                 onClick={() =>
                   uid && updateItem(uid, "travel", t.id, { flightsBooked: !t.flightsBooked })
