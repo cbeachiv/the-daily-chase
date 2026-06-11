@@ -62,6 +62,8 @@ export interface Travel {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
   notes?: string;
+  flightsBooked?: boolean;
+  lodgingBooked?: boolean;
   createdAt: string;
 }
 
