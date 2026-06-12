@@ -251,29 +251,41 @@ export default function TravelPage() {
 
 function HuggaSection() {
   const { data: trips, uid } = useCollection<HuggaTrip>("huggaTrips");
+  const today = todayStr();
   const emptyForm = { date: "", stayType: "day" as "day" | "overnight", notes: "" };
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const sorted = useMemo(
-    () => [...trips].sort((a, b) => b.date.localeCompare(a.date)),
-    [trips]
-  );
+  const { upcoming, past } = useMemo(() => {
+    const sorted = [...trips].sort((a, b) => b.date.localeCompare(a.date));
+    return {
+      upcoming: sorted.filter((t) => t.date > today).reverse(),
+      past: sorted.filter((t) => t.date <= today),
+    };
+  }, [trips, today]);
 
   const stats = useMemo(() => {
-    if (sorted.length === 0) return null;
+    if (past.length === 0) return null;
     const dayMs = 86_400_000;
     const asDay = (d: string) => new Date(d + "T00:00:00").getTime();
-    const daysSince = Math.round((Date.now() - asDay(sorted[0].date)) / dayMs);
+    const daysSince = Math.round((asDay(today) - asDay(past[0].date)) / dayMs);
     let avgGap: number | null = null;
-    if (sorted.length >= 2) {
-      const newest = asDay(sorted[0].date);
-      const oldest = asDay(sorted[sorted.length - 1].date);
-      avgGap = Math.round((newest - oldest) / dayMs / (sorted.length - 1));
+    if (past.length >= 2) {
+      const newest = asDay(past[0].date);
+      const oldest = asDay(past[past.length - 1].date);
+      avgGap = Math.round((newest - oldest) / dayMs / (past.length - 1));
     }
     return { daysSince: Math.max(0, daysSince), avgGap };
-  }, [sorted]);
+  }, [past, today]);
+
+  function daysUntil(date: string) {
+    const d = Math.round(
+      (new Date(date + "T00:00:00").getTime() - new Date(today + "T00:00:00").getTime()) /
+        86_400_000
+    );
+    return d <= 0 ? "Today" : `in ${d}d`;
+  }
 
   function closeForm() {
     setForm(emptyForm);
@@ -370,40 +382,84 @@ function HuggaSection() {
         </form>
       )}
 
-      {sorted.length === 0 && !showForm && (
+      {upcoming.length === 0 && past.length === 0 && !showForm && (
         <p className="card p-6 text-center text-sm text-muted">No Hugga visits yet.</p>
       )}
 
-      <div className="space-y-2">
-        {sorted.map((t) => (
-          <article key={t.id} className="card group p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold">{prettyDate(t.date)}</h3>
-                <span className="rounded-full bg-bg px-2 py-0.5 text-xs font-semibold text-muted">
-                  {t.stayType === "overnight" ? "Overnight" : "Day trip"}
-                </span>
-              </div>
-              <div className="flex gap-3 opacity-0 transition group-hover:opacity-100">
-                <button
-                  onClick={() => startEdit(t)}
-                  className="text-xs text-muted hover:text-ink"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => uid && deleteItem(uid, "huggaTrips", t.id)}
-                  className="text-xs text-muted hover:text-coral"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-            {t.notes && <p className="mt-1 whitespace-pre-wrap text-sm">{t.notes}</p>}
-          </article>
-        ))}
-      </div>
+      {upcoming.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">
+            Upcoming
+          </h3>
+          {upcoming.map((t) => (
+            <HuggaVisitCard
+              key={t.id}
+              trip={t}
+              badge={daysUntil(t.date)}
+              onEdit={() => startEdit(t)}
+              onDelete={() => uid && deleteItem(uid, "huggaTrips", t.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {past.length > 0 && (
+        <div className="space-y-2">
+          {upcoming.length > 0 && (
+            <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">
+              Past
+            </h3>
+          )}
+          {past.map((t) => (
+            <HuggaVisitCard
+              key={t.id}
+              trip={t}
+              onEdit={() => startEdit(t)}
+              onDelete={() => uid && deleteItem(uid, "huggaTrips", t.id)}
+            />
+          ))}
+        </div>
+      )}
     </section>
+  );
+}
+
+function HuggaVisitCard({
+  trip,
+  badge,
+  onEdit,
+  onDelete,
+}: {
+  trip: HuggaTrip;
+  badge?: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <article className="card group p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold">{prettyDate(trip.date)}</h3>
+          <span className="rounded-full bg-bg px-2 py-0.5 text-xs font-semibold text-muted">
+            {trip.stayType === "overnight" ? "Overnight" : "Day trip"}
+          </span>
+          {badge && (
+            <span className="rounded-full bg-indigo/10 px-2 py-0.5 text-xs font-semibold text-indigo">
+              {badge}
+            </span>
+          )}
+        </div>
+        <div className="flex gap-3 opacity-0 transition group-hover:opacity-100">
+          <button onClick={onEdit} className="text-xs text-muted hover:text-ink">
+            Edit
+          </button>
+          <button onClick={onDelete} className="text-xs text-muted hover:text-coral">
+            Delete
+          </button>
+        </div>
+      </div>
+      {trip.notes && <p className="mt-1 whitespace-pre-wrap text-sm">{trip.notes}</p>}
+    </article>
   );
 }
 
