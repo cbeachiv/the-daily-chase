@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem, setItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import type { MoodLog, Workout } from "@/lib/types";
+import type { CoffeeLog, MoodLog, Workout } from "@/lib/types";
 import { prettyDate, prettyTime, sleepHours, todayStr } from "@/lib/dates";
 import MoodChart from "@/components/charts/MoodChart";
 
 const EMPTY_FORM = {
   mood: 5,
   energy: 5,
-  caffeineCups: 0,
+  caffeineCups: 0, // only edited directly on old logs; new logs snapshot from coffeeLogs
   alcoholDrinks: 0,
   exercised: false,
   bedtime: "",
@@ -35,6 +35,17 @@ export default function MoodSection({ startDate }: { startDate: string | null })
   // collection, so logging it anywhere keeps everything in sync.
   const { data: workouts } = useCollection<Workout>("workouts");
   const exercisedToday = workouts.some((w) => w.date === today);
+  // Every "Log Coffee" tap is its own timestamped doc; the mood form just
+  // reads "how many so far today" from here instead of asking.
+  const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
+  const todaysCoffees = useMemo(
+    () =>
+      coffees
+        .filter((c) => c.date === today)
+        .sort((a, b) => a.loggedAt.localeCompare(b.loggedAt)),
+    [coffees, today]
+  );
+  const coffeeTimes = todaysCoffees.map((c) => prettyTime(c.loggedAt));
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -62,9 +73,13 @@ export default function MoodSection({ startDate }: { startDate: string | null })
 
   const latest = recent[0];
 
-  function contextSummary(f: typeof EMPTY_FORM, exercised: boolean) {
+  function contextSummary(f: typeof EMPTY_FORM, exercised: boolean, times?: string[]) {
     const parts: string[] = [];
-    if (f.caffeineCups) parts.push(`${f.caffeineCups} coffee${f.caffeineCups > 1 ? "s" : ""}`);
+    const cups = times ? times.length : f.caffeineCups;
+    if (cups)
+      parts.push(
+        `${cups} coffee${cups > 1 ? "s" : ""}${times?.length ? ` (at ${times.join(", ")})` : ""}`
+      );
     if (f.alcoholDrinks) parts.push(`${f.alcoholDrinks} drink${f.alcoholDrinks > 1 ? "s" : ""}`);
     if (exercised) parts.push("exercised");
     if (f.bedtime && f.wakeTime) {
@@ -78,7 +93,8 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     mood: number,
     energy: number,
     f: typeof EMPTY_FORM,
-    exercised: boolean
+    exercised: boolean,
+    times?: string[]
   ) {
     setAiLoading(true);
     setAiQuestion("");
@@ -114,7 +130,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           localTime,
           mood,
           energy,
-          context: contextSummary(f, exercised),
+          context: contextSummary(f, exercised, times),
           history,
         }),
       });
@@ -133,7 +149,19 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     setEditingId(null);
     setAiQuestion("");
     setShowForm(true);
-    fetchQuestion(EMPTY_FORM.mood, EMPTY_FORM.energy, EMPTY_FORM, exercisedToday);
+    fetchQuestion(EMPTY_FORM.mood, EMPTY_FORM.energy, EMPTY_FORM, exercisedToday, coffeeTimes);
+  }
+
+  // One tap = one timestamped coffee. Counts and mood snapshots derive from these.
+  async function logCoffee() {
+    if (!uid) return;
+    await addItem(uid, "coffeeLogs", { date: today, loggedAt: new Date().toISOString() });
+  }
+
+  async function undoCoffee() {
+    if (!uid) return;
+    const last = todaysCoffees[todaysCoffees.length - 1];
+    if (last) await deleteItem(uid, "coffeeLogs", last.id);
   }
 
   // Toggle today's shared workout (same source the main page / Exercise section use).
@@ -174,7 +202,9 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     const editable = {
       mood: form.mood,
       energy: form.energy,
-      caffeineCups: form.caffeineCups,
+      // New logs snapshot how many coffees were logged up to this moment;
+      // edits keep whatever the log was saved with.
+      caffeineCups: editingId ? form.caffeineCups : todaysCoffees.length,
       alcoholDrinks: form.alcoholDrinks,
       // New logs snapshot today's shared exercise status; edits keep their own.
       exercised: editingId ? form.exercised : exercisedToday,
@@ -206,10 +236,15 @@ export default function MoodSection({ startDate }: { startDate: string | null })
       const payload = [...logs]
         .sort((a, b) => b.loggedAt.localeCompare(a.loggedAt))
         .slice(0, 90);
+      // Individual coffee timestamps so Claude can correlate timing, not just counts.
+      const coffeePayload = [...coffees]
+        .sort((a, b) => b.loggedAt.localeCompare(a.loggedAt))
+        .slice(0, 200)
+        .map((c) => c.loggedAt);
       const res = await fetch("/api/ai/mood-insights", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ logs: payload }),
+        body: JSON.stringify({ logs: payload, coffeeTimes: coffeePayload }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
@@ -244,6 +279,13 @@ export default function MoodSection({ startDate }: { startDate: string | null })
             </span>
           )}
           <button
+            onClick={logCoffee}
+            className="btn-ghost px-3 py-1.5 text-xs"
+            title="Log a coffee right now"
+          >
+            ☕ {todaysCoffees.length > 0 ? todaysCoffees.length : "Log"}
+          </button>
+          <button
             onClick={() => (showForm ? closeForm() : openLog())}
             className="btn-primary px-3 py-1.5 text-xs"
           >
@@ -258,6 +300,19 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           </button>
         </div>
       </div>
+
+      {todaysCoffees.length > 0 && (
+        <p className="-mt-1 mb-3 text-xs text-muted">
+          ☕ Today: {coffeeTimes.join(" · ")}
+          <button
+            onClick={undoCoffee}
+            className="ml-2 font-semibold text-muted underline hover:text-coral"
+            title="Remove the last coffee"
+          >
+            undo
+          </button>
+        </p>
+      )}
 
       {showForm && (
         <form onSubmit={save} className="mb-4 space-y-4 rounded-lg border border-line bg-bg/50 p-4">
@@ -275,11 +330,25 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <PillGroup
-              label="☕ Coffees"
-              value={form.caffeineCups}
-              onChange={(v) => setForm({ ...form, caffeineCups: v })}
-            />
+            {editingId ? (
+              <PillGroup
+                label="☕ Coffees"
+                value={form.caffeineCups}
+                onChange={(v) => setForm({ ...form, caffeineCups: v })}
+              />
+            ) : (
+              <div>
+                <p className="mb-1 text-xs font-semibold text-muted">☕ Coffees so far</p>
+                {todaysCoffees.length > 0 ? (
+                  <p className="text-sm">
+                    <span className="font-semibold">{todaysCoffees.length}</span>{" "}
+                    <span className="text-muted">· {coffeeTimes.join(" · ")}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted">None yet — tap “☕ Log” when you have one.</p>
+                )}
+              </div>
+            )}
             <PillGroup
               label="🍷 Drinks Yesterday"
               value={form.alcoholDrinks}
@@ -344,7 +413,8 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                     form.mood,
                     form.energy,
                     form,
-                    editingId ? form.exercised : exercisedToday
+                    editingId ? form.exercised : exercisedToday,
+                    editingId ? undefined : coffeeTimes
                   )
                 }
                 className="text-xs text-muted hover:text-ink"

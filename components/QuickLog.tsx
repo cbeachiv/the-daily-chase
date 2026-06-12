@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { FoodEntry, WeightLog, Workout } from "@/lib/types";
+import type { CoffeeLog, FoodEntry, WeightLog, Workout } from "@/lib/types";
 import { todayStr } from "@/lib/dates";
 
 export default function QuickLog() {
@@ -10,6 +10,7 @@ export default function QuickLog() {
   const { data: workouts, uid } = useCollection<Workout>("workouts");
   const { data: weights } = useCollection<WeightLog>("weightLogs");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
+  const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
 
   const [open, setOpen] = useState<"weight" | "calories" | null>(null);
   const [val, setVal] = useState("");
@@ -20,6 +21,18 @@ export default function QuickLog() {
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
     [foods, today]
   );
+
+  const todayCoffees = useMemo(
+    () => coffees.filter((c) => c.date === today).length,
+    [coffees, today]
+  );
+
+  // One tap per coffee — each becomes a timestamped doc so mood logs and AI
+  // insights can correlate timing, not just counts.
+  async function logCoffee() {
+    if (!uid) return;
+    await addItem(uid, "coffeeLogs", { date: today, loggedAt: new Date().toISOString() });
+  }
 
   async function toggleExercise() {
     if (!uid) return;
@@ -50,7 +63,18 @@ export default function QuickLog() {
   return (
     <section>
       <h2 className="section-title mb-3">Quick log</h2>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <button
+          onClick={logCoffee}
+          className={`${tile} ${todayCoffees > 0 ? "border-amber bg-amber/10" : ""}`}
+          title="Log a coffee right now"
+        >
+          <span className="text-2xl">☕</span>
+          <span className="text-xs font-semibold">
+            {todayCoffees > 0 ? `${todayCoffees} today` : "Coffee"}
+          </span>
+        </button>
+
         <button
           onClick={toggleExercise}
           className={`${tile} ${todayWorkout ? "border-teal bg-teal/10" : ""}`}

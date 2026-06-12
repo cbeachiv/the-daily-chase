@@ -84,6 +84,15 @@ export interface CallLog {
   createdAt: string;
 }
 
+// One doc per coffee — created by tapping "Log Coffee" the moment it's drunk,
+// so coffee timing can be correlated against mood/energy.
+export interface CoffeeLog {
+  id: string;
+  date: string; // YYYY-MM-DD (for daily counts)
+  loggedAt: string; // ISO timestamp — when the coffee was logged
+  createdAt: string;
+}
+
 export interface MoodLog {
   id: string;
   date: string; // YYYY-MM-DD (for grouping/filtering)
@@ -91,7 +100,7 @@ export interface MoodLog {
   mood: number; // 1–10
   energy: number; // 1–10
   // structured context factors (all optional)
-  caffeineCups?: number; // # coffees so far today
+  caffeineCups?: number; // # coffees so far today — snapshotted from coffeeLogs at save time
   alcoholDrinks?: number; // # alcoholic drinks
   exercised?: boolean; // worked out today
   bedtime?: string; // "HH:MM" — time went to bed last night
