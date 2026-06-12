@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useCollection, addItem, updateItem } from "@/lib/data";
+import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import type { FoodEntry, WeightLog, Workout } from "@/lib/types";
 import { addDays, todayStr } from "@/lib/dates";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
+import MoodSection from "@/components/MoodSection";
 
 const RANGES: { label: string; days: number | null }[] = [
   { label: "1M", days: 30 },
@@ -21,7 +22,9 @@ export default function HealthPage() {
   const { data: workouts } = useCollection<Workout>("workouts");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const [weightInput, setWeightInput] = useState("");
-  const [range, setRange] = useState("1Y");
+  const [range, setRange] = useState("3M");
+  const [weightOpen, setWeightOpen] = useState(false);
+  const [caloriesOpen, setCaloriesOpen] = useState(false);
 
   const activeDays = RANGES.find((r) => r.label === range)?.days ?? null;
   const startDate = activeDays === null ? null : addDays(today, -activeDays);
@@ -40,7 +43,8 @@ export default function HealthPage() {
   const prev = sortedWeights[sortedWeights.length - 2];
   const delta = latest && prev ? latest.weightLbs - prev.weightLbs : null;
 
-  // Last 7 days of exercise.
+  // Last 7 days of exercise; today is tappable and stays in sync with the
+  // home-page Quick log tile (same workouts collection).
   const last7 = useMemo(() => {
     const days: string[] = [];
     for (let i = 6; i >= 0; i--) days.push(addDays(today, -i));
@@ -50,6 +54,18 @@ export default function HealthPage() {
     () => workouts.filter((w) => w.date.slice(0, 7) === today.slice(0, 7)).length,
     [workouts, today]
   );
+
+  const todayCalories = useMemo(
+    () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
+    [foods, today]
+  );
+
+  async function toggleTodayWorkout() {
+    if (!uid) return;
+    const todayWorkout = workouts.find((w) => w.date === today);
+    if (todayWorkout) await deleteItem(uid, "workouts", todayWorkout.id);
+    else await addItem(uid, "workouts", { date: today, type: "Exercise" });
+  }
 
   async function saveWeight(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +82,7 @@ export default function HealthPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Health</h1>
-          <p className="text-sm text-muted">Weight, exercise, and calories over time.</p>
+          <p className="text-sm text-muted">Exercise, mood, weight, and calories.</p>
         </div>
         <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
           {RANGES.map((r) => (
@@ -83,68 +99,131 @@ export default function HealthPage() {
         </div>
       </header>
 
-      {/* Weight */}
+      {/* Exercise + Mood, side by side */}
+      <div className="grid items-start gap-3 sm:grid-cols-2 sm:gap-4">
+        <section className="card p-4 sm:p-5">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="section-title">Exercise</h2>
+            <span className="text-xs text-muted">{monthCount} this month</span>
+          </div>
+          <div className="flex justify-between gap-0.5">
+            {last7.map((d, i) => {
+              const isToday = i === last7.length - 1;
+              const circle = `flex h-7 w-7 items-center justify-center rounded-full text-xs transition ${
+                d.did ? "bg-teal text-white" : "bg-bg text-line"
+              }`;
+              return (
+                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                  {isToday ? (
+                    <button
+                      onClick={toggleTodayWorkout}
+                      className={`${circle} ring-2 ring-teal/40 ring-offset-1 ring-offset-card active:scale-95 ${
+                        d.did ? "" : "hover:bg-teal/15 hover:text-teal"
+                      }`}
+                      title={d.did ? "Tap to undo today's exercise" : "Tap to log exercise today"}
+                    >
+                      {d.did ? "✓" : "+"}
+                    </button>
+                  ) : (
+                    <div className={circle}>{d.did ? "✓" : "·"}</div>
+                  )}
+                  <span
+                    className={`text-[10px] ${isToday ? "font-bold text-ink" : "text-muted"}`}
+                  >
+                    {new Date(d.date + "T00:00:00").toLocaleDateString("en-US", {
+                      weekday: "narrow",
+                    })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <MoodSection startDate={startDate} />
+      </div>
+
+      {/* Weight — compact, expandable */}
       <section className="card p-4 sm:p-5">
-        <div className="mb-3 flex items-baseline justify-between">
+        <button
+          onClick={() => setWeightOpen((o) => !o)}
+          className="flex w-full items-center justify-between"
+        >
           <h2 className="section-title">Weight</h2>
-          {latest && (
-            <span className="text-sm text-muted">
-              {latest.weightLbs} lb
-              {delta !== null && (
-                <span className={delta <= 0 ? "text-teal" : "text-coral"}>
-                  {" "}
-                  {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}
-                </span>
-              )}
-            </span>
-          )}
+          <span className="flex items-center gap-2 text-sm text-muted">
+            {latest && (
+              <>
+                {latest.weightLbs} lb
+                {delta !== null && (
+                  <span className={delta <= 0 ? "text-teal" : "text-coral"}>
+                    {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}
+                  </span>
+                )}
+              </>
+            )}
+            <Chevron open={weightOpen} />
+          </span>
+        </button>
+        <div className="mt-3">
+          <WeightChart logs={weightsInRange} aspect={weightOpen ? 2 : 4.5} />
         </div>
-        <WeightChart logs={weightsInRange} />
-        <form onSubmit={saveWeight} className="mt-3 flex gap-2">
-          <input
-            type="number"
-            inputMode="decimal"
-            step="any"
-            className="input"
-            placeholder="Log today's weight (lb)"
-            value={weightInput}
-            onChange={(e) => setWeightInput(e.target.value)}
+        {weightOpen && (
+          <form onSubmit={saveWeight} className="mt-3 flex gap-2">
+            <input
+              type="number"
+              inputMode="decimal"
+              step="any"
+              className="input"
+              placeholder="Log today's weight (lb)"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+            />
+            <button type="submit" className="btn-primary shrink-0">
+              Save
+            </button>
+          </form>
+        )}
+      </section>
+
+      {/* Calories — compact, expandable */}
+      <section className="card p-4 sm:p-5">
+        <button
+          onClick={() => setCaloriesOpen((o) => !o)}
+          className="flex w-full items-center justify-between"
+        >
+          <h2 className="section-title">Calories</h2>
+          <span className="flex items-center gap-2 text-sm text-muted">
+            {todayCalories > 0 && <>{todayCalories.toLocaleString()} today</>}
+            <Chevron open={caloriesOpen} />
+          </span>
+        </button>
+        <div className="mt-3">
+          <CaloriesChart
+            entries={foods}
+            startDate={startDate}
+            granularity={granularity}
+            aspect={caloriesOpen ? 2 : 4.5}
           />
-          <button type="submit" className="btn-primary shrink-0">
-            Save
-          </button>
-        </form>
-      </section>
-
-      {/* Exercise */}
-      <section className="card p-4 sm:p-5">
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="section-title">Exercise</h2>
-          <span className="text-sm text-muted">{monthCount} this month</span>
         </div>
-        <div className="flex justify-between gap-1">
-          {last7.map((d) => (
-            <div key={d.date} className="flex flex-1 flex-col items-center gap-1.5">
-              <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full text-sm ${
-                  d.did ? "bg-teal text-white" : "bg-bg text-line"
-                }`}
-              >
-                {d.did ? "✓" : "·"}
-              </div>
-              <span className="text-[10px] text-muted">
-                {new Date(d.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "narrow" })}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Calories */}
-      <section className="card p-4 sm:p-5">
-        <h2 className="section-title mb-3">Calories</h2>
-        <CaloriesChart entries={foods} startDate={startDate} granularity={granularity} />
       </section>
     </div>
+  );
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
   );
 }

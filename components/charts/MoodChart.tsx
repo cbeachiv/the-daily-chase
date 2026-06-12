@@ -5,12 +5,18 @@ import { Line } from "react-chartjs-2";
 import type { MoodLog } from "@/lib/types";
 import { prettyDate, prettyTime } from "@/lib/dates";
 
-export default function MoodChart({ logs }: { logs: MoodLog[] }) {
+export default function MoodChart({
+  logs,
+  compact = false,
+}: {
+  logs: MoodLog[];
+  compact?: boolean;
+}) {
   const sorted = [...logs].sort((a, b) => a.loggedAt.localeCompare(b.loggedAt));
 
   if (sorted.length < 2) {
     return (
-      <p className="py-8 text-center text-sm text-muted">
+      <p className={`text-center text-sm text-muted ${compact ? "py-4" : "py-8"}`}>
         Log a couple of times to see your mood and energy trend.
       </p>
     );
@@ -48,10 +54,12 @@ export default function MoodChart({ logs }: { logs: MoodLog[] }) {
       options={{
         responsive: true,
         maintainAspectRatio: true,
-        aspectRatio: 2,
+        aspectRatio: compact ? 2.4 : 2,
         interaction: { mode: "index", intersect: false },
         plugins: {
-          legend: { display: true, labels: { color: "#64748b", boxWidth: 12 } },
+          legend: compact
+            ? { display: false }
+            : { display: true, labels: { color: "#64748b", boxWidth: 12 } },
           tooltip: {
             callbacks: {
               title: (items) => {
@@ -64,10 +72,13 @@ export default function MoodChart({ logs }: { logs: MoodLog[] }) {
           },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { maxTicksLimit: 6, color: "#64748b" } },
+          x: {
+            grid: { display: false },
+            ticks: { maxTicksLimit: 6, color: "#64748b", display: !compact },
+          },
           y: {
             grid: { color: "#f0e6db" },
-            ticks: { color: "#64748b", stepSize: 2 },
+            ticks: { color: "#64748b", stepSize: compact ? 5 : 2 },
             border: { display: false },
             min: 0,
             max: 10,

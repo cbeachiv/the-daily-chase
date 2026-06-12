@@ -75,6 +75,15 @@ export interface HuggaTrip {
   createdAt: string;
 }
 
+export interface CallLog {
+  id: string;
+  date: string; // YYYY-MM-DD — backdatable
+  time: string; // "HH:MM"
+  person: string; // who the call was with
+  notes?: string;
+  createdAt: string;
+}
+
 export interface MoodLog {
   id: string;
   date: string; // YYYY-MM-DD (for grouping/filtering)

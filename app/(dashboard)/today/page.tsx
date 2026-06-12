@@ -8,6 +8,7 @@ import type { Goal } from "@/lib/types";
 import TaskList from "@/components/TaskList";
 import QuickLog from "@/components/QuickLog";
 import QuoteOfDay from "@/components/QuoteOfDay";
+import CallsSection from "@/components/CallsSection";
 import { prettyDateLong, startOfMonth, startOfWeek, todayStr } from "@/lib/dates";
 
 export default function TodayPage() {
@@ -39,6 +40,7 @@ export default function TodayPage() {
       <QuoteOfDay />
       <QuickLog />
       <TaskList />
+      <CallsSection />
 
       <section className="card p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between">

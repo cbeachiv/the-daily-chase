@@ -5,9 +5,16 @@ import { Line } from "react-chartjs-2";
 import type { WeightLog } from "@/lib/types";
 import { prettyDate } from "@/lib/dates";
 
-export default function WeightChart({ logs }: { logs: WeightLog[] }) {
+export default function WeightChart({
+  logs,
+  aspect = 2,
+}: {
+  logs: WeightLog[];
+  aspect?: number; // higher = shorter chart (compact mode)
+}) {
   // Caller filters to the selected range; render the whole window.
   const sorted = [...logs].sort((a, b) => a.date.localeCompare(b.date));
+  const compact = aspect > 2.5;
 
   if (sorted.length < 2) {
     return (
@@ -37,13 +44,16 @@ export default function WeightChart({ logs }: { logs: WeightLog[] }) {
       options={{
         responsive: true,
         maintainAspectRatio: true,
-        aspectRatio: 2,
+        aspectRatio: aspect,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { maxTicksLimit: 6, color: "#64748b" } },
+          x: {
+            grid: { display: false },
+            ticks: { maxTicksLimit: compact ? 4 : 6, color: "#64748b", display: !compact },
+          },
           y: {
             grid: { color: "#f0e6db" },
-            ticks: { color: "#64748b" },
+            ticks: { color: "#64748b", maxTicksLimit: compact ? 3 : undefined },
             border: { display: false },
           },
         },

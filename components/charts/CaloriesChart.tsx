@@ -13,12 +13,15 @@ export default function CaloriesChart({
   entries,
   startDate,
   granularity,
+  aspect = 2,
 }: {
   entries: FoodEntry[];
   startDate: string | null; // YYYY-MM-DD, or null for all-time
   granularity: "day" | "week";
+  aspect?: number; // higher = shorter chart (compact mode)
 }) {
   const inRange = entries.filter((e) => !startDate || e.date >= startDate);
+  const compact = aspect > 2.5;
 
   // Group either by day (daily total) or by week (average daily calories).
   const bucketTotals = new Map<string, number>();
@@ -65,7 +68,7 @@ export default function CaloriesChart({
         options={{
           responsive: true,
           maintainAspectRatio: true,
-          aspectRatio: 2,
+          aspectRatio: aspect,
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -79,17 +82,20 @@ export default function CaloriesChart({
             },
           },
           scales: {
-            x: { grid: { display: false }, ticks: { maxTicksLimit: 8, color: "#64748b" } },
+            x: {
+              grid: { display: false },
+              ticks: { maxTicksLimit: compact ? 4 : 8, color: "#64748b", display: !compact },
+            },
             y: {
               grid: { color: "#f0e6db" },
-              ticks: { color: "#64748b" },
+              ticks: { color: "#64748b", maxTicksLimit: compact ? 3 : undefined },
               border: { display: false },
               beginAtZero: true,
             },
           },
         }}
       />
-      {granularity === "week" && (
+      {granularity === "week" && !compact && (
         <p className="mt-2 text-center text-xs text-muted">Weekly average daily calories</p>
       )}
     </>
