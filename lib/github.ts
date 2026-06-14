@@ -193,3 +193,42 @@ export async function weeklyAdditions(
     lines: v.lines,
   }));
 }
+
+/**
+ * Total lines added to a repo's default branch within [sinceISO, untilISO),
+ * summed from per-commit additions (merge commits skipped). Lets callers pick an
+ * exact day range (e.g. a Monday–Sunday week) instead of GitHub's Sunday buckets.
+ */
+export async function additionsInRange(
+  owner: string,
+  name: string,
+  sinceISO: string,
+  untilISO: string,
+  token: string
+): Promise<number> {
+  let total = 0;
+  let cursor: string | null = null;
+
+  for (let page = 0; page < 20; page++) {
+    const res = await fetch(`${API}/graphql`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query: GQL, variables: { owner, name, since: sinceISO, cursor } }),
+    });
+    if (!res.ok) break;
+    const json = (await res.json()) as GqlResponse;
+    const history = json.data?.repository?.defaultBranchRef?.target?.history;
+    if (!history) break;
+
+    for (const c of history.nodes) {
+      if (c.parents.totalCount > 1 || c.additions <= 0) continue; // skip merges
+      if (c.committedDate >= untilISO) continue; // outside upper bound
+      total += c.additions;
+    }
+
+    if (!history.pageInfo.hasNextPage) break;
+    cursor = history.pageInfo.endCursor;
+  }
+
+  return total;
+}
