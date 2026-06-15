@@ -22,6 +22,7 @@ export interface CardioLog {
   pace?: string; // "MM:SS" per mile
   // other
   activity?: string; // e.g. "Pickleball", "Tennis"
+  notes?: string; // free-text notes (used for "other" activities)
   createdAt: string;
 }
 

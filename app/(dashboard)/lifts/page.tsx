@@ -145,6 +145,7 @@ function CardioRow({ c, onDelete }: { c: CardioLog; onDelete?: () => void }) {
           </span>
         </div>
         <p className="truncate text-sm text-muted">{parts.join(" · ")}</p>
+        {c.notes && <p className="mt-0.5 text-sm text-muted/80">{c.notes}</p>}
       </div>
       {onDelete && (
         <button onClick={onDelete} className="shrink-0 text-xs font-medium text-muted hover:text-coral">

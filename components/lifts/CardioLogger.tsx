@@ -27,6 +27,7 @@ export default function CardioLogger() {
   const [speed, setSpeed] = useState(""); // mph
   const [pace, setPace] = useState(""); // "MM:SS" /mi
   const [activity, setActivity] = useState(""); // other
+  const [notes, setNotes] = useState(""); // other — free-text
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -57,6 +58,7 @@ export default function CardioLogger() {
       payload.pace = pace.trim();
     } else {
       payload.activity = activity.trim();
+      if (notes.trim()) payload.notes = notes.trim();
     }
 
     setSaving(true);
@@ -120,6 +122,18 @@ export default function CardioLogger() {
         {kind === "outdoor" && (
           <Field label="Pace (/mi)" hint="minutes:seconds per mile">
             <input inputMode="numeric" placeholder="8:30" value={pace} onChange={(e) => setPace(e.target.value)} className="input" />
+          </Field>
+        )}
+
+        {kind === "other" && (
+          <Field label="Notes" hint="optional">
+            <textarea
+              rows={3}
+              placeholder="How it went, who you played with, anything worth remembering…"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="input"
+            />
           </Field>
         )}
 
