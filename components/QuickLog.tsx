@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { CoffeeLog, FoodEntry, WeightLog, Workout } from "@/lib/types";
+import type { CoffeeLog, FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
 import { todayStr } from "@/lib/dates";
 
 export default function QuickLog() {
@@ -11,11 +11,13 @@ export default function QuickLog() {
   const { data: weights } = useCollection<WeightLog>("weightLogs");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
+  const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
 
   const [open, setOpen] = useState<"weight" | "calories" | null>(null);
   const [val, setVal] = useState("");
 
   const todayWorkout = useMemo(() => workouts.find((w) => w.date === today), [workouts, today]);
+  const todayWakeup = useMemo(() => wakeups.find((w) => w.date === today), [wakeups, today]);
   const todayWeight = useMemo(() => weights.find((w) => w.date === today), [weights, today]);
   const todayCalories = useMemo(
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
@@ -32,6 +34,12 @@ export default function QuickLog() {
   async function logCoffee() {
     if (!uid) return;
     await addItem(uid, "coffeeLogs", { date: today, loggedAt: new Date().toISOString() });
+  }
+
+  async function toggleWakeup() {
+    if (!uid) return;
+    if (todayWakeup) await deleteItem(uid, "wakeupLogs", todayWakeup.id);
+    else await addItem(uid, "wakeupLogs", { date: today, loggedAt: new Date().toISOString() });
   }
 
   async function toggleExercise() {
@@ -63,7 +71,18 @@ export default function QuickLog() {
   return (
     <section>
       <h2 className="section-title mb-3">Quick log</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <button
+          onClick={toggleWakeup}
+          className={`${tile} ${todayWakeup ? "border-amber bg-amber/10" : ""}`}
+          title={todayWakeup ? "Tap to undo today's 5am wakeup" : "Got up at 5am? Tap to log it"}
+        >
+          <span className="text-2xl">{todayWakeup ? "🌅" : "⏰"}</span>
+          <span className="text-xs font-semibold">
+            {todayWakeup ? "Up at 5am" : "5am Wakeup"}
+          </span>
+        </button>
+
         <button
           onClick={logCoffee}
           className={`${tile} ${todayCoffees > 0 ? "border-amber bg-amber/10" : ""}`}

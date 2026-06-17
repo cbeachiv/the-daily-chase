@@ -41,6 +41,15 @@ export interface Workout {
   createdAt: string;
 }
 
+// One doc per day you got up at 5am — presence = success, absence = didn't.
+// Mirrors the Workout boolean-by-presence pattern so streaks/counts are easy.
+export interface WakeupLog {
+  id: string;
+  date: string; // YYYY-MM-DD
+  loggedAt: string; // ISO timestamp — when it was logged
+  createdAt: string;
+}
+
 export interface WeightLog {
   id: string;
   date: string; // YYYY-MM-DD (one per day)

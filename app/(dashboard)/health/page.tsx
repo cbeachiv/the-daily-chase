@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { FoodEntry, WeightLog, Workout } from "@/lib/types";
+import type { FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
 import { addDays, todayStr } from "@/lib/dates";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
@@ -21,6 +21,7 @@ export default function HealthPage() {
   const { data: weights, uid } = useCollection<WeightLog>("weightLogs");
   const { data: workouts } = useCollection<Workout>("workouts");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
+  const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
   const [weightInput, setWeightInput] = useState("");
   const [range, setRange] = useState("3M");
   const [weightOpen, setWeightOpen] = useState(false);
@@ -55,6 +56,28 @@ export default function HealthPage() {
     [workouts, today]
   );
 
+  // 5am wakeups — same boolean-by-presence pattern as exercise.
+  const wakeup7 = useMemo(() => {
+    const days: string[] = [];
+    for (let i = 6; i >= 0; i--) days.push(addDays(today, -i));
+    return days.map((d) => ({ date: d, did: wakeups.some((w) => w.date === d) }));
+  }, [wakeups, today]);
+  const wakeupMonthCount = useMemo(
+    () => wakeups.filter((w) => w.date.slice(0, 7) === today.slice(0, 7)).length,
+    [wakeups, today]
+  );
+  // Consecutive-day streak. If today isn't logged yet, count from yesterday so
+  // the streak holds through the day until you log (or miss) it.
+  const wakeupStreak = useMemo(() => {
+    let count = 0;
+    const start = wakeups.some((w) => w.date === today) ? 0 : 1;
+    for (let i = start; i < 366; i++) {
+      if (wakeups.some((w) => w.date === addDays(today, -i))) count++;
+      else break;
+    }
+    return count;
+  }, [wakeups, today]);
+
   const todayCalories = useMemo(
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
     [foods, today]
@@ -65,6 +88,13 @@ export default function HealthPage() {
     const todayWorkout = workouts.find((w) => w.date === today);
     if (todayWorkout) await deleteItem(uid, "workouts", todayWorkout.id);
     else await addItem(uid, "workouts", { date: today, type: "Exercise" });
+  }
+
+  async function toggleTodayWakeup() {
+    if (!uid) return;
+    const todayWakeup = wakeups.find((w) => w.date === today);
+    if (todayWakeup) await deleteItem(uid, "wakeupLogs", todayWakeup.id);
+    else await addItem(uid, "wakeupLogs", { date: today, loggedAt: new Date().toISOString() });
   }
 
   async function saveWeight(e: React.FormEvent) {
@@ -82,7 +112,7 @@ export default function HealthPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Health</h1>
-          <p className="text-sm text-muted">Exercise, mood, weight, and calories.</p>
+          <p className="text-sm text-muted">Wakeups, exercise, mood, weight, and calories.</p>
         </div>
         <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
           {RANGES.map((r) => (
@@ -99,8 +129,51 @@ export default function HealthPage() {
         </div>
       </header>
 
-      {/* Exercise + Mood, side by side */}
+      {/* 5am wakeup + exercise, side by side */}
       <div className="grid items-start gap-3 sm:grid-cols-2 sm:gap-4">
+        <section className="card p-4 sm:p-5">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="section-title">5am Wakeup</h2>
+            <span className="text-xs text-muted">
+              {wakeupStreak > 0 && <span className="font-semibold text-amber">🔥 {wakeupStreak} day{wakeupStreak === 1 ? "" : "s"}</span>}
+              {wakeupStreak > 0 && " · "}
+              {wakeupMonthCount} this month
+            </span>
+          </div>
+          <div className="flex justify-between gap-0.5">
+            {wakeup7.map((d, i) => {
+              const isToday = i === wakeup7.length - 1;
+              const circle = `flex h-7 w-7 items-center justify-center rounded-full text-xs transition ${
+                d.did ? "bg-amber text-white" : "bg-bg text-line"
+              }`;
+              return (
+                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                  {isToday ? (
+                    <button
+                      onClick={toggleTodayWakeup}
+                      className={`${circle} ring-2 ring-amber/40 ring-offset-1 ring-offset-card active:scale-95 ${
+                        d.did ? "" : "hover:bg-amber/15 hover:text-amber"
+                      }`}
+                      title={d.did ? "Tap to undo today's 5am wakeup" : "Got up at 5am? Tap to log it"}
+                    >
+                      {d.did ? "✓" : "+"}
+                    </button>
+                  ) : (
+                    <div className={circle}>{d.did ? "✓" : "·"}</div>
+                  )}
+                  <span
+                    className={`text-[10px] ${isToday ? "font-bold text-ink" : "text-muted"}`}
+                  >
+                    {new Date(d.date + "T00:00:00").toLocaleDateString("en-US", {
+                      weekday: "narrow",
+                    })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="card p-4 sm:p-5">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="section-title">Exercise</h2>
@@ -139,9 +212,9 @@ export default function HealthPage() {
             })}
           </div>
         </section>
-
-        <MoodSection startDate={startDate} />
       </div>
+
+      <MoodSection startDate={startDate} />
 
       {/* Weight — compact, expandable */}
       <section className="card p-4 sm:p-5">
