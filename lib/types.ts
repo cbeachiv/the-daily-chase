@@ -1,11 +1,16 @@
 // Shared Firestore document shapes. All live under users/{uid}/<collection>.
 
+// Which area of life a to-do belongs to. Used to split the weekly review's
+// completed to-dos; untagged tasks are AI-classified at email-build time.
+export type TaskCategory = "hugga" | "personal";
+
 export interface Task {
   id: string;
   title: string;
   notes?: string;
   dueDate: string; // YYYY-MM-DD — the day it's assigned to
   completedAt: string | null; // ISO timestamp when completed, else null
+  category?: TaskCategory; // "hugga" (work) vs "personal"; undefined = untagged
   sortOrder: number;
   carriedCount: number; // how many days it has rolled over unfinished
   createdAt: string;
@@ -37,6 +42,35 @@ export interface DailyReview {
   monthGoalsTotal: number;
   status: "pending" | "done"; // pending = email sent, awaiting reflection
   loggedAt: string | null; // ISO timestamp when the reflection was submitted
+  createdAt: string;
+}
+
+// Weekly counterpart to DailyReview (doc id = weekEnding Saturday). The Saturday
+// 5am email pre-creates this with the week's snapshot + a tailored question; the
+// /weekly-review page fills in the free-text reflection (incl. family prompts).
+export interface WeeklyReview {
+  id: string; // = weekEnding "YYYY-MM-DD" (one per week)
+  weekEnding: string; // Saturday that closes the Monday-based week
+  // free-text reflection answers
+  weekHighlights: string; // how the week went
+  goalsReflection: string; // feelings toward weekly/monthly goals
+  trainingReflection: string; // how lifts/cardio went
+  moodReflection: string; // how mood/energy actually felt
+  sarahAnnieAttention: string; // attention given to Sarah & Annie
+  annieNoticed: string; // anything noticed with Annie
+  familyFriends: string; // parents, friends to reach out to
+  aiQuestion: string; // tailored weekly follow-up (set by the cron)
+  aiAnswer: string;
+  // snapshot of the week (set by the cron, like DailyReview)
+  tasksDoneCount: number;
+  weekGoalsDone: number;
+  weekGoalsTotal: number;
+  monthGoalsDone: number;
+  monthGoalsTotal: number;
+  daysReflected: number; // # daily reviews completed this week
+  productiveDays: number; // # of those marked productive
+  status: "pending" | "done";
+  loggedAt: string | null;
   createdAt: string;
 }
 

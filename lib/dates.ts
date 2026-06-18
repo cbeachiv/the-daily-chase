@@ -27,6 +27,11 @@ export function startOfMonth(dateStr: string = todayStr()): string {
   return dateStr.slice(0, 7) + "-01";
 }
 
+// Saturday that closes the Monday-based week containing `dateStr`.
+export function weekEndingSaturday(dateStr: string = todayStr()): string {
+  return addDays(startOfWeek(dateStr), 5);
+}
+
 // "2026-06-05" -> "6/5/26"
 export function shortDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number);

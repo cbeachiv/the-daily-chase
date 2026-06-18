@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
 import { verifyUser } from "@/lib/verifyUser";
 import { adminDb } from "@/lib/firebase/admin";
-import type { AboutProfile, DailyReview } from "@/lib/types";
+import type { AboutProfile, DailyReview, WeeklyReview } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -14,9 +14,10 @@ export async function POST(req: Request) {
   if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Read everything server-side from the user's own data — don't trust the client.
-  const [profileSnap, reviewsSnap] = await Promise.all([
+  const [profileSnap, reviewsSnap, weeklySnap] = await Promise.all([
     adminDb().doc(`users/${uid}/aboutProfile/latest`).get(),
     adminDb().collection(`users/${uid}/dailyReviews`).get(),
+    adminDb().collection(`users/${uid}/weeklyReviews`).get(),
   ]);
 
   const prior = profileSnap.exists ? (profileSnap.data() as AboutProfile) : null;
@@ -27,7 +28,15 @@ export async function POST(req: Request) {
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, RECENT_LIMIT);
 
-  if (reviews.length === 0) {
+  // Weekly reflections carry signal the daily ones don't (relationships, goals,
+  // training/mood self-assessment), so fold the recent ones in too.
+  const weeklies = weeklySnap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as WeeklyReview)
+    .filter((r) => r.status === "done")
+    .sort((a, b) => b.weekEnding.localeCompare(a.weekEnding))
+    .slice(0, RECENT_LIMIT);
+
+  if (reviews.length === 0 && weeklies.length === 0) {
     return NextResponse.json({ error: "No completed reflections yet." }, { status: 400 });
   }
 
@@ -46,6 +55,23 @@ export async function POST(req: Request) {
       tasksDone: r.completedTaskTitles?.length ?? 0,
     }));
 
+  // Compact each weekly reflection — relationships, goals, training/mood self-assessment.
+  const compactWeekly = weeklies
+    .slice()
+    .sort((a, b) => a.weekEnding.localeCompare(b.weekEnding))
+    .map((r) => ({
+      weekEnding: r.weekEnding,
+      howItWent: r.weekHighlights || undefined,
+      goals: r.goalsReflection || undefined,
+      training: r.trainingReflection || undefined,
+      mood: r.moodReflection || undefined,
+      sarahAnnie: r.sarahAnnieAttention || undefined,
+      annie: r.annieNoticed || undefined,
+      familyFriends: r.familyFriends || undefined,
+      q: r.aiQuestion || undefined,
+      a: r.aiAnswer || undefined,
+    }));
+
   const prompt = [
     "You maintain an evolving profile of Chase that helps an AID coach understand how he works — what makes him productive, what drains him, his motivators, blockers, and recurring lessons.",
     prior
@@ -55,12 +81,21 @@ export async function POST(req: Request) {
           2,
         )}`
       : "There is no profile yet — build the first one from the reflections below.",
-    `Here are Chase's recent daily reflections (oldest first). Each has the date, whether he found the day productive, an optional 1–5 score, what made it productive or not, what he learned, and a tailored question (q) with his answer (a):\n${JSON.stringify(
-      compact,
-    )}`,
-    "Look for patterns across days: conditions that correlate with productive vs unproductive days, what energizes vs drains him, how he talks about his work, and recurring lessons. Be concrete and grounded in what he actually wrote; do not invent traits that aren't supported.",
+    compact.length
+      ? `Here are Chase's recent daily reflections (oldest first). Each has the date, whether he found the day productive, an optional 1–5 score, what made it productive or not, what he learned, and a tailored question (q) with his answer (a):\n${JSON.stringify(
+          compact,
+        )}`
+      : "",
+    compactWeekly.length
+      ? `Here are Chase's recent WEEKLY reflections (oldest first). These go deeper — how the week went, his feelings toward his goals, his own read on training and mood, and his relationships (sarahAnnie = whether he's giving his wife Sarah and daughter Annie his full attention; annie = things he noticed with Annie; familyFriends = parents/friends). Weigh these heavily for what matters to him beyond work:\n${JSON.stringify(
+          compactWeekly,
+        )}`
+      : "",
+    "Look for patterns across days and weeks: conditions that correlate with productive vs unproductive days, what energizes vs drains him, how he talks about his work and his family, and recurring lessons. Be concrete and grounded in what he actually wrote; do not invent traits that aren't supported.",
     'Respond with ONLY valid JSON of the form {"summary": string, "traits": string[]} — "summary" is a short evolving narrative (3–5 sentences) of who Chase is and how he works best; "traits" is 3–7 concise observation bullets. No markdown, no prose outside the JSON.',
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   try {
     const msg = await anthropic().messages.create({
@@ -87,7 +122,7 @@ export async function POST(req: Request) {
           summary,
           traits,
           updatedAt: new Date().toISOString(),
-          reviewsSeen: reviews.length,
+          reviewsSeen: reviews.length + weeklies.length,
         },
         { merge: true },
       );
