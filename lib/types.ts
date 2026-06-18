@@ -19,6 +19,37 @@ export interface Quote {
   createdAt: string;
 }
 
+// One doc per day, id = the date. Pre-created by the 4:30pm daily-review cron
+// (status:"pending") and filled in when Chase does the reflection on /review.
+export interface DailyReview {
+  id: string; // = date, "YYYY-MM-DD" (one per day)
+  date: string; // YYYY-MM-DD
+  productive: boolean | null; // "was today productive?" — null until answered
+  productivityScore?: number; // optional 1–5 for trend data
+  whatMadeIt: string; // what made it productive / not
+  learned: string; // what you learned today
+  aiQuestion: string; // the tailored follow-up shown that day (set by the cron)
+  aiAnswer: string; // free-text reply to the AI follow-up
+  completedTaskTitles: string[]; // snapshot of to-dos done that day
+  weekGoalsDone: number;
+  weekGoalsTotal: number;
+  monthGoalsDone: number;
+  monthGoalsTotal: number;
+  status: "pending" | "done"; // pending = email sent, awaiting reflection
+  loggedAt: string | null; // ISO timestamp when the reflection was submitted
+  createdAt: string;
+}
+
+// Evolving "About Chase" profile (doc id "latest"). Refined by Claude each time a
+// daily reflection is submitted; feeds back into the next day's tailored question.
+export interface AboutProfile {
+  id: string;
+  summary: string; // evolving narrative of who Chase is / how he works
+  traits: string[]; // bullet observations (work style, motivators, blockers)
+  updatedAt: string;
+  reviewsSeen: number; // how many reflections have shaped this profile
+}
+
 export type GoalPeriod = "week" | "month";
 
 export interface Goal {

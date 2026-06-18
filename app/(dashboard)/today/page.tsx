@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { useCollection } from "@/lib/data";
-import type { Goal } from "@/lib/types";
+import type { Goal, DailyReview } from "@/lib/types";
 import TaskList from "@/components/TaskList";
 import QuickLog from "@/components/QuickLog";
 import QuoteOfDay from "@/components/QuoteOfDay";
@@ -14,8 +14,12 @@ import { prettyDateLong, startOfMonth, startOfWeek, todayStr } from "@/lib/dates
 export default function TodayPage() {
   const { user } = useAuth();
   const { data: goals } = useCollection<Goal>("goals");
+  const { data: reviews } = useCollection<DailyReview>("dailyReviews");
   const week = startOfWeek();
   const month = startOfMonth();
+
+  // The 4:30pm cron pre-creates today's review as "pending"; nudge until it's done.
+  const reviewPending = reviews.some((r) => r.id === todayStr() && r.status === "pending");
 
   const { weekGoals, monthGoals } = useMemo(() => {
     return {
@@ -36,6 +40,19 @@ export default function TodayPage() {
         </h1>
         <p className="text-sm text-muted">{prettyDateLong(todayStr())}</p>
       </header>
+
+      {reviewPending && (
+        <Link
+          href="/review"
+          className="card flex items-center justify-between gap-3 border-l-4 border-l-indigo p-4 transition hover:shadow-card sm:p-5"
+        >
+          <div>
+            <p className="text-sm font-semibold text-ink">How did today go?</p>
+            <p className="text-xs text-muted">2 minutes to close out the day and reflect.</p>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-indigo">Reflect →</span>
+        </Link>
+      )}
 
       <QuoteOfDay />
       <QuickLog />

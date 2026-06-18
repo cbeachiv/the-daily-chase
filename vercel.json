@@ -11,6 +11,14 @@
     {
       "path": "/api/cron/stay-hard",
       "schedule": "15 20 * * *"
+    },
+    {
+      "path": "/api/cron/daily-review",
+      "schedule": "30 20 * * *"
+    },
+    {
+      "path": "/api/cron/daily-review",
+      "schedule": "30 21 * * *"
     }
   ]
 }
