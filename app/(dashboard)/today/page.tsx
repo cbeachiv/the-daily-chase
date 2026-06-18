@@ -41,19 +41,6 @@ export default function TodayPage() {
         <p className="text-sm text-muted">{prettyDateLong(todayStr())}</p>
       </header>
 
-      {reviewPending && (
-        <Link
-          href="/review"
-          className="card flex items-center justify-between gap-3 border-l-4 border-l-indigo p-4 transition hover:shadow-card sm:p-5"
-        >
-          <div>
-            <p className="text-sm font-semibold text-ink">How did today go?</p>
-            <p className="text-xs text-muted">2 minutes to close out the day and reflect.</p>
-          </div>
-          <span className="shrink-0 text-sm font-semibold text-indigo">Reflect →</span>
-        </Link>
-      )}
-
       <QuoteOfDay />
       <QuickLog />
       <TaskList />
@@ -71,6 +58,19 @@ export default function TodayPage() {
           <GoalSnapshot label="This month" goals={monthGoals} />
         </div>
       </section>
+
+      {reviewPending && (
+        <Link
+          href="/review"
+          className="card flex items-center justify-between gap-3 border-l-4 border-l-indigo p-4 transition hover:shadow-card sm:p-5"
+        >
+          <div>
+            <p className="text-sm font-semibold text-ink">How did today go?</p>
+            <p className="text-xs text-muted">2 minutes to close out the day and reflect.</p>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-indigo">Reflect →</span>
+        </Link>
+      )}
     </div>
   );
 }
