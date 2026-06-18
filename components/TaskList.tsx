@@ -20,9 +20,11 @@ export default function TaskList() {
   // Carryover is derived, not stored: any open task whose dueDate is on or
   // before today shows up today. An open task from a past day is "carried over".
   const { open, doneToday } = useMemo(() => {
+    // Manual order is authoritative: sortOrder first so any task can be moved
+    // into the top "most important thing" slot regardless of its due date.
     const open = tasks
       .filter((t) => !t.completedAt && t.dueDate <= today)
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.sortOrder - b.sortOrder);
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.dueDate.localeCompare(b.dueDate));
     const doneToday = tasks.filter(
       (t) => t.completedAt && t.completedAt.slice(0, 10) === today
     );
@@ -34,13 +36,27 @@ export default function TaskList() {
     const t = title.trim();
     if (!t || !uid) return;
     setTitle("");
+    // New tasks go to the bottom so the top slot stays a deliberate choice.
+    const maxOrder = open.reduce((m, t) => Math.max(m, t.sortOrder), 0);
     await addItem(uid, "tasks", {
       title: t,
       dueDate: today,
       completedAt: null,
-      sortOrder: Date.now(),
+      sortOrder: maxOrder + 1,
       carriedCount: 0,
     });
+  }
+
+  // Swap sortOrder with the neighbor in the open list to move a task up/down.
+  async function move(index: number, dir: -1 | 1) {
+    if (!uid) return;
+    const a = open[index];
+    const b = open[index + dir];
+    if (!a || !b) return;
+    await Promise.all([
+      updateItem(uid, "tasks", a.id, { sortOrder: b.sortOrder }),
+      updateItem(uid, "tasks", b.id, { sortOrder: a.sortOrder }),
+    ]);
   }
 
   async function toggle(task: Task) {
@@ -78,28 +94,66 @@ export default function TaskList() {
       )}
 
       <ul className="space-y-1.5">
-        {open.map((task) => {
+        {open.map((task, index) => {
           const carried = daysBetween(task.dueDate, today);
+          const isTop = index === 0;
           return (
-            <li key={task.id} className="group flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-bg">
-              <button
-                onClick={() => toggle(task)}
-                aria-label="Complete task"
-                className="h-5 w-5 shrink-0 rounded-full border-2 border-line transition hover:border-indigo"
-              />
-              <span className="flex-1 text-sm">{task.title}</span>
-              {carried > 0 && (
-                <span className="shrink-0 rounded-full bg-amber/15 px-2 py-0.5 text-[10px] font-semibold text-amber">
-                  carried {carried}d · {prettyDate(task.dueDate)}
-                </span>
+            <li
+              key={task.id}
+              className={
+                isTop
+                  ? "group rounded-xl border-2 border-indigo bg-indigo/5 px-3 py-3 ring-1 ring-indigo/20"
+                  : "group flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-bg"
+              }
+            >
+              {isTop && (
+                <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo">
+                  <span aria-hidden>★</span>
+                  The most important thing — do this before anything else. Stay focused.
+                </p>
               )}
-              <button
-                onClick={() => remove(task.id)}
-                className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"
-                aria-label="Delete task"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => toggle(task)}
+                  aria-label="Complete task"
+                  className={`shrink-0 rounded-full border-2 border-line transition hover:border-indigo ${
+                    isTop ? "h-6 w-6 border-indigo" : "h-5 w-5"
+                  }`}
+                />
+                <span className={`flex-1 ${isTop ? "text-base font-semibold" : "text-sm"}`}>
+                  {task.title}
+                </span>
+                {carried > 0 && (
+                  <span className="shrink-0 rounded-full bg-amber/15 px-2 py-0.5 text-[10px] font-semibold text-amber">
+                    carried {carried}d · {prettyDate(task.dueDate)}
+                  </span>
+                )}
+                <div className="flex shrink-0 flex-col leading-none opacity-0 transition group-hover:opacity-100">
+                  <button
+                    onClick={() => move(index, -1)}
+                    disabled={index === 0}
+                    aria-label="Move task up"
+                    className="text-muted transition hover:text-indigo disabled:opacity-20 disabled:hover:text-muted"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    onClick={() => move(index, 1)}
+                    disabled={index === open.length - 1}
+                    aria-label="Move task down"
+                    className="text-muted transition hover:text-indigo disabled:opacity-20 disabled:hover:text-muted"
+                  >
+                    ▼
+                  </button>
+                </div>
+                <button
+                  onClick={() => remove(task.id)}
+                  className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"
+                  aria-label="Delete task"
+                >
+                  ✕
+                </button>
+              </div>
             </li>
           );
         })}
