@@ -102,25 +102,24 @@ export default function TaskList() {
               key={task.id}
               className={
                 isTop
-                  ? "group rounded-xl border-2 border-indigo bg-indigo/5 px-3 py-3 ring-1 ring-indigo/20"
+                  ? "group rounded-lg border-l-2 border-indigo bg-indigo/[0.04] py-2.5 pl-3.5 pr-2"
                   : "group flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-bg"
               }
             >
               {isTop && (
-                <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo">
-                  <span aria-hidden>★</span>
-                  The most important thing — do this before anything else. Stay focused.
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo/80">
+                  Most important
                 </p>
               )}
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => toggle(task)}
                   aria-label="Complete task"
-                  className={`shrink-0 rounded-full border-2 border-line transition hover:border-indigo ${
-                    isTop ? "h-6 w-6 border-indigo" : "h-5 w-5"
+                  className={`h-5 w-5 shrink-0 rounded-full border-2 transition hover:border-indigo ${
+                    isTop ? "border-indigo/60" : "border-line"
                   }`}
                 />
-                <span className={`flex-1 ${isTop ? "text-base font-semibold" : "text-sm"}`}>
+                <span className={`flex-1 text-sm ${isTop ? "font-semibold" : ""}`}>
                   {task.title}
                 </span>
                 {carried > 0 && (
@@ -128,12 +127,12 @@ export default function TaskList() {
                     carried {carried}d · {prettyDate(task.dueDate)}
                   </span>
                 )}
-                <div className="flex shrink-0 flex-col leading-none opacity-0 transition group-hover:opacity-100">
+                <div className="flex shrink-0 flex-col text-[9px] leading-none text-muted/50 opacity-0 transition group-hover:opacity-100">
                   <button
                     onClick={() => move(index, -1)}
                     disabled={index === 0}
                     aria-label="Move task up"
-                    className="text-muted transition hover:text-indigo disabled:opacity-20 disabled:hover:text-muted"
+                    className="px-1 py-0.5 transition hover:text-indigo disabled:opacity-0"
                   >
                     ▲
                   </button>
@@ -141,7 +140,7 @@ export default function TaskList() {
                     onClick={() => move(index, 1)}
                     disabled={index === open.length - 1}
                     aria-label="Move task down"
-                    className="text-muted transition hover:text-indigo disabled:opacity-20 disabled:hover:text-muted"
+                    className="px-1 py-0.5 transition hover:text-indigo disabled:opacity-0"
                   >
                     ▼
                   </button>
