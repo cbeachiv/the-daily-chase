@@ -77,7 +77,7 @@ Once the decision is made, simply refuse to budge. Refuse to compromise. And acc
   { d: "9/20/24", a: `Bertrand Russell`, t: `The best life is the one in which the creative impulses play the largest part and the possessive impulses the smallest.` },
   { d: "8/18/24", a: `Brian Halligan`, t: `For a long time, I looked for consensus. I think consensus is really the enemy of scale, and so I used to say, "Whenever we're making an important decision, there should be winners in the room and losers. We shouldn't find that negotiated settlement that everyone is happy with. Somebody should be unhappy, three or four people should walk out unhappy, and one should walk out happy, and we're all going to be good with it." As you get bigger, the gravity pulls you towards consensus, and I think consensus is the enemy of greatness.` },
   { d: "8/10/24", a: `Ralph Waldo Emerson`, t: `Finish each day and be done with it. You have done what you could. Some blunders and absurdities no doubt crept in; forget them as soon as you can. Tomorrow is a new day; begin it well and serenely and with too high a spirit to be cumbered with your old nonsense.` },
-  { d: "7/28/24", a: ``, t: `Whatever game you choose, give it your best, go for your shots, play free, try everything` },
+  { d: "7/28/24", a: `Roger Federer`, t: `Whatever game you choose, give it your best, go for your shots, play free, try everything` },
   { d: "7/25/24", a: `Tom McGuane`, t: `How do you know what's enough until you've found out what's too much?` },
   { d: "7/22/24", a: `Christopher Morley`, t: `There is only one success—to be able to spend your life in your own way.` },
   { d: "7/21/24", a: `Voltaire`, t: `Doubt is not a pleasant condition, but certainty is absurd` },

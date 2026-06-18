@@ -14,6 +14,17 @@ body {
   padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
 }
 
+/* Native date inputs on iOS Safari center their value via this pseudo-element,
+   which makes the date look misaligned next to our left-aligned text fields. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 @layer components {
   .card {
     @apply rounded-card border border-line bg-card shadow-card;
