@@ -72,6 +72,39 @@ export interface WeeklyReview {
   status: "pending" | "done";
   loggedAt: string | null;
   createdAt: string;
+  // When `annieNoticed` is filled, it flows into the Annie timeline as a moment.
+  // We keep that moment's id here so re-saving updates it instead of duplicating.
+  annieMomentId?: string;
+}
+
+// users/{uid}/annieInterests — the heart of the Annie page. Each interest is a
+// curiosity with a lifecycle: discovered → fed (observations + facilitation) →
+// archived once it fades, building a record of how her curiosity evolved.
+export interface AnnieInterest {
+  id: string;
+  title: string; // e.g. "Opening & closing cabinet doors"
+  status: "active" | "archived";
+  startedAt: string; // YYYY-MM-DD — when it was discovered
+  endedAt: string | null; // YYYY-MM-DD when archived, else null
+  observations: { at: string; text: string }[]; // running "what I noticed" notes
+  facilitation: { at: string; text: string; done: boolean }[]; // "ways I'm feeding it" checklist
+  sortOrder: number;
+  createdAt: string;
+}
+
+export type AnnieMomentKind = "first" | "milestone" | "funny" | "moment" | "note";
+
+// users/{uid}/annieMoments — the fast feed: dated entries with optional photo + tag.
+export interface AnnieMoment {
+  id: string;
+  date: string; // YYYY-MM-DD (backdatable)
+  text: string;
+  kind?: AnnieMomentKind;
+  photoUrl?: string; // Firebase Storage download URL
+  photoPath?: string; // storage path, kept so the file can be deleted
+  interestId?: string; // optional link to an AnnieInterest
+  source?: "weekly"; // set when auto-created from the weekly review
+  createdAt: string;
 }
 
 // Evolving "About Chase" profile (doc id "latest"). Refined by Claude each time a

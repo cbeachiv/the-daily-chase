@@ -74,3 +74,39 @@ export function prettyDateLong(dateStr: string): string {
     year: "numeric",
   });
 }
+
+// Annie's birthdate — the anchor for her age on the Annie page.
+export const ANNIE_BORN = "2025-07-14";
+
+// Human age string, e.g. "11 months, 5 days old" or "1 year, 2 months old".
+// Counts whole years/months by walking the calendar so month lengths are honored.
+export function ageString(born: string = ANNIE_BORN, today: string = todayStr()): string {
+  const b = new Date(born + "T00:00:00");
+  const now = new Date(today + "T00:00:00");
+  if (now <= b) return "newborn";
+
+  let years = now.getFullYear() - b.getFullYear();
+  let months = now.getMonth() - b.getMonth();
+  let days = now.getDate() - b.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    // days in the month before `now` — borrow from it
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    days += prevMonth;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
+  const parts: string[] = [];
+  if (years > 0) parts.push(plural(years, "year"));
+  // Below a year, lead with months; above a year, show years + months.
+  if (years > 0 || months > 0) parts.push(plural(months, "month"));
+  // Only show days when they add meaningful precision (under a year, or as the tail).
+  if (years === 0) parts.push(plural(days, "day"));
+
+  return parts.join(", ") + " old";
+}

@@ -3,9 +3,9 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCollection, setItem } from "@/lib/data";
+import { useCollection, setItem, addItem, updateItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import type { DailyReview, WeeklyReview } from "@/lib/types";
+import type { AnnieMoment, DailyReview, WeeklyReview } from "@/lib/types";
 import { prettyDate, prettyDateLong, startOfWeek, todayStr, weekEndingSaturday } from "@/lib/dates";
 
 export default function WeeklyReviewPage() {
@@ -44,6 +44,16 @@ function WeeklyReviewForm() {
     [dailies, weekStart, weekEnding],
   );
 
+  // Annie moments logged this week — shown as context next to the Annie prompt.
+  const { data: annieMoments } = useCollection<AnnieMoment>("annieMoments");
+  const weekAnnieMoments = useMemo(
+    () =>
+      annieMoments
+        .filter((m) => m.date >= weekStart && m.date <= weekEnding)
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    [annieMoments, weekStart, weekEnding],
+  );
+
   // Form state — one entry per free-text field, seeded once from the doc.
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [aiAnswer, setAiAnswer] = useState("");
@@ -80,6 +90,25 @@ function WeeklyReviewForm() {
       for (const p of PROMPTS) fields[p.key] = (answers[p.key] ?? "").trim();
       // If the cron never created the doc (e.g. reflecting early), stamp createdAt.
       if (!review) fields.createdAt = new Date().toISOString();
+
+      // What you noticed about Annie flows into her timeline as a moment.
+      // Reuse the existing moment (annieMomentId) on re-save so we don't duplicate.
+      const annieText = (answers["annieNoticed"] ?? "").trim();
+      if (annieText) {
+        const momentFields = {
+          text: annieText,
+          date: weekEnding,
+          kind: "note" as const,
+          source: "weekly" as const,
+        };
+        if (review?.annieMomentId) {
+          await updateItem(uid, "annieMoments", review.annieMomentId, momentFields);
+          fields.annieMomentId = review.annieMomentId;
+        } else {
+          fields.annieMomentId = await addItem(uid, "annieMoments", momentFields);
+        }
+      }
+
       await setItem(uid, "weeklyReviews", weekEnding, fields);
       setSaved(true);
 
@@ -165,12 +194,32 @@ function WeeklyReviewForm() {
         {PROMPTS.map((p) => (
           <div key={p.key}>
             <label className="mb-2 block text-sm font-semibold">{p.label}</label>
+            {p.key === "annieNoticed" && weekAnnieMoments.length > 0 && (
+              <div className="mb-2 rounded-lg border border-line bg-bg/50 p-3">
+                <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+                  Annie moments you logged this week
+                </h4>
+                <ul className="space-y-1">
+                  {weekAnnieMoments.map((m) => (
+                    <li key={m.id} className="text-sm">
+                      <span className="text-muted">{prettyDate(m.date)}</span>
+                      <span className="ml-2">{m.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <textarea
               className="input min-h-[80px] resize-y"
               placeholder={p.placeholder}
               value={answers[p.key] ?? ""}
               onChange={(e) => setAnswers((a) => ({ ...a, [p.key]: e.target.value }))}
             />
+            {p.key === "annieNoticed" && (
+              <Link href="/annie" className="mt-1.5 inline-block text-xs font-semibold text-indigo">
+                Open Annie&apos;s page →
+              </Link>
+            )}
           </div>
         ))}
 

@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 
 const TABS = [
   { href: "/today", label: "Today", icon: "M4 6h16M4 12h16M4 18h10" },
+  { href: "/annie", label: "Annie", icon: "M12 21s-6.7-4.4-9.3-8.1C.9 10.3 2 6.5 5.2 6c2-.3 3.6.8 4.3 2 .7-1.2 2.3-2.3 4.3-2 3.2.5 4.3 4.3 2.5 6.9C18.7 16.6 12 21 12 21z" },
   { href: "/goals", label: "Goals", icon: "M12 2l2.6 6.6L21 9.3l-5 4.6L17.3 21 12 17.3 6.7 21 8 13.9l-5-4.6 6.4-.7z" },
   { href: "/weekly-review", label: "Weekly", icon: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" },
   { href: "/health", label: "Health", icon: "M3 12h4l2 6 4-14 2 8h6" },
@@ -68,7 +69,7 @@ export default function Nav() {
       </header>
 
       {/* Mobile: bottom tab bar */}
-      <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 grid grid-cols-8 border-t border-line bg-card/95 backdrop-blur sm:hidden">
+      <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 grid grid-cols-9 border-t border-line bg-card/95 backdrop-blur sm:hidden">
         {TABS.map((t) => {
           const active = pathname === t.href;
           return (
