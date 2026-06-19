@@ -67,6 +67,14 @@ export function sleepHours(bedtime: string, wakeTime: string): number | null {
   return Math.round((mins / 60) * 10) / 10;
 }
 
+// "2026-06-19" -> "June 2026" — for grouping a feed into month sections.
+export function prettyMonth(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export function prettyDateLong(dateStr: string): string {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
     month: "long",

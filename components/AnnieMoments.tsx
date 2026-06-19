@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import type { AnnieInterest, AnnieMoment, AnnieMomentKind } from "@/lib/types";
-import { ageLabel, prettyDate, todayStr } from "@/lib/dates";
+import { ageLabel, prettyDate, prettyMonth, todayStr } from "@/lib/dates";
 import { uploadAnnieMedia, deleteAnnieMedia } from "@/lib/storage";
 
 const KINDS: { value: AnnieMomentKind; label: string; emoji: string }[] = [
@@ -102,6 +102,19 @@ export default function AnnieMoments() {
     [moments],
   );
   const visible = showAll ? sorted : sorted.slice(0, 6);
+
+  // Group the visible moments into month sections (e.g. "June 2026") so the
+  // feed can show a sticky date header while scrolling, like the Photos app.
+  const groups = useMemo(() => {
+    const out: { key: string; label: string; items: AnnieMoment[] }[] = [];
+    for (const m of visible) {
+      const key = m.date.slice(0, 7);
+      const last = out[out.length - 1];
+      if (last && last.key === key) last.items.push(m);
+      else out.push({ key, label: prettyMonth(m.date), items: [m] });
+    }
+    return out;
+  }, [visible]);
 
   function openForm() {
     setForm(emptyForm());
@@ -309,13 +322,21 @@ export default function AnnieMoments() {
         </p>
       )}
 
-      <div className="space-y-2">
-        {visible.map((m) => {
-          const meta = kindMeta(m.kind);
-          const interest = m.interestId ? interests.find((i) => i.id === m.interestId) : null;
-          const isVideo = m.mediaType === "video";
-          return (
-            <article key={m.id} className="group rounded-lg border border-line bg-bg/50 p-3">
+      <div className="space-y-3">
+        {groups.map((g) => (
+          <div key={g.key}>
+            {/* Sticky month label — stays pinned while you scroll the section.
+                Sits below the desktop top nav (sm:top-14); pins to the very top on mobile. */}
+            <h3 className="sticky top-0 z-10 -mx-4 mb-2 bg-card/95 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted backdrop-blur sm:-mx-5 sm:top-14 sm:px-5">
+              {g.label}
+            </h3>
+            <div className="space-y-2">
+              {g.items.map((m) => {
+                const meta = kindMeta(m.kind);
+                const interest = m.interestId ? interests.find((i) => i.id === m.interestId) : null;
+                const isVideo = m.mediaType === "video";
+                return (
+                  <article key={m.id} className="group rounded-lg border border-line bg-bg/50 p-3">
               <div className="flex items-start gap-3">
                 {m.photoUrl && (
                   <button
@@ -357,9 +378,12 @@ export default function AnnieMoments() {
                   </div>
                 </div>
               </div>
-            </article>
-          );
-        })}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {sorted.length > 6 && (
