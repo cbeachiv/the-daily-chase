@@ -92,16 +92,23 @@ export interface AnnieInterest {
   createdAt: string;
 }
 
-export type AnnieMomentKind = "first" | "milestone" | "funny" | "moment" | "note";
+export type AnnieMomentKind =
+  | "first"
+  | "milestone"
+  | "funny"
+  | "moment"
+  | "note"
+  | "ageUpdate"; // monthly photo update — "she's N months old"
 
-// users/{uid}/annieMoments — the fast feed: dated entries with optional photo + tag.
+// users/{uid}/annieMoments — the fast feed: dated entries with optional photo/video + tag.
 export interface AnnieMoment {
   id: string;
   date: string; // YYYY-MM-DD (backdatable)
   text: string;
   kind?: AnnieMomentKind;
-  photoUrl?: string; // Firebase Storage download URL
+  photoUrl?: string; // Firebase Storage download URL (photo or video)
   photoPath?: string; // storage path, kept so the file can be deleted
+  mediaType?: "image" | "video"; // how to render photoUrl; absent = image (legacy)
   interestId?: string; // optional link to an AnnieInterest
   source?: "weekly"; // set when auto-created from the weekly review
   createdAt: string;

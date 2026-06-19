@@ -110,3 +110,24 @@ export function ageString(born: string = ANNIE_BORN, today: string = todayStr())
 
   return parts.join(", ") + " old";
 }
+
+// Whole months old on a given date, rounded to the nearest month — for the
+// "Age Update" badge (e.g. a photo taken near her 3-month mark reads "3 months").
+export function monthsOld(date: string, born: string = ANNIE_BORN): number {
+  const b = new Date(born + "T00:00:00");
+  const d = new Date(date + "T00:00:00");
+  let months = (d.getFullYear() - b.getFullYear()) * 12 + (d.getMonth() - b.getMonth());
+  if (d.getDate() >= b.getDate() + 15) months += 1; // past mid-month rounds up
+  else if (d.getDate() < b.getDate() - 15) months -= 1;
+  return Math.max(0, months);
+}
+
+// "3 months" / "1 month" / "1 year, 2 months" — compact age label for badges.
+export function ageLabel(date: string, born: string = ANNIE_BORN): string {
+  const m = monthsOld(date, born);
+  if (m < 12) return `${m} month${m === 1 ? "" : "s"}`;
+  const years = Math.floor(m / 12);
+  const rem = m % 12;
+  const y = `${years} year${years === 1 ? "" : "s"}`;
+  return rem === 0 ? y : `${y}, ${rem} month${rem === 1 ? "" : "s"}`;
+}

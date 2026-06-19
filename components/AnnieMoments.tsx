@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import type { AnnieInterest, AnnieMoment, AnnieMomentKind } from "@/lib/types";
-import { prettyDate, todayStr } from "@/lib/dates";
-import { uploadAnniePhoto, deleteAnniePhoto } from "@/lib/storage";
+import { ageLabel, prettyDate, todayStr } from "@/lib/dates";
+import { uploadAnnieMedia, deleteAnnieMedia } from "@/lib/storage";
 
 const KINDS: { value: AnnieMomentKind; label: string; emoji: string }[] = [
   { value: "moment", label: "Moment", emoji: "✨" },
+  { value: "ageUpdate", label: "Age Update", emoji: "🎂" },
   { value: "first", label: "First", emoji: "🌱" },
   { value: "milestone", label: "Milestone", emoji: "🏁" },
   { value: "funny", label: "Funny", emoji: "😄" },
@@ -16,6 +17,56 @@ const KINDS: { value: AnnieMomentKind; label: string; emoji: string }[] = [
 
 function kindMeta(kind?: AnnieMomentKind) {
   return KINDS.find((k) => k.value === kind) ?? KINDS[0];
+}
+
+// Full-screen viewer for a tapped photo/video. Click backdrop or Escape to close.
+function Lightbox({
+  url,
+  type,
+  onClose,
+}: {
+  url: string;
+  type: "image" | "video";
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-lg text-white hover:bg-white/25"
+        aria-label="Close"
+      >
+        ✕
+      </button>
+      {type === "video" ? (
+        <video
+          src={url}
+          controls
+          autoPlay
+          playsInline
+          className="max-h-[90vh] max-w-full rounded-lg"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt="Annie"
+          className="max-h-[90vh] max-w-full rounded-lg object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+    </div>
+  );
 }
 
 export default function AnnieMoments() {
@@ -35,12 +86,15 @@ export default function AnnieMoments() {
     interestId: "",
     photoUrl: "",
     photoPath: "",
+    mediaType: "image" as "image" | "video",
   });
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [lightbox, setLightbox] = useState<{ url: string; type: "image" | "video" } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const sorted = useMemo(
@@ -52,6 +106,7 @@ export default function AnnieMoments() {
   function openForm() {
     setForm(emptyForm());
     setEditingId(null);
+    setUploadError("");
     setShowForm(true);
   }
 
@@ -63,33 +118,39 @@ export default function AnnieMoments() {
       interestId: m.interestId ?? "",
       photoUrl: m.photoUrl ?? "",
       photoPath: m.photoPath ?? "",
+      mediaType: m.mediaType ?? "image",
     });
     setEditingId(m.id);
+    setUploadError("");
     setShowForm(true);
   }
 
   function closeForm() {
     setForm(emptyForm());
     setEditingId(null);
+    setUploadError("");
     setShowForm(false);
   }
 
-  async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onPickMedia(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !uid) return;
+    setUploadError("");
     setUploading(true);
     try {
-      const { url, path } = await uploadAnniePhoto(uid, file);
-      setForm((f) => ({ ...f, photoUrl: url, photoPath: path }));
+      const { url, path, mediaType } = await uploadAnnieMedia(uid, file);
+      setForm((f) => ({ ...f, photoUrl: url, photoPath: path, mediaType }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
   }
 
-  async function clearPhoto() {
-    if (form.photoPath) await deleteAnniePhoto(form.photoPath);
-    setForm((f) => ({ ...f, photoUrl: "", photoPath: "" }));
+  async function clearMedia() {
+    if (form.photoPath) await deleteAnnieMedia(form.photoPath);
+    setForm((f) => ({ ...f, photoUrl: "", photoPath: "", mediaType: "image" }));
   }
 
   async function save(e: React.FormEvent) {
@@ -102,6 +163,7 @@ export default function AnnieMoments() {
       interestId: form.interestId || null,
       photoUrl: form.photoUrl || null,
       photoPath: form.photoPath || null,
+      mediaType: form.photoUrl ? form.mediaType : null,
     };
     if (editingId) await updateItem(uid, "annieMoments", editingId, payload);
     else await addItem(uid, "annieMoments", payload);
@@ -110,7 +172,7 @@ export default function AnnieMoments() {
 
   async function remove(m: AnnieMoment) {
     if (!uid) return;
-    if (m.photoPath) await deleteAnniePhoto(m.photoPath);
+    if (m.photoPath) await deleteAnnieMedia(m.photoPath);
     await deleteItem(uid, "annieMoments", m.id);
   }
 
@@ -156,6 +218,12 @@ export default function AnnieMoments() {
             ))}
           </div>
 
+          {form.kind === "ageUpdate" && (
+            <p className="text-xs text-muted">
+              📅 At this date she&apos;s <span className="font-semibold text-ink">{ageLabel(form.date)}</span> old.
+            </p>
+          )}
+
           <div className="flex flex-wrap gap-2">
             <label className="flex-1 text-xs font-semibold text-muted">
               Date
@@ -185,20 +253,29 @@ export default function AnnieMoments() {
             )}
           </div>
 
-          {/* Photo */}
+          {/* Photo / video */}
           <div>
             {form.photoUrl ? (
               <div className="relative inline-block">
-                {/* Firebase Storage URLs are remote; plain img avoids next/image config. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={form.photoUrl}
-                  alt="Annie"
-                  className="max-h-48 rounded-lg border border-line object-cover"
-                />
+                {form.mediaType === "video" ? (
+                  <video
+                    src={form.photoUrl}
+                    controls
+                    playsInline
+                    className="max-h-48 rounded-lg border border-line"
+                  />
+                ) : (
+                  // Firebase Storage URLs are remote; plain img avoids next/image config.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={form.photoUrl}
+                    alt="Annie"
+                    className="max-h-48 rounded-lg border border-line object-cover"
+                  />
+                )}
                 <button
                   type="button"
-                  onClick={clearPhoto}
+                  onClick={clearMedia}
                   className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-coral text-xs text-white shadow"
                 >
                   ✕
@@ -206,17 +283,18 @@ export default function AnnieMoments() {
               </div>
             ) : (
               <label className="btn-ghost cursor-pointer px-3 py-2 text-xs">
-                {uploading ? "Uploading…" : "📷 Add photo"}
+                {uploading ? "Uploading…" : "📷 Add photo / video"}
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   className="hidden"
-                  onChange={onPickPhoto}
+                  onChange={onPickMedia}
                   disabled={uploading}
                 />
               </label>
             )}
+            {uploadError && <p className="mt-1 text-xs text-coral">{uploadError}</p>}
           </div>
 
           <button type="submit" className="btn-primary w-full" disabled={uploading}>
@@ -235,21 +313,32 @@ export default function AnnieMoments() {
         {visible.map((m) => {
           const meta = kindMeta(m.kind);
           const interest = m.interestId ? interests.find((i) => i.id === m.interestId) : null;
+          const isVideo = m.mediaType === "video";
           return (
             <article key={m.id} className="group rounded-lg border border-line bg-bg/50 p-3">
               <div className="flex items-start gap-3">
                 {m.photoUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.photoUrl}
-                    alt=""
-                    className="h-16 w-16 shrink-0 rounded-lg border border-line object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setLightbox({ url: m.photoUrl!, type: isVideo ? "video" : "image" })}
+                    className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-line"
+                    aria-label="View media"
+                  >
+                    {isVideo ? (
+                      <>
+                        <video src={m.photoUrl} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                        <span className="absolute inset-0 grid place-items-center bg-black/25 text-white">▶</span>
+                      </>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={m.photoUrl} alt="" className="h-full w-full object-cover" />
+                    )}
+                  </button>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-muted">
-                      {meta.emoji} {meta.label}
+                      {meta.emoji} {m.kind === "ageUpdate" ? ageLabel(m.date) : meta.label}
                       {m.source === "weekly" && " · from weekly review"}
                     </span>
                     <span className="shrink-0 text-xs text-muted">{prettyDate(m.date)}</span>
@@ -280,6 +369,10 @@ export default function AnnieMoments() {
         >
           {showAll ? "Show less" : `Show all ${sorted.length}`}
         </button>
+      )}
+
+      {lightbox && (
+        <Lightbox url={lightbox.url} type={lightbox.type} onClose={() => setLightbox(null)} />
       )}
     </section>
   );
