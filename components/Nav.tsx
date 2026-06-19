@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Playfair_Display } from "next/font/google";
 import { useAuth } from "@/lib/auth";
+
+// Elegant high-contrast serif, used only for Annie's monogram "A" tab icon.
+const playfair = Playfair_Display({ subsets: ["latin"], weight: "700", style: "italic" });
 
 const TABS = [
   { href: "/today", label: "Today", icon: "M4 6h16M4 12h16M4 18h10" },
@@ -80,7 +84,16 @@ export default function Nav() {
                 active ? "text-indigo" : "text-muted"
               }`}
             >
-              <Icon d={t.icon} />
+              {t.href === "/annie" ? (
+                <span
+                  className={`${playfair.className} grid h-[22px] w-[22px] place-items-center text-[20px] leading-none`}
+                  aria-hidden
+                >
+                  A
+                </span>
+              ) : (
+                <Icon d={t.icon} />
+              )}
               {t.label}
             </Link>
           );
