@@ -9,6 +9,16 @@ import { prettyDate, todayStr } from "@/lib/dates";
 function InterestCard({ interest, uid }: { interest: AnnieInterest; uid: string }) {
   const [obs, setObs] = useState("");
   const [idea, setIdea] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(interest.title);
+
+  function saveTitle() {
+    const next = titleDraft.trim();
+    if (next && next !== interest.title) {
+      updateItem(uid, "annieInterests", interest.id, { title: next });
+    }
+    setEditingTitle(false);
+  }
 
   function addObservation() {
     const text = obs.trim();
@@ -56,8 +66,34 @@ function InterestCard({ interest, uid }: { interest: AnnieInterest; uid: string 
   return (
     <article className="rounded-xl border border-pink/30 bg-pink/5 p-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-bold text-ink">{interest.title}</h3>
+        <div className="min-w-0 flex-1">
+          {editingTitle ? (
+            <input
+              className="input text-base font-bold"
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveTitle();
+                if (e.key === "Escape") {
+                  setTitleDraft(interest.title);
+                  setEditingTitle(false);
+                }
+              }}
+              onBlur={saveTitle}
+              autoFocus
+            />
+          ) : (
+            <h3
+              onClick={() => {
+                setTitleDraft(interest.title);
+                setEditingTitle(true);
+              }}
+              className="cursor-text text-base font-bold text-ink"
+              title="Tap to rename"
+            >
+              {interest.title}
+            </h3>
+          )}
           <p className="text-xs text-muted">Since {prettyDate(interest.startedAt)}</p>
         </div>
         <button
