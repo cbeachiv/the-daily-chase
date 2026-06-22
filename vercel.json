@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/reps-and-repos",
-      "schedule": "0 21 * * 0"
+      "schedule": "0 16 * * 0"
     },
     {
       "path": "/api/cron/stay-hard",

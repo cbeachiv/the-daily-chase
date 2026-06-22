@@ -257,7 +257,9 @@ export async function GET(req: Request) {
   let result;
   try {
     result = await resend.emails.send({
-      from: process.env.RESEND_FROM || "The Daily Chase <onboarding@resend.dev>",
+      // This email is voiced by "Tim" — use its own sender, independent of the
+      // shared RESEND_FROM the other cron emails use.
+      from: process.env.RENR_FROM || process.env.RESEND_FROM || "The Daily Chase <onboarding@resend.dev>",
       to: recipient,
       ...(cc.length ? { cc } : {}),
       subject: `Reps & Repositories — week ending ${weekEnding}`,
