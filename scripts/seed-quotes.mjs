@@ -34,7 +34,7 @@ function hash(s) {
 
 const QUOTES = [
   { d: "6/5/26", a: `Wilfred Peterson`, t: `In great attempts it is glorious even to fail` },
-  { d: "5/31/26", a: `Goethe`, t: `Talent is built in the call but character is built in the storm` },
+  { d: "5/31/26", a: `Goethe`, t: `Talent is built in the calm but character is built in the storm` },
   { d: "5/20/26", a: `William Hacking`, t: `It's better to wear out than to rust out` },
   { d: "5/3/26", a: `Fyodor Dostoyevsky`, t: `Your worst sin is that you have destroyed and betrayed yourself for nothing` },
   { d: "4/9/26", a: `Miyamoto Musashi`, t: `It's better to be a warrior in a garden than a gardener in a war` },

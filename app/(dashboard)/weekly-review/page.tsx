@@ -5,8 +5,17 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCollection, setItem, addItem, updateItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import type { AnnieMoment, DailyReview, WeeklyReview } from "@/lib/types";
-import { prettyDate, prettyDateLong, startOfWeek, todayStr, weekEndingSaturday } from "@/lib/dates";
+import type { AnnieMoment, CallLog, DailyReview, Task, WeeklyReview } from "@/lib/types";
+import { addDays, prettyDate, prettyDateLong, startOfWeek, todayStr, weekEndingSaturday } from "@/lib/dates";
+
+// "14:30" -> "2:30 PM"
+function prettyClock(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return time;
+  const am = h < 12;
+  const hr = h % 12 === 0 ? 12 : h % 12;
+  return `${hr}:${String(m).padStart(2, "0")} ${am ? "AM" : "PM"}`;
+}
 
 export default function WeeklyReviewPage() {
   return (
@@ -43,6 +52,25 @@ function WeeklyReviewForm() {
         .sort((a, b) => a.date.localeCompare(b.date)),
     [dailies, weekStart, weekEnding],
   );
+
+  // To-dos completed this week + calls made — bucketed per day for the
+  // day-by-day breakdown. To-dos bucket by dueDate (the day they belong to,
+  // already a local YYYY-MM-DD string); calls bucket by their date.
+  const { data: tasks } = useCollection<Task>("tasks");
+  const { data: calls } = useCollection<CallLog>("calls");
+  const dayBreakdown = useMemo(() => {
+    const days: string[] = [];
+    for (let d = weekStart; d <= weekEnding; d = addDays(d, 1)) days.push(d);
+    return days.map((date) => ({
+      date,
+      todos: tasks
+        .filter((t) => t.completedAt && t.dueDate === date)
+        .sort((a, b) => a.sortOrder - b.sortOrder),
+      dayCalls: calls
+        .filter((c) => c.date === date)
+        .sort((a, b) => a.time.localeCompare(b.time)),
+    }));
+  }, [tasks, calls, weekStart, weekEnding]);
 
   // Annie moments logged this week — shown as context next to the Annie prompt.
   const { data: annieMoments } = useCollection<AnnieMoment>("annieMoments");
@@ -184,6 +212,45 @@ function WeeklyReviewForm() {
           ) : (
             <p className="text-sm text-muted">No daily reflections logged this week.</p>
           )}
+        </div>
+      </section>
+
+      {/* Day by day — to-dos completed and calls made each day */}
+      <section className="card p-4 sm:p-5">
+        <h2 className="section-title mb-3">Day by day</h2>
+        <div className="divide-y divide-line">
+          {dayBreakdown.map(({ date, todos, dayCalls }) => {
+            const empty = todos.length === 0 && dayCalls.length === 0;
+            return (
+              <div key={date} className="py-3 first:pt-0 last:pb-0">
+                <h3 className="mb-1.5 text-sm font-semibold text-ink">{prettyDate(date)}</h3>
+                {empty ? (
+                  <p className="text-sm text-muted">Nothing logged.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {todos.length > 0 && (
+                      <ul className="space-y-1">
+                        {todos.map((t) => (
+                          <li key={t.id} className="flex gap-2 text-sm">
+                            <span className="text-teal">✓</span>
+                            <span>{t.title}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {dayCalls.map((c) => (
+                      <div key={c.id} className="text-sm">
+                        <span className="mr-1.5">📞</span>
+                        <span className="font-semibold text-ink">{c.person}</span>
+                        <span className="ml-2 text-xs text-muted">{prettyClock(c.time)}</span>
+                        {c.notes && <p className="ml-6 mt-0.5 text-muted">{c.notes}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 
