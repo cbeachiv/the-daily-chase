@@ -7,9 +7,12 @@ export const metadata: Metadata = {
   description: "Private life dashboard.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/running.svg",
-    shortcut: "/running.svg",
-    apple: "/running.svg",
+    icon: [
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/icon-192.png",
+    apple: { url: "/icon-180.png", sizes: "180x180" },
   },
   appleWebApp: {
     capable: true,

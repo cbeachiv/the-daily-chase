@@ -1,0 +1,36 @@
+import sharp from "sharp";
+import { writeFileSync } from "node:fs";
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6b6b"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" fill="url(#bg)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- torso -->
+    <path d="M56 34 L44 58"/>
+    <!-- leading arm (pumping down-forward) -->
+    <path d="M56 35 L68 40 L72 52"/>
+    <!-- trailing arm (back, bent up) -->
+    <path d="M56 35 L44 38 L34 44"/>
+    <!-- leading leg (knee up, forward) -->
+    <path d="M44 58 L58 62 L56 78"/>
+    <!-- trailing leg (extended back) -->
+    <path d="M44 58 L32 66 L22 76"/>
+  </g>
+  <circle cx="62" cy="22" r="8.5" fill="#ffffff"/>
+</svg>`;
+
+writeFileSync(new URL("./icon-source.svg", import.meta.url), svg);
+
+const out = new URL("../public/", import.meta.url);
+for (const size of [180, 192, 512]) {
+  await sharp(Buffer.from(svg))
+    .resize(size, size)
+    .png()
+    .toFile(new URL(`icon-${size}.png`, out).pathname);
+}
+console.log("done");
