@@ -39,7 +39,7 @@ export default function TaskList() {
   const [title, setTitle] = useState("");
   // The area for newly-added tasks; sticky within the session so a run of Hugga
   // tasks doesn't need re-picking each time.
-  const [newCat, setNewCat] = useState<TaskCategory>("personal");
+  const [newCat, setNewCat] = useState<TaskCategory>("hugga");
   const [showUntagged, setShowUntagged] = useState(true);
   const today = todayStr();
 

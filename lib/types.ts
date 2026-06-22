@@ -227,6 +227,27 @@ export interface MoodLog {
   createdAt: string;
 }
 
+export interface InjuryCheckIn {
+  date: string; // YYYY-MM-DD
+  pain: number; // 0–10 (0 = pain-free)
+  note?: string;
+}
+
+// users/{uid}/injuries — an injury with a recovery lifecycle. The initial
+// report seeds checkIns[0]; weekly check-ins append a pain score + note so
+// the trend shows whether it's healing. Mirrors AnnieInterest's embedded-array
+// + active/archived pattern.
+export interface Injury {
+  id: string;
+  bodyPart: string; // e.g. "Left elbow (inner)"
+  description: string; // what happened / likely diagnosis
+  startDate: string; // YYYY-MM-DD — when it occurred
+  status: "active" | "recovered";
+  recoveredDate?: string; // YYYY-MM-DD — set when marked recovered
+  checkIns: InjuryCheckIn[]; // dated pain/note entries, oldest→newest
+  createdAt: string;
+}
+
 export interface CodeActivity {
   id: string;
   weekStart: string; // YYYY-MM-DD label key (also stores the display label)

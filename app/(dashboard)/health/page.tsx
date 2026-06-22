@@ -7,6 +7,7 @@ import { addDays, todayStr } from "@/lib/dates";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
 import MoodSection from "@/components/MoodSection";
+import InjuriesSection from "@/components/InjuriesSection";
 
 const RANGES: { label: string; days: number | null }[] = [
   { label: "1M", days: 30 },
@@ -112,7 +113,7 @@ export default function HealthPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Health</h1>
-          <p className="text-sm text-muted">Wakeups, exercise, mood, weight, and calories.</p>
+          <p className="text-sm text-muted">Wakeups, exercise, mood, weight, calories, and injuries.</p>
         </div>
         <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
           {RANGES.map((r) => (
@@ -215,6 +216,8 @@ export default function HealthPage() {
       </div>
 
       <MoodSection startDate={startDate} />
+
+      <InjuriesSection />
 
       {/* Weight — compact, expandable */}
       <section className="card p-4 sm:p-5">
