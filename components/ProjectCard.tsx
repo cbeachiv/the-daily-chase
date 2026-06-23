@@ -38,6 +38,7 @@ export default function ProjectCard({
   const [editName, setEditName] = useState(project.name);
   const [editDesc, setEditDesc] = useState(project.description ?? "");
   const [editLink, setEditLink] = useState(project.link ?? "");
+  const [editStart, setEditStart] = useState(project.startDate ?? project.createdAt.slice(0, 10));
   const [editTarget, setEditTarget] = useState(project.targetDate ?? "");
 
   const milestones = project.milestones ?? [];
@@ -88,6 +89,7 @@ export default function ProjectCard({
       name: editName.trim(),
       description: editDesc.trim(),
       link: editLink.trim(),
+      startDate: editStart || project.createdAt.slice(0, 10),
       targetDate: editTarget || "",
     });
     setEditing(false);
@@ -121,15 +123,26 @@ export default function ProjectCard({
           value={editDesc}
           onChange={(e) => setEditDesc(e.target.value)}
         />
-        <label className="block text-xs font-semibold text-muted">
-          Target finish date (optional)
-          <input
-            type="date"
-            className="input mt-1"
-            value={editTarget}
-            onChange={(e) => setEditTarget(e.target.value)}
-          />
-        </label>
+        <div className="flex gap-2">
+          <label className="flex-1 text-xs font-semibold text-muted">
+            Start date
+            <input
+              type="date"
+              className="input mt-1"
+              value={editStart}
+              onChange={(e) => setEditStart(e.target.value)}
+            />
+          </label>
+          <label className="flex-1 text-xs font-semibold text-muted">
+            Target finish (optional)
+            <input
+              type="date"
+              className="input mt-1"
+              value={editTarget}
+              onChange={(e) => setEditTarget(e.target.value)}
+            />
+          </label>
+        </div>
         <input
           className="input"
           placeholder="Link — repo, site, or doc (optional)"
@@ -216,7 +229,7 @@ export default function ProjectCard({
 
       {/* Created + target dates */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-        <span>Started {prettyDate(project.createdAt.slice(0, 10))}</span>
+        <span>Started {prettyDate(project.startDate ?? project.createdAt.slice(0, 10))}</span>
         {project.targetDate && (
           <span className="flex items-center gap-1.5">
             <span>· Target {prettyDate(project.targetDate)}</span>

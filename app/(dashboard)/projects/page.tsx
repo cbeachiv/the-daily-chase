@@ -5,6 +5,7 @@ import { orderBy } from "firebase/firestore";
 import { useCollection, addItem, updateItem } from "@/lib/data";
 import type { Task, TaskCategory, TrackedProject } from "@/lib/types";
 import { CAT_CHIP, CAT_LABEL } from "@/lib/categories";
+import { todayStr } from "@/lib/dates";
 import ProjectCard from "@/components/ProjectCard";
 
 export default function ProjectsPage() {
@@ -16,6 +17,7 @@ export default function ProjectsPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
+  const [startDate, setStartDate] = useState(todayStr());
   const [targetDate, setTargetDate] = useState("");
   const [newCat, setNewCat] = useState<TaskCategory>("hugga");
   const [showForm, setShowForm] = useState(false);
@@ -43,12 +45,14 @@ export default function ProjectsPage() {
       status: "active",
       milestones: [],
       link: link.trim(),
+      startDate: startDate || todayStr(),
       targetDate: targetDate || "",
       sortOrder: minOrder - 1,
     });
     setName("");
     setDescription("");
     setLink("");
+    setStartDate(todayStr());
     setTargetDate("");
     setShowForm(false);
   }
@@ -92,15 +96,26 @@ export default function ProjectsPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <label className="block text-xs font-semibold text-muted">
-            Target finish date (optional)
-            <input
-              type="date"
-              className="input mt-1"
-              value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
-            />
-          </label>
+          <div className="flex gap-2">
+            <label className="flex-1 text-xs font-semibold text-muted">
+              Start date
+              <input
+                type="date"
+                className="input mt-1"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </label>
+            <label className="flex-1 text-xs font-semibold text-muted">
+              Target finish (optional)
+              <input
+                type="date"
+                className="input mt-1"
+                value={targetDate}
+                onChange={(e) => setTargetDate(e.target.value)}
+              />
+            </label>
+          </div>
           <input
             className="input"
             placeholder="Link — repo, site, or doc (optional)"

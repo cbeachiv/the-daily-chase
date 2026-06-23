@@ -35,9 +35,10 @@ export interface TrackedProject {
   status: "active" | "archived"; // archived = finished/parked, hidden by default
   milestones: Milestone[];
   link?: string; // optional URL (repo, site, doc)
+  startDate?: string; // YYYY-MM-DD — when work actually began; falls back to createdAt's date
   targetDate?: string; // YYYY-MM-DD — when you want to finish (optional)
   sortOrder: number;
-  createdAt: string; // ISO timestamp — when the project was created
+  createdAt: string; // ISO timestamp — when the project record was created
 }
 
 export interface Quote {
