@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { orderBy } from "firebase/firestore";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { Task, TaskCategory } from "@/lib/types";
+import type { Task, TaskCategory, TrackedProject } from "@/lib/types";
+import { CAT_LABEL, CAT_CHIP } from "@/lib/categories";
 import { todayStr, prettyDate } from "@/lib/dates";
 
 function daysBetween(from: string, to: string): number {
@@ -11,12 +12,6 @@ function daysBetween(from: string, to: string): number {
   const b = new Date(to + "T00:00:00").getTime();
   return Math.round((b - a) / 86_400_000);
 }
-
-const CAT_LABEL: Record<TaskCategory, string> = { hugga: "Hugga", personal: "Personal" };
-const CAT_CHIP: Record<TaskCategory, string> = {
-  hugga: "bg-indigo/15 text-indigo",
-  personal: "bg-teal/15 text-teal",
-};
 
 // A compact chip on each task row. Click cycles untagged → Hugga → Personal → Hugga.
 function CatChip({ category, onSet }: { category?: TaskCategory; onSet: (c: TaskCategory) => void }) {
@@ -34,12 +29,86 @@ function CatChip({ category, onSet }: { category?: TaskCategory; onSet: (c: Task
   );
 }
 
+// A chip that links a task to a project. Tapping opens a small menu of active
+// projects (plus "None"); when set it shows the project name in coral.
+function ProjectChip({
+  projectId,
+  projects,
+  onSet,
+}: {
+  projectId?: string;
+  projects: TrackedProject[];
+  onSet: (id: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = projects.find((p) => p.id === projectId);
+  // Nothing to link to and not already linked — hide the chip entirely.
+  if (projects.length === 0 && !current) return null;
+  return (
+    <div className="relative shrink-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label={current ? `Project: ${current.name} (tap to change)` : "Link to project"}
+        className={`max-w-[120px] truncate rounded-full px-2 py-0.5 text-[10px] font-semibold transition ${
+          current ? "bg-coral/15 text-coral" : "bg-line/60 text-muted hover:text-ink"
+        }`}
+      >
+        {current ? current.name : "＋ Project"}
+      </button>
+      {open && (
+        <>
+          <button
+            className="fixed inset-0 z-20 cursor-default"
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+          />
+          <div className="absolute right-0 z-30 mt-1 max-h-56 w-44 overflow-auto rounded-lg border border-line bg-card py-1 shadow-card-hover">
+            {projects.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  onSet(p.id);
+                  setOpen(false);
+                }}
+                className={`block w-full truncate px-3 py-1.5 text-left text-xs font-medium ${
+                  p.id === projectId ? "bg-bg text-ink" : "text-muted hover:bg-bg hover:text-ink"
+                }`}
+              >
+                {p.name}
+              </button>
+            ))}
+            {current && (
+              <button
+                onClick={() => {
+                  onSet(null);
+                  setOpen(false);
+                }}
+                className="block w-full border-t border-line px-3 py-1.5 text-left text-xs font-medium text-muted hover:bg-bg hover:text-coral"
+              >
+                None
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function TaskList() {
   const { data: tasks, uid } = useCollection<Task>("tasks", [orderBy("sortOrder", "asc")]);
+  const { data: allProjects } = useCollection<TrackedProject>("trackedProjects");
+  // Only active projects are offered for linking.
+  const projects = useMemo(
+    () => allProjects.filter((p) => p.status !== "archived"),
+    [allProjects]
+  );
   const [title, setTitle] = useState("");
   // The area for newly-added tasks; sticky within the session so a run of Hugga
   // tasks doesn't need re-picking each time.
   const [newCat, setNewCat] = useState<TaskCategory>("hugga");
+  // Sticky project for new tasks (null = unlinked), same idea as newCat.
+  const [newProject, setNewProject] = useState<string | null>(null);
   const [showUntagged, setShowUntagged] = useState(true);
   const today = todayStr();
 
@@ -74,12 +143,20 @@ export default function TaskList() {
       category: newCat,
       sortOrder: maxOrder + 1,
       carriedCount: 0,
+      ...(newProject ? { projectId: newProject } : {}),
     });
   }
 
   async function setCat(id: string, category: TaskCategory) {
     if (!uid) return;
     await updateItem(uid, "tasks", id, { category });
+  }
+
+  // null clears the link; updateDoc with deleteField would be cleaner but an
+  // empty string is enough to mean "unlinked" for the project rollup filter.
+  async function setProject(id: string, projectId: string | null) {
+    if (!uid) return;
+    await updateItem(uid, "tasks", id, { projectId: projectId ?? "" });
   }
 
   // Swap sortOrder with the neighbor in the open list to move a task up/down.
@@ -123,7 +200,7 @@ export default function TaskList() {
           </button>
         </div>
         {/* Area toggle for the new task — sticky for the session. */}
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {(["hugga", "personal"] as TaskCategory[]).map((c) => (
             <button
               key={c}
@@ -136,6 +213,24 @@ export default function TaskList() {
               {CAT_LABEL[c]}
             </button>
           ))}
+          {projects.length > 0 && (
+            <>
+              <span className="mx-0.5 text-line">·</span>
+              <select
+                value={newProject ?? ""}
+                onChange={(e) => setNewProject(e.target.value || null)}
+                className="rounded-full bg-bg px-2.5 py-1 text-[11px] font-semibold text-muted outline-none transition hover:text-ink focus:text-ink"
+                aria-label="Link new task to a project"
+              >
+                <option value="">No project</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
         </div>
       </form>
 
@@ -180,6 +275,11 @@ export default function TaskList() {
                   </span>
                 )}
                 <CatChip category={task.category} onSet={(c) => setCat(task.id, c)} />
+                <ProjectChip
+                  projectId={task.projectId}
+                  projects={projects}
+                  onSet={(id) => setProject(task.id, id)}
+                />
                 <div className="flex shrink-0 flex-col text-[9px] leading-none text-muted/50 opacity-0 transition group-hover:opacity-100">
                   <button
                     onClick={() => move(index, -1)}
@@ -224,6 +324,11 @@ export default function TaskList() {
               </button>
               <span className="flex-1 text-sm text-muted line-through">{task.title}</span>
               <CatChip category={task.category} onSet={(c) => setCat(task.id, c)} />
+              <ProjectChip
+                projectId={task.projectId}
+                projects={projects}
+                onSet={(id) => setProject(task.id, id)}
+              />
               <button
                 onClick={() => remove(task.id)}
                 className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"

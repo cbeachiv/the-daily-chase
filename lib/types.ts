@@ -11,9 +11,33 @@ export interface Task {
   dueDate: string; // YYYY-MM-DD — the day it's assigned to
   completedAt: string | null; // ISO timestamp when completed, else null
   category?: TaskCategory; // "hugga" (work) vs "personal"; undefined = untagged
+  projectId?: string; // optional link to a TrackedProject
   sortOrder: number;
   carriedCount: number; // how many days it has rolled over unfinished
   createdAt: string;
+}
+
+export interface Milestone {
+  id: string; // local uuid (crypto.randomUUID())
+  title: string;
+  done: boolean;
+}
+
+// users/{uid}/trackedProjects — active work Chase is pushing forward. Progress is
+// the share of milestones done. Mirrors the embedded-array + active/archived
+// pattern used by AnnieInterest / Injury. Distinct from the portfolio `projects`
+// collection (Project, below), which is a showcase, not a live tracker.
+export interface TrackedProject {
+  id: string;
+  name: string;
+  description?: string;
+  category: TaskCategory; // "hugga" | "personal" — same vocab as to-dos
+  status: "active" | "archived"; // archived = finished/parked, hidden by default
+  milestones: Milestone[];
+  link?: string; // optional URL (repo, site, doc)
+  targetDate?: string; // YYYY-MM-DD — when you want to finish (optional)
+  sortOrder: number;
+  createdAt: string; // ISO timestamp — when the project was created
 }
 
 export interface Quote {
