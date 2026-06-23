@@ -34,3 +34,6 @@ serviceAccount*.json
 
 # typescript
 *.tsbuildinfo
+
+# Local finance backfill input (real $ figures; data lives in Firestore)
+scripts/finance-history.csv

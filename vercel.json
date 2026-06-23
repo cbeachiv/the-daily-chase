@@ -23,6 +23,22 @@
     {
       "path": "/api/cron/daily-review",
       "schedule": "30 21 * * 1-5"
+    },
+    {
+      "path": "/api/cron/finance-weekly",
+      "schedule": "0 21 * * 0"
+    },
+    {
+      "path": "/api/cron/finance-weekly",
+      "schedule": "0 22 * * 0"
+    },
+    {
+      "path": "/api/cron/finance-monthly",
+      "schedule": "0 13 3 * *"
+    },
+    {
+      "path": "/api/cron/finance-monthly",
+      "schedule": "0 14 3 * *"
     }
   ]
 }

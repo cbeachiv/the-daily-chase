@@ -377,10 +377,12 @@ export interface FinanceSnapshot {
   month: string; // "YYYY-MM"
   bitcoin?: number;
   ira?: number;
-  savings?: number; // liquid savings balance
+  savings?: number; // liquid savings balance (month-end)
+  hugga?: number; // Hugga investment balance
+  rent?: number; // rent paid that month (part of total spend)
   cashChecking?: number;
   income?: number; // fallback monthly income when no transactions exist
-  spend?: number; // fallback monthly spend when no transactions exist
+  spend?: number; // fallback TOTAL monthly spend (incl. rent) when no transactions exist
   notes?: string; // itemized notable items, like the PDF footnotes
   createdAt: string;
   updatedAt?: string;

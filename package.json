@@ -10,6 +10,7 @@
     "seed": "node --env-file=.env.local scripts/seed.mjs",
     "seed:quotes": "node --env-file=.env.local scripts/seed-quotes.mjs",
     "import:history": "node --env-file=.env.local scripts/import-history.mjs",
+    "seed:finance": "node --env-file=.env.local scripts/seed-finance.mjs",
     "lifts:import": "node scripts/parse-strong-csv.mjs"
   },
   "dependencies": {
