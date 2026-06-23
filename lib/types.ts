@@ -314,3 +314,74 @@ export interface Project {
   outcome?: string;
   sortOrder: number;
 }
+
+// ── Finance ────────────────────────────────────────────────────────────────
+// Normalized spend/income categories. Raw category strings from card exports
+// are mapped onto this clean set in lib/finance.ts (CATEGORY_MAP).
+export type FinanceCategory =
+  | "Dining"
+  | "Groceries"
+  | "Shopping"
+  | "Travel"
+  | "Transportation"
+  | "Health"
+  | "Utilities"
+  | "Entertainment"
+  | "Housing"
+  | "Income"
+  | "Transfer"
+  | "Other";
+
+export type FinanceSource = "capitalone" | "chase" | "manual" | "recurring";
+
+// users/{uid}/financeTransactions — one row per transaction. Doc id is a
+// deterministic dedupe hash (source|date|amount|description), so re-uploading a
+// month's CSV is idempotent. Amounts are signed: negative = money out (expense),
+// positive = money in (income/credit). `excluded` rows (card payments, internal
+// transfers) are kept for the record but left out of spend/income totals so the
+// same dollar isn't counted twice across the Chase + Capital One feeds.
+export interface FinanceTransaction {
+  id: string;
+  date: string; // YYYY-MM-DD (transaction date)
+  month: string; // YYYY-MM — denormalized for cheap month filtering
+  description: string;
+  amount: number; // signed dollars; negative = expense, positive = income
+  category: FinanceCategory;
+  rawCategory?: string; // original category string from the export, if any
+  source: FinanceSource;
+  excluded: boolean; // true = don't count toward spend/income (payments, transfers)
+  note?: string; // free text; holds enriched Amazon item lists
+  createdAt: string;
+}
+
+// users/{uid}/financeRecurring — fixed monthly expenses that don't reliably show
+// on a card (rent, office rent, subscriptions). "Add this month" inserts each
+// active item as a source:"recurring" FinanceTransaction (idempotent per month).
+export interface FinanceRecurring {
+  id: string;
+  label: string;
+  amount: number; // positive dollars — the monthly cost
+  category: FinanceCategory;
+  dayOfMonth?: number; // 1–31, when it's typically paid (default 1)
+  active: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+// users/{uid}/financeSnapshots — one doc per month (id = "YYYY-MM"). Manual
+// monthly entry of investment/savings balances + notable-items notes, mirroring
+// the budget spreadsheet's rows. `income`/`spend` are optional fallbacks used for
+// historical months that predate imported transactions.
+export interface FinanceSnapshot {
+  id: string; // = month "YYYY-MM"
+  month: string; // "YYYY-MM"
+  bitcoin?: number;
+  ira?: number;
+  savings?: number; // liquid savings balance
+  cashChecking?: number;
+  income?: number; // fallback monthly income when no transactions exist
+  spend?: number; // fallback monthly spend when no transactions exist
+  notes?: string; // itemized notable items, like the PDF footnotes
+  createdAt: string;
+  updatedAt?: string;
+}

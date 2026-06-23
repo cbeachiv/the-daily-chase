@@ -9,6 +9,7 @@ import {
   query,
   setDoc,
   updateDoc,
+  writeBatch,
   type QueryConstraint,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
@@ -74,4 +75,25 @@ export async function updateItem(
 
 export async function deleteItem(uid: string, name: string, id: string) {
   await deleteDoc(doc(db, "users", uid, name, id));
+}
+
+/**
+ * Write many docs in one shot via batched writes (Firestore caps a batch at 500;
+ * we flush every 400 to stay safe). Each entry supplies its own doc `id`. Used by
+ * the finance CSV importer to land a whole month of transactions quickly, and for
+ * Amazon note-enrichment (pass `merge: true` to patch without clobbering).
+ */
+export async function bulkSet(
+  uid: string,
+  name: string,
+  docs: { id: string; data: Record<string, unknown> }[],
+  merge = false
+) {
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const d of docs.slice(i, i + 400)) {
+      batch.set(doc(db, "users", uid, name, d.id), d.data, { merge });
+    }
+    await batch.commit();
+  }
 }

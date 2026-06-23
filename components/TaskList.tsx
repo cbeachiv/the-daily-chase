@@ -109,24 +109,25 @@ export default function TaskList() {
   const [newCat, setNewCat] = useState<TaskCategory>("hugga");
   // Sticky project for new tasks (null = unlinked), same idea as newCat.
   const [newProject, setNewProject] = useState<string | null>(null);
-  const [showUntagged, setShowUntagged] = useState(true);
+  const [showPast, setShowPast] = useState(false);
   const today = todayStr();
 
   // Carryover is derived, not stored: any open task whose dueDate is on or
   // before today shows up today. An open task from a past day is "carried over".
-  const { open, doneToday, untaggedPast } = useMemo(() => {
+  const { open, doneToday, pastTodos } = useMemo(() => {
     // Manual order is authoritative: sortOrder first so any task can be moved
     // into the top "most important thing" slot regardless of its due date.
     const open = tasks
       .filter((t) => !t.completedAt && t.dueDate <= today)
       .sort((a, b) => a.sortOrder - b.sortOrder || a.dueDate.localeCompare(b.dueDate));
     const doneToday = tasks.filter((t) => t.completedAt && t.completedAt.slice(0, 10) === today);
-    // Everything untagged that isn't already shown above — for retroactive tagging.
+    // Everything not shown above — the full history, newest first — so any past
+    // to-do can be retroactively tagged with a category and/or project.
     const shown = new Set([...open, ...doneToday].map((t) => t.id));
-    const untaggedPast = tasks
-      .filter((t) => !t.category && !shown.has(t.id))
+    const pastTodos = tasks
+      .filter((t) => !shown.has(t.id))
       .sort((a, b) => (b.completedAt ?? b.dueDate).localeCompare(a.completedAt ?? a.dueDate));
-    return { open, doneToday, untaggedPast };
+    return { open, doneToday, pastTodos };
   }, [tasks, today]);
 
   async function add(e: React.FormEvent) {
@@ -234,7 +235,7 @@ export default function TaskList() {
         </div>
       </form>
 
-      {open.length === 0 && doneToday.length === 0 && untaggedPast.length === 0 && (
+      {open.length === 0 && doneToday.length === 0 && pastTodos.length === 0 && (
         <p className="py-6 text-center text-sm text-muted">
           Nothing yet. Add your first task above. ✦
         </p>
@@ -341,35 +342,45 @@ export default function TaskList() {
         </ul>
       )}
 
-      {/* Retroactive tagging: every untagged task not already shown above. */}
-      {untaggedPast.length > 0 && (
+      {/* Full history — retroactively tag any past to-do with a category and/or project. */}
+      {pastTodos.length > 0 && (
         <div className="mt-3 border-t border-line pt-3">
           <button
-            onClick={() => setShowUntagged((s) => !s)}
+            onClick={() => setShowPast((s) => !s)}
             className="flex w-full items-center justify-between text-xs font-semibold text-muted hover:text-ink"
           >
-            <span>Untagged past to-dos ({untaggedPast.length})</span>
-            <span className="text-[10px]">{showUntagged ? "▲ hide" : "▼ show"}</span>
+            <span>Past to-dos ({pastTodos.length})</span>
+            <span className="text-[10px]">{showPast ? "▲ hide" : "▼ show"}</span>
           </button>
-          {showUntagged && (
-            <ul className="mt-2 max-h-72 space-y-1 overflow-auto pr-1">
-              {untaggedPast.map((task) => (
-                <li key={task.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-bg">
-                  <span className={`flex-1 text-sm ${task.completedAt ? "text-muted line-through" : ""}`}>
+          {showPast && (
+            <ul className="mt-2 max-h-96 space-y-1 overflow-auto pr-1">
+              {pastTodos.map((task) => (
+                <li key={task.id} className="group flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-bg">
+                  <button
+                    onClick={() => toggle(task)}
+                    aria-label={task.completedAt ? "Mark incomplete" : "Complete task"}
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 text-[9px] transition ${
+                      task.completedAt ? "border-teal bg-teal text-white" : "border-line hover:border-indigo"
+                    }`}
+                  >
+                    {task.completedAt ? "✓" : ""}
+                  </button>
+                  <span className={`flex-1 truncate text-sm ${task.completedAt ? "text-muted line-through" : ""}`}>
                     {task.title}
                   </span>
                   <span className="shrink-0 text-[10px] text-muted/60">{prettyDate(task.dueDate)}</span>
+                  <CatChip category={task.category} onSet={(c) => setCat(task.id, c)} />
+                  <ProjectChip
+                    projectId={task.projectId}
+                    projects={projects}
+                    onSet={(id) => setProject(task.id, id)}
+                  />
                   <button
-                    onClick={() => setCat(task.id, "hugga")}
-                    className="shrink-0 rounded-full bg-indigo/10 px-2 py-0.5 text-[10px] font-semibold text-indigo hover:bg-indigo/20"
+                    onClick={() => remove(task.id)}
+                    className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"
+                    aria-label="Delete task"
                   >
-                    Hugga
-                  </button>
-                  <button
-                    onClick={() => setCat(task.id, "personal")}
-                    className="shrink-0 rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-semibold text-teal hover:bg-teal/20"
-                  >
-                    Personal
+                    ✕
                   </button>
                 </li>
               ))}

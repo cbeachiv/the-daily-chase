@@ -5,7 +5,7 @@ import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
 import { addDays, prettyDateLong, startOfMonth, startOfWeek, weekEndingSaturday } from "@/lib/dates";
 import { mergeSessions, type LoggedSessionDoc } from "@/lib/lifts";
 import { cardioDistanceMi, type CardioLog } from "@/lib/cardio";
-import type { AboutProfile, DailyReview, FoodEntry, Goal, MoodLog, Task, WeightLog } from "@/lib/types";
+import type { AboutProfile, DailyReview, FoodEntry, Goal, MoodLog, Task, TrackedProject, WeightLog } from "@/lib/types";
 import { buildEmailHtml, type WeeklyEmailData } from "./email";
 
 export const runtime = "nodejs";
@@ -77,16 +77,18 @@ export async function GET(req: Request) {
   const weekEnding = weekEndingSaturday(today); // Saturday
   const month = startOfMonth(today);
 
-  const [tasks, liftLogged, cardioLogs, weights, foods, goals, moods, dailyReviews] = await Promise.all([
-    colData<Task>(uid, "tasks"),
-    colData<LoggedSessionDoc>(uid, "liftSessions"),
-    colData<CardioLog>(uid, "cardio"),
-    colData<WeightLog>(uid, "weightLogs"),
-    colData<FoodEntry>(uid, "foodEntries"),
-    colData<Goal>(uid, "goals"),
-    colData<MoodLog>(uid, "moodLogs"),
-    colData<DailyReview>(uid, "dailyReviews"),
-  ]);
+  const [tasks, liftLogged, cardioLogs, weights, foods, goals, moods, dailyReviews, trackedProjects] =
+    await Promise.all([
+      colData<Task>(uid, "tasks"),
+      colData<LoggedSessionDoc>(uid, "liftSessions"),
+      colData<CardioLog>(uid, "cardio"),
+      colData<WeightLog>(uid, "weightLogs"),
+      colData<FoodEntry>(uid, "foodEntries"),
+      colData<Goal>(uid, "goals"),
+      colData<MoodLog>(uid, "moodLogs"),
+      colData<DailyReview>(uid, "dailyReviews"),
+      colData<TrackedProject>(uid, "trackedProjects"),
+    ]);
 
   // --- Tasks ----------------------------------------------------------------
   const completedTaskDocs = tasks
@@ -118,6 +120,23 @@ export async function GET(req: Request) {
   const monthGoals = goals.filter((g) => g.period === "month" && g.periodStart === month);
   const weekGoalsDone = weekGoals.filter((g) => g.done).length;
   const monthGoalsDone = monthGoals.filter((g) => g.done).length;
+
+  // --- Projects -------------------------------------------------------------
+  // Active projects in priority order, with current milestone progress and how
+  // many of their tagged to-dos were completed this week (the "movement" signal).
+  const projectRows = trackedProjects
+    .filter((p) => p.status === "active")
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((p) => {
+      const ms = p.milestones ?? [];
+      return {
+        name: p.name,
+        category: p.category,
+        milestoneDone: ms.filter((m) => m.done).length,
+        milestoneTotal: ms.length,
+        todosThisWeek: completedTaskDocs.filter((t) => t.projectId === p.id).length,
+      };
+    });
 
   // --- Mood -----------------------------------------------------------------
   const weekMoods = moods.filter((m) => m.date >= weekStart);
@@ -154,6 +173,12 @@ export async function GET(req: Request) {
     tasksToClassify: toClassify, // only these are untagged and need bucketing
     weekGoals: { done: weekGoalsDone, total: weekGoals.length, titles: weekGoals.map((g) => g.title) },
     monthGoals: { done: monthGoalsDone, total: monthGoals.length, titles: monthGoals.map((g) => g.title) },
+    projects: projectRows.map((p) => ({
+      name: p.name,
+      area: p.category,
+      milestones: `${p.milestoneDone}/${p.milestoneTotal}`,
+      todosDoneThisWeek: p.todosThisWeek,
+    })),
     lifts: { sessions: weekLifts.length, volumeLb: liftVolume, prs: liftPRs },
     cardio: { sessions: weekCardio.length, minutes: cardioMin, miles: Math.round(cardioMiles * 10) / 10 },
     weightChangeLb: weightDelta,
@@ -177,6 +202,7 @@ export async function GET(req: Request) {
     "You write Chase's Saturday weekly review email and prep his written reflection. Use ONLY the real data below — never invent tasks, numbers, or events.",
     "Classify ONLY the titles in 'tasksToClassify' into 'Hugga' (his business / work / product / company tasks) vs 'Personal' (family, health, errands, trips, personal admin) — the rest are already tagged, so leave them out of huggaTasks/personalTasks. If genuinely ambiguous, prefer Personal. Return the titles verbatim.",
     "Write a SHORT intro (70–110 words): a warm, specific, honest recap in the voice of a sharp friend — open with the week's real highlight, name a concrete win or two, gently flag what slipped. If daily reflections exist, weave in a pattern you notice across them. No corporate tone, no markdown headers.",
+    "If 'projects' is non-empty, you may note in the intro how a project moved this week (e.g. milestones progress or to-dos done toward it) — only when there's real movement; never invent it.",
     "From his daily reflections, surface 1–2 short highlight lines (a notable thing he wrote in whatMadeIt/learned/answers) — quote or tightly paraphrase. Empty array if there are none.",
     "Write ONE tailored weekly reflection follow-up question — specific, forward-looking, grounded in his real week or a known pattern from aboutChase. Not a yes/no, not a duplicate of generic prompts.",
     "",
@@ -267,6 +293,7 @@ export async function GET(req: Request) {
     weekGoalsTotal: weekGoals.length,
     monthGoalsDone,
     monthGoalsTotal: monthGoals.length,
+    projects: projectRows,
     lifts: weekLifts.length,
     liftVolume: liftVolume ? `${liftVolume.toLocaleString()} lb` : "no data",
     liftPRs,

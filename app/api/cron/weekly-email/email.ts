@@ -20,6 +20,14 @@ export interface WeeklyEmailData {
   weekGoalsTotal: number;
   monthGoalsDone: number;
   monthGoalsTotal: number;
+  // active projects (priority order) with milestone progress + to-dos done this week
+  projects: {
+    name: string;
+    category: "hugga" | "personal";
+    milestoneDone: number;
+    milestoneTotal: number;
+    todosThisWeek: number;
+  }[];
   // training & body
   lifts: number;
   liftVolume: string; // e.g. "62,555 lb" or "no data"
@@ -178,6 +186,29 @@ function goalList(goals: { title: string; done: boolean }[]): string {
     .join("");
 }
 
+// Active projects as stacked rows: name + area tag, milestone progress bar, and
+// a green "+N to-dos this week" movement note when any were completed.
+function projectList(projects: WeeklyEmailData["projects"]): string {
+  return projects
+    .map((p, i) => {
+      const tagColor = p.category === "hugga" ? INDIGO : TEAL;
+      const tag = p.category === "hugga" ? "Hugga" : "Personal";
+      const accent = p.category === "hugga" ? INDIGO : TEAL;
+      const ms =
+        p.milestoneTotal > 0 ? `${p.milestoneDone}/${p.milestoneTotal} milestones` : "no milestones yet";
+      const movement =
+        p.todosThisWeek > 0
+          ? `<span style="font:700 12px ${FONT};color:${GO};margin-left:8px">+${p.todosThisWeek} to-do${p.todosThisWeek === 1 ? "" : "s"} this week</span>`
+          : "";
+      return `<div style="margin-top:${i === 0 ? 0 : 14}px">
+        <div style="font:600 14px ${FONT};color:${INK}">${escapeHtml(p.name)}<span style="font:700 10px ${FONT};color:${tagColor};text-transform:uppercase;letter-spacing:.5px;margin-left:8px">${tag}</span></div>
+        <div style="font:400 12px ${FONT};color:${MUTED};margin-top:2px">${ms}${movement}</div>
+        ${progressBar(p.milestoneDone, p.milestoneTotal, accent)}
+      </div>`;
+    })
+    .join("");
+}
+
 const WEEKLY_PROMPTS = [
   "How did this week go?",
   "How are you feeling about your goals — this week and this month?",
@@ -288,6 +319,20 @@ export function buildEmailHtml(d: WeeklyEmailData): string {
         </td></tr>
       </table>
     </td></tr>
+
+    ${
+      d.projects.length
+        ? `<!-- PROJECTS -->
+    <tr><td style="padding:24px 26px 2px">
+      <div style="font:800 11px ${FONT};color:${FAINT};letter-spacing:1.5px;margin-bottom:10px">PROJECTS</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="background:${CARD_BG};border:1px solid ${CARD_BORDER};border-radius:10px;padding:14px 16px">
+          ${projectList(d.projects)}
+        </td></tr>
+      </table>
+    </td></tr>`
+        : ""
+    }
 
     <!-- TRAINING & BODY -->
     <tr><td style="padding:24px 26px 2px">
