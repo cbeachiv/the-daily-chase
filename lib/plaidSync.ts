@@ -3,6 +3,7 @@
 // Shared by the manual sync route, the webhook, and the daily cron backstop.
 import { adminDb } from "@/lib/firebase/admin";
 import { plaidClient, plaidTxnToDoc } from "@/lib/plaid";
+import { detectTransfers, parseSelfNames, type TxnLike } from "@/lib/transfers";
 
 // One stored item in the top-level, client-denied `plaidItems` collection.
 interface ItemDoc {
@@ -55,11 +56,12 @@ export async function syncItem(item: ItemDoc): Promise<{ added: number; modified
         added++;
         if (++ops >= 400) await flush();
       }
-      // Modified: update Plaid-derived fields but PRESERVE the stored category so a
-      // user's manual recategorization survives a re-sync (pending→posted, etc.).
+      // Modified: update Plaid-derived fields but PRESERVE the stored `category`
+      // and `excluded` so a user's recategorization and our transfer reconciliation
+      // survive a re-sync (pending→posted, etc.).
       for (const t of data.modified) {
         const { id, data: d } = plaidTxnToDoc(t, item.id, now);
-        const { category: _omitCategory, ...rest } = d;
+        const { category: _omitCategory, excluded: _omitExcluded, ...rest } = d;
         batch.set(txnCol.doc(id), rest, { merge: true });
         modified++;
         if (++ops >= 400) await flush();
@@ -98,10 +100,44 @@ export async function syncItem(item: ItemDoc): Promise<{ added: number; modified
   }
 }
 
+// Re-scan a user's recent transactions and mark internal transfers excluded
+// (pairing + self-name). Runs after every sync so new transfers are caught.
+// `sinceDays` bounds the work to a recent window (transfers older than that were
+// reconciled on the sync that first imported them).
+export async function reconcileTransfers(uid: string, sinceDays = 75): Promise<number> {
+  const db = adminDb();
+  const since = new Date(Date.now() - sinceDays * 86_400_000).toISOString().slice(0, 10);
+  const snap = await db.collection(`users/${uid}/financeTransactions`).where("date", ">=", since).get();
+  const txns: (TxnLike & { excluded?: boolean })[] = snap.docs.map((d) => {
+    const v = d.data();
+    return { id: d.id, date: v.date, amount: v.amount, description: v.description || "", excluded: v.excluded };
+  });
+  const selfNames = parseSelfNames(process.env.FINANCE_SELF_NAMES);
+  const hits = detectTransfers(txns, { selfNames }).filter((h) => {
+    const t = txns.find((x) => x.id === h.id);
+    return t && !t.excluded; // only newly-detected ones need a write
+  });
+  if (hits.length === 0) return 0;
+  let batch = db.batch();
+  let ops = 0;
+  for (const h of hits) {
+    batch.update(db.doc(`users/${uid}/financeTransactions/${h.id}`), { excluded: true, category: "Transfer" });
+    if (++ops >= 400) {
+      await batch.commit();
+      batch = db.batch();
+      ops = 0;
+    }
+  }
+  await batch.commit();
+  return hits.length;
+}
+
 export async function syncByItemId(itemId: string): Promise<void> {
   const snap = await adminDb().doc(`plaidItems/${itemId}`).get();
   if (!snap.exists) return;
-  await syncItem({ id: snap.id, ...(snap.data() as Omit<ItemDoc, "id">) });
+  const data = snap.data() as Omit<ItemDoc, "id">;
+  await syncItem({ id: snap.id, ...data });
+  await reconcileTransfers(data.uid);
 }
 
 export async function syncAllForUid(uid: string): Promise<{ items: number; added: number; modified: number; removed: number }> {
@@ -115,13 +151,18 @@ export async function syncAllForUid(uid: string): Promise<{ items: number; added
     modified += r.modified;
     removed += r.removed;
   }
+  await reconcileTransfers(uid);
   return { items: snap.size, added, modified, removed };
 }
 
 export async function syncAllItems(): Promise<{ items: number }> {
   const snap = await adminDb().collection("plaidItems").get();
+  const uids = new Set<string>();
   for (const d of snap.docs) {
-    await syncItem({ id: d.id, ...(d.data() as Omit<ItemDoc, "id">) });
+    const data = d.data() as Omit<ItemDoc, "id">;
+    await syncItem({ id: d.id, ...data });
+    uids.add(data.uid);
   }
+  for (const uid of uids) await reconcileTransfers(uid);
   return { items: snap.size };
 }
