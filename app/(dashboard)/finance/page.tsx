@@ -338,13 +338,13 @@ function QuickAddAndRecurring({
   const [date, setDate] = useState(todayStr());
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
-  const [cat, setCat] = useState<FinanceCategory>("Other");
+  const [cat, setCat] = useState<FinanceCategory>("Chase Discretionary");
   const [income, setIncome] = useState(false);
   const [note, setNote] = useState("");
   // recurring add form
   const [rLabel, setRLabel] = useState("");
   const [rAmount, setRAmount] = useState("");
-  const [rCat, setRCat] = useState<FinanceCategory>("Housing");
+  const [rCat, setRCat] = useState<FinanceCategory>("Rent");
   const [rDay, setRDay] = useState("1");
 
   async function addTxn(e: React.FormEvent) {

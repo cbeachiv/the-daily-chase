@@ -319,18 +319,16 @@ export interface Project {
 // Normalized spend/income categories. Raw category strings from card exports
 // are mapped onto this clean set in lib/finance.ts (CATEGORY_MAP).
 export type FinanceCategory =
-  | "Dining"
+  | "Eating Out"
   | "Groceries"
-  | "Shopping"
   | "Travel"
-  | "Transportation"
-  | "Health"
-  | "Utilities"
-  | "Entertainment"
-  | "Housing"
+  | "Rent"
   | "Income"
   | "Transfer"
-  | "Other";
+  | "Sarah Discretionary"
+  | "Chase Discretionary"
+  | "Subscription"
+  | "Annie";
 
 export type FinanceSource = "capitalone" | "chase" | "manual" | "recurring";
 

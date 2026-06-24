@@ -7,88 +7,93 @@ import type { FinanceCategory, FinanceSource, FinanceTransaction } from "@/lib/t
 
 // ── Categories ───────────────────────────────────────────────────────────────
 export const FINANCE_CATEGORIES: FinanceCategory[] = [
-  "Dining",
+  "Eating Out",
   "Groceries",
-  "Shopping",
   "Travel",
-  "Transportation",
-  "Health",
-  "Utilities",
-  "Entertainment",
-  "Housing",
+  "Rent",
   "Income",
   "Transfer",
-  "Other",
+  "Sarah Discretionary",
+  "Chase Discretionary",
+  "Subscription",
+  "Annie",
 ];
 
 // Chart/chip colors, one per category (reuse the app's palette where it fits).
 export const CATEGORY_COLOR: Record<FinanceCategory, string> = {
-  Dining: "#f59e0b",
+  "Eating Out": "#f59e0b",
   Groceries: "#14b8a6",
-  Shopping: "#6366f1",
   Travel: "#0ea5e9",
-  Transportation: "#8b5cf6",
-  Health: "#ec4899",
-  Utilities: "#f97316",
-  Entertainment: "#a855f7",
-  Housing: "#e11d48",
+  Rent: "#e11d48",
   Income: "#047857",
   Transfer: "#9aa0a6",
-  Other: "#64748b",
+  "Sarah Discretionary": "#ec4899",
+  "Chase Discretionary": "#6366f1",
+  Subscription: "#a855f7",
+  Annie: "#f97316",
 };
+
+// The catch-all for an expense that matches no rule (there's no "Other" bucket).
+const DEFAULT_EXPENSE: FinanceCategory = "Chase Discretionary";
 
 // Substring → category rules, checked in order against the raw category string
 // (card export) first, then the description as a fallback. Lowercased compare.
 const RULES: [string, FinanceCategory][] = [
-  ["dining", "Dining"],
-  ["restaurant", "Dining"],
-  ["food & drink", "Dining"],
-  ["bar & ", "Dining"],
+  // Eating out
+  ["dining", "Eating Out"],
+  ["restaurant", "Eating Out"],
+  ["food & drink", "Eating Out"],
+  ["bar & ", "Eating Out"],
+  ["coffee", "Eating Out"],
+  ["cafe", "Eating Out"],
+  ["chipotle", "Eating Out"],
+  ["doordash", "Eating Out"],
+  ["uber eats", "Eating Out"],
+  ["grubhub", "Eating Out"],
+  // Groceries
   ["grocery", "Groceries"],
   ["groceries", "Groceries"],
   ["supermarket", "Groceries"],
   ["whole foods", "Groceries"],
   ["trader joe", "Groceries"],
   ["safeway", "Groceries"],
+  ["kroger", "Groceries"],
+  ["costco", "Groceries"],
+  // Travel
   ["airfare", "Travel"],
   ["airline", "Travel"],
+  ["airlines", "Travel"],
   ["lodging", "Travel"],
   ["hotel", "Travel"],
   ["airbnb", "Travel"],
   ["travel", "Travel"],
-  ["gas/automotive", "Transportation"],
-  ["gas", "Transportation"],
-  ["automotive", "Transportation"],
-  ["fuel", "Transportation"],
-  ["uber", "Transportation"],
-  ["lyft", "Transportation"],
-  ["parking", "Transportation"],
-  ["health", "Health"],
-  ["medical", "Health"],
-  ["pharmacy", "Health"],
-  ["doctor", "Health"],
-  ["dental", "Health"],
-  ["fitness", "Health"],
-  ["internet", "Utilities"],
-  ["phone/cable", "Utilities"],
-  ["phone", "Utilities"],
-  ["cable", "Utilities"],
-  ["utilities", "Utilities"],
-  ["utility", "Utilities"],
-  ["electric", "Utilities"],
-  ["verizon", "Utilities"],
-  ["duke energy", "Utilities"],
-  ["entertainment", "Entertainment"],
-  ["streaming", "Entertainment"],
-  ["netflix", "Entertainment"],
-  ["spotify", "Entertainment"],
-  ["rent", "Housing"],
-  ["mortgage", "Housing"],
-  ["merchandise", "Shopping"],
-  ["amazon", "Shopping"],
-  ["amzn", "Shopping"],
-  ["target", "Shopping"],
-  ["shopping", "Shopping"],
+  ["uber", "Travel"],
+  ["lyft", "Travel"],
+  // Rent
+  ["rent", "Rent"],
+  ["mortgage", "Rent"],
+  // Subscriptions (recurring services, utilities, memberships)
+  ["subscription", "Subscription"],
+  ["membership", "Subscription"],
+  ["netflix", "Subscription"],
+  ["spotify", "Subscription"],
+  ["hulu", "Subscription"],
+  ["disney", "Subscription"],
+  ["apple.com/bill", "Subscription"],
+  ["prime", "Subscription"],
+  ["internet", "Subscription"],
+  ["phone", "Subscription"],
+  ["cable", "Subscription"],
+  ["verizon", "Subscription"],
+  ["at&t", "Subscription"],
+  ["duke energy", "Subscription"],
+  ["utility", "Subscription"],
+  ["utilities", "Subscription"],
+  ["electric", "Subscription"],
+  // Annie (kid-related)
+  ["childcare", "Annie"],
+  ["daycare", "Annie"],
+  ["pediatric", "Annie"],
 ];
 
 // Raw category strings that mean "this is a card payment / internal transfer" —
@@ -115,7 +120,7 @@ export function normalizeCategory(rawCategory: string, description: string, amou
   }
   // Positive, unmatched, non-transfer → treat as income (e.g. a payroll deposit).
   if (amount > 0) return "Income";
-  return "Other";
+  return DEFAULT_EXPENSE;
 }
 
 export function isTransfer(rawCategory: string, description: string): boolean {
