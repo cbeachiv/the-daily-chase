@@ -23,12 +23,17 @@ export async function POST(req: Request) {
 
   try {
     const client = plaidClient();
+    // OAuth banks (Chase, Capital One) require a registered redirect URI in
+    // Production. Set PLAID_REDIRECT_URI to the page that hosts Plaid Link
+    // (e.g. https://thedailychase.com/finance) and register it in the dashboard.
+    const redirectUri = process.env.PLAID_REDIRECT_URI;
     const base = {
       user: { client_user_id: uid },
       client_name: "The Daily Chase",
       country_codes: [CountryCode.Us],
       language: "en",
       webhook: `${APP_BASE_URL}/api/plaid/webhook`,
+      ...(redirectUri ? { redirect_uri: redirectUri } : {}),
     };
 
     // Update mode: re-auth an existing item (no products allowed alongside access_token).

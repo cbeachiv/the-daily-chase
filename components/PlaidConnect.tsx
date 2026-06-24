@@ -45,6 +45,22 @@ export default function PlaidConnect({
     loadItems();
   }, [loadItems]);
 
+  // When a bank uses OAuth (Chase, Capital One), Plaid redirects back to this
+  // page with ?oauth_state_id=...; re-open Link with the saved token to finish.
+  const [oauthReturn, setOauthReturn] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).has("oauth_state_id")) {
+      const saved = window.localStorage.getItem("plaid_link_token");
+      const savedItem = window.localStorage.getItem("plaid_update_item");
+      if (saved) {
+        setUpdateItemId(savedItem || null);
+        setOauthReturn(true);
+        setLinkToken(saved);
+      }
+    }
+  }, []);
+
   // Fetch a Link token (new connection, or update-mode for re-auth).
   const openLink = useCallback(async (itemId?: string) => {
     setBusy(itemId ? "Preparing reconnect…" : "Preparing…");
@@ -57,9 +73,24 @@ export default function PlaidConnect({
       setBusy("Could not start Plaid. Check PLAID_CLIENT_ID / PLAID_SECRET.");
       return;
     }
+    const token = (await res.json()).link_token;
+    // Persist across the OAuth redirect (the bank navigates away and back).
+    window.localStorage.setItem("plaid_link_token", token);
+    if (itemId) window.localStorage.setItem("plaid_update_item", itemId);
+    else window.localStorage.removeItem("plaid_update_item");
     setUpdateItemId(itemId ?? null);
-    setLinkToken((await res.json()).link_token);
+    setLinkToken(token);
   }, []);
+
+  function cleanup() {
+    window.localStorage.removeItem("plaid_link_token");
+    window.localStorage.removeItem("plaid_update_item");
+    setOauthReturn(false);
+    // Strip the ?oauth_state_id=... so a refresh doesn't re-trigger.
+    if (typeof window !== "undefined" && window.location.search.includes("oauth_state_id")) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }
 
   const onSuccess = useCallback(
     async (public_token: string) => {
@@ -72,24 +103,28 @@ export default function PlaidConnect({
         setBusy("Linking & importing…");
         await authedFetch("/api/plaid/exchange", { method: "POST", body: JSON.stringify({ public_token }) });
       }
-      setBusy("");
       setUpdateItemId(null);
+      cleanup();
       await loadItems();
+      setBusy("");
     },
     [updateItemId, loadItems]
   );
 
   const { open, ready } = usePlaidLink({
     token: linkToken,
+    // On OAuth return, hand Plaid the redirect URL so it can resume the flow.
+    receivedRedirectUri: oauthReturn && typeof window !== "undefined" ? window.location.href : undefined,
     onSuccess: (public_token) => onSuccess(public_token),
     onExit: () => {
       setLinkToken(null);
       setUpdateItemId(null);
+      cleanup();
       setBusy("");
     },
   });
 
-  // Auto-open Link once the token is ready.
+  // Auto-open Link once the token is ready (initial click or OAuth return).
   useEffect(() => {
     if (linkToken && ready) open();
   }, [linkToken, ready, open]);
