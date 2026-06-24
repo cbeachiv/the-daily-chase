@@ -330,7 +330,7 @@ export type FinanceCategory =
   | "Subscription"
   | "Annie";
 
-export type FinanceSource = "capitalone" | "chase" | "manual" | "recurring";
+export type FinanceSource = "capitalone" | "chase" | "manual" | "recurring" | "plaid";
 
 // users/{uid}/financeTransactions — one row per transaction. Doc id is a
 // deterministic dedupe hash (source|date|amount|description), so re-uploading a
@@ -349,7 +349,21 @@ export interface FinanceTransaction {
   source: FinanceSource;
   excluded: boolean; // true = don't count toward spend/income (payments, transfers)
   note?: string; // free text; holds enriched Amazon item lists
+  pending?: boolean; // Plaid: transaction not yet posted (may change/disappear)
+  plaidItemId?: string; // Plaid: which connected item this came from
   createdAt: string;
+}
+
+// Sanitized view of a connected Plaid item, returned by /api/plaid/items for the
+// "Connected accounts" UI. The access token itself lives in a server-only,
+// client-denied top-level `plaidItems` collection and never reaches the browser.
+export interface PlaidItemView {
+  itemId: string;
+  institutionName: string;
+  accounts: { accountId: string; name: string; mask?: string; subtype?: string }[];
+  status: "active" | "login_required" | "error";
+  lastSyncedAt?: string;
+  error?: string;
 }
 
 // users/{uid}/financeRecurring — fixed monthly expenses that don't reliably show

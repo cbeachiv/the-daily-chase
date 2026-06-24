@@ -21,6 +21,7 @@ import {
 import FinanceCategoryChart from "@/components/charts/FinanceCategoryChart";
 import FinanceTrendChart, { type TrendPoint } from "@/components/charts/FinanceTrendChart";
 import FinanceTable from "@/components/FinanceTable";
+import PlaidConnect from "@/components/PlaidConnect";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 const thisMonth = () => todayStr().slice(0, 7);
@@ -47,6 +48,8 @@ export default function FinancePage() {
   const [view, setView] = useState<"dashboard" | "table">("dashboard");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
+  const [plaidCount, setPlaidCount] = useState(0);
+  const [showImport, setShowImport] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Months available in the selector: every month with data, plus the current one.
@@ -196,14 +199,35 @@ export default function FinancePage() {
         />
       </div>
 
-      {/* Import */}
+      {/* Connected accounts (Plaid) */}
+      <PlaidConnect onItemsLoaded={(items) => setPlaidCount(items.length)} />
+
+      {/* Import — once a bank is connected, collapse CSV to a fallback so the same
+          account isn't double-imported via both Plaid and a manual upload. */}
       <section className="card space-y-3 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="section-title">Import transactions</h2>
-          <button className="btn-ghost" onClick={() => fileRef.current?.click()}>
-            Upload CSV
-          </button>
+          <h2 className="section-title">
+            {plaidCount > 0 ? "Manual CSV import" : "Import transactions"}
+          </h2>
+          {plaidCount > 0 && !showImport ? (
+            <button className="btn-ghost" onClick={() => setShowImport(true)}>
+              Show
+            </button>
+          ) : (
+            <button className="btn-ghost" onClick={() => fileRef.current?.click()}>
+              Upload CSV
+            </button>
+          )}
         </div>
+        {plaidCount > 0 && (
+          <p className="text-xs text-muted">
+            You have connected accounts syncing automatically. Only upload a CSV for an account you{" "}
+            <strong>haven&apos;t</strong> connected, or to enrich Amazon charges — uploading a connected account&apos;s
+            export would double-count it.
+          </p>
+        )}
+        {(plaidCount === 0 || showImport) && (
+        <>
         <p className="text-xs text-muted">
           Drop a monthly <strong>Capital One</strong> or <strong>Chase</strong> export to load transactions, or an{" "}
           <strong>Amazon order history</strong> export to attach item names to your Amazon charges.
@@ -262,6 +286,8 @@ export default function FinancePage() {
               </button>
             </div>
           </div>
+        )}
+        </>
         )}
       </section>
 

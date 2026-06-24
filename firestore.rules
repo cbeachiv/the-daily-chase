@@ -6,5 +6,12 @@ service cloud.firestore {
     match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
+
+    // plaidItems holds Plaid access tokens. Server-only: the Admin SDK bypasses
+    // these rules, while clients are denied (no match below = default deny). This
+    // explicit deny documents the intent and guards against a future broad rule.
+    match /plaidItems/{itemId} {
+      allow read, write: if false;
+    }
   }
 }
