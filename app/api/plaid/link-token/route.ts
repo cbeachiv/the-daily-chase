@@ -46,7 +46,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ link_token: resp.data.link_token });
     }
 
-    const resp = await client.linkTokenCreate({ ...base, products: [Products.Transactions] });
+    // Request the maximum transaction history (24 months) so a newly linked or
+    // re-linked account backfills as far as the institution allows, rather than
+    // Plaid's 90-day default.
+    const resp = await client.linkTokenCreate({
+      ...base,
+      products: [Products.Transactions],
+      transactions: { days_requested: 730 },
+    });
     return NextResponse.json({ link_token: resp.data.link_token });
   } catch (err) {
     console.error("link-token failed:", err);
