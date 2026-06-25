@@ -52,6 +52,13 @@ export function mapPlaidCategory(txn: PlaidTransaction): { category: FinanceCate
 // Plaid sign convention: amount POSITIVE = money out (expense). We store the
 // opposite (negative = expense). Doc id = plaid_<transaction_id> for stable,
 // idempotent dedupe across syncs.
+// Best human-readable name Plaid can give: cleaned merchant name first, then an
+// identified counterparty, then the raw bank descriptor (which may be masked).
+export function plaidBestName(txn: PlaidTransaction): string {
+  const counterparty = txn.counterparties?.find((c) => c.name)?.name;
+  return txn.merchant_name || counterparty || txn.name || "Transaction";
+}
+
 export function plaidTxnToDoc(txn: PlaidTransaction, itemId: string, nowIso: string) {
   const { category, excluded } = mapPlaidCategory(txn);
   return {
@@ -59,7 +66,7 @@ export function plaidTxnToDoc(txn: PlaidTransaction, itemId: string, nowIso: str
     data: {
       date: txn.date,
       month: txn.date.slice(0, 7),
-      description: txn.merchant_name || txn.name || "Transaction",
+      description: plaidBestName(txn),
       amount: -txn.amount, // flip Plaid's sign so expense is negative
       category,
       rawCategory: txn.personal_finance_category?.detailed || undefined,

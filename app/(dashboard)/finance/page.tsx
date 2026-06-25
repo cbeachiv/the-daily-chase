@@ -687,13 +687,33 @@ function TransactionList({
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FinanceCategory | "all">("all");
   const [sort, setSort] = useState<"date" | "amount">("date");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  // What to show as the name: a user rename wins over Plaid's (sometimes masked) text.
+  const nameOf = (t: FinanceTransaction) =>
+    t.descriptionOverride && t.descriptionOverride.trim() ? t.descriptionOverride : t.description;
+
+  async function saveRename(t: FinanceTransaction) {
+    setEditingId(null);
+    if (!uid) return;
+    const v = editValue.trim();
+    // Empty or unchanged → clear the override (fall back to the original).
+    const next = !v || v === t.description ? "" : v;
+    if (next !== (t.descriptionOverride ?? "")) {
+      await updateItem(uid, "financeTransactions", t.id, { descriptionOverride: next });
+    }
+  }
 
   const rows = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = monthTxns.filter(
       (t) =>
         (filter === "all" || t.category === filter) &&
-        (!q || t.description.toLowerCase().includes(q) || (t.note ?? "").toLowerCase().includes(q))
+        (!q ||
+          t.description.toLowerCase().includes(q) ||
+          (t.descriptionOverride ?? "").toLowerCase().includes(q) ||
+          (t.note ?? "").toLowerCase().includes(q))
     );
     // "Largest spend" → biggest expense first (amounts are negative for spend);
     // "date" keeps the parent's newest-first order.
@@ -728,7 +748,33 @@ function TransactionList({
           <div key={t.id} className={`flex items-center gap-3 py-2 text-sm ${t.excluded ? "opacity-50" : ""}`}>
             <span className="w-12 shrink-0 text-xs text-muted">{shortDate(t.date)}</span>
             <div className="min-w-0 flex-1">
-              <div className="truncate font-medium">{t.description}</div>
+              {editingId === t.id ? (
+                <input
+                  autoFocus
+                  className="w-full rounded border border-line px-1.5 py-0.5 text-sm outline-none focus:border-indigo"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => saveRename(t)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveRename(t);
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                />
+              ) : (
+                <button
+                  className="block max-w-full truncate text-left font-medium hover:text-indigo"
+                  title="Click to rename"
+                  onClick={() => {
+                    setEditingId(t.id);
+                    setEditValue(nameOf(t));
+                  }}
+                >
+                  {nameOf(t)}
+                  {t.descriptionOverride && t.descriptionOverride.trim() && (
+                    <span className="ml-1 text-[10px] text-muted" title="Renamed">✎</span>
+                  )}
+                </button>
+              )}
               {t.note && <div className="truncate text-xs text-muted">{t.note}</div>}
             </div>
             <span

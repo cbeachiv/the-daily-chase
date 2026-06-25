@@ -349,6 +349,7 @@ export interface FinanceTransaction {
   source: FinanceSource;
   excluded: boolean; // true = don't count toward spend/income (payments, transfers)
   note?: string; // free text; holds enriched Amazon item lists
+  descriptionOverride?: string; // user-set label; shown instead of `description`, survives syncs
   pending?: boolean; // Plaid: transaction not yet posted (may change/disappear)
   plaidItemId?: string; // Plaid: which connected item this came from
   createdAt: string;
