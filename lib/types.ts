@@ -321,6 +321,8 @@ export interface Project {
 export type FinanceCategory =
   | "Eating Out"
   | "Groceries"
+  | "Amazon"
+  | "Health"
   | "Travel"
   | "Rent"
   | "Income"

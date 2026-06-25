@@ -42,9 +42,16 @@ export function mapPlaidCategory(txn: PlaidTransaction): { category: FinanceCate
   if (primary === "TRANSPORTATION" || primary === "TRAVEL") return { category: "Travel", excluded: false };
   if (detailed === "RENT_AND_UTILITIES_RENT") return { category: "Rent", excluded: false };
   if (primary === "RENT_AND_UTILITIES") return { category: "Subscription", excluded: false };
+  if (primary === "MEDICAL") return { category: "Health", excluded: false };
+
+  // Amazon purchases (but not Prime subscription, caught as a service above/below).
+  const who = `${txn.merchant_name || ""} ${txn.name || ""}`.toLowerCase();
+  if (/\bamazon\b|amzn/.test(who) && !who.includes("prime")) {
+    return { category: "Amazon", excluded: false };
+  }
 
   // Everything else (general merchandise/services, personal care, entertainment,
-  // medical, home improvement, bank fees) → the discretionary catch-all.
+  // home improvement, bank fees) → the discretionary catch-all.
   return { category: "Chase Discretionary", excluded: false };
 }
 

@@ -9,6 +9,8 @@ import type { FinanceCategory, FinanceSource, FinanceTransaction } from "@/lib/t
 export const FINANCE_CATEGORIES: FinanceCategory[] = [
   "Eating Out",
   "Groceries",
+  "Amazon",
+  "Health",
   "Travel",
   "Rent",
   "Income",
@@ -23,6 +25,8 @@ export const FINANCE_CATEGORIES: FinanceCategory[] = [
 export const CATEGORY_COLOR: Record<FinanceCategory, string> = {
   "Eating Out": "#f59e0b",
   Groceries: "#14b8a6",
+  Amazon: "#ff9900",
+  Health: "#3b82f6",
   Travel: "#0ea5e9",
   Rent: "#e11d48",
   Income: "#047857",
@@ -94,6 +98,21 @@ const RULES: [string, FinanceCategory][] = [
   ["childcare", "Annie"],
   ["daycare", "Annie"],
   ["pediatric", "Annie"],
+  // Health (after Annie's pediatric so kid-medical can still land on Annie above)
+  ["pharmacy", "Health"],
+  ["cvs", "Health"],
+  ["walgreens", "Health"],
+  ["medical", "Health"],
+  ["health", "Health"],
+  ["doctor", "Health"],
+  ["dental", "Health"],
+  ["dentist", "Health"],
+  ["clinic", "Health"],
+  ["hospital", "Health"],
+  ["optometr", "Health"],
+  // Amazon (after the "prime" subscription rule above so Prime stays Subscription)
+  ["amazon", "Amazon"],
+  ["amzn", "Amazon"],
 ];
 
 // Raw category strings that mean "this is a card payment / internal transfer" —
