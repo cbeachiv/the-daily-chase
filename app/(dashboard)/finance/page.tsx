@@ -50,6 +50,7 @@ export default function FinancePage() {
   const [busy, setBusy] = useState(false);
   const [plaidCount, setPlaidCount] = useState(0);
   const [showImport, setShowImport] = useState(false);
+  const [catScope, setCatScope] = useState<"month" | "year">("month");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Months available in the selector: every month with data, plus the current one.
@@ -66,6 +67,13 @@ export default function FinancePage() {
   );
   const agg = useMemo(() => aggregateMonth(monthTxns), [monthTxns]);
   const snapshot = useMemo(() => snapshots.find((s) => s.month === month), [snapshots, month]);
+
+  // Year-to-date aggregation for the selected month's year (e.g. all of 2026).
+  const year = month.slice(0, 4);
+  const yearAgg = useMemo(
+    () => aggregateMonth(txns.filter((t) => t.month.startsWith(`${year}-`))),
+    [txns, year]
+  );
 
   // Chronological per-month series for the trend charts. Income/spend come from
   // transactions when present, else fall back to the snapshot's stored totals.
@@ -295,10 +303,58 @@ export default function FinancePage() {
       <QuickAddAndRecurring uid={uid} month={month} recurring={recurring} txns={txns} />
 
       {/* Category breakdown */}
-      <section className="card p-4">
-        <h2 className="section-title mb-3">Spending by category · {monthLabel(month)}</h2>
-        <FinanceCategoryChart byCategory={agg.byCategory} />
-      </section>
+      {(() => {
+        const catAgg = catScope === "year" ? yearAgg : agg;
+        const scopeLabel = catScope === "year" ? year : monthLabel(month);
+        return (
+          <section className="card p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="section-title">Spending by category · {scopeLabel}</h2>
+              <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
+                {(
+                  [
+                    ["month", "This month"],
+                    ["year", year],
+                  ] as const
+                ).map(([v, label]) => (
+                  <button
+                    key={v}
+                    onClick={() => setCatScope(v)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                      catScope === v ? "bg-card text-ink shadow-card" : "text-muted"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <FinanceCategoryChart byCategory={catAgg.byCategory} />
+            {catAgg.byCategory.length > 0 && (
+              <div className="mt-4 divide-y divide-line border-t border-line">
+                {catAgg.byCategory.map((c) => (
+                  <div key={c.category} className="flex items-center justify-between py-1.5 text-sm">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: CATEGORY_COLOR[c.category] }} />
+                      {c.category}
+                    </span>
+                    <span className="tabular-nums font-semibold">
+                      {fmtUSD(c.amount)}
+                      <span className="ml-2 text-xs font-normal text-muted">
+                        {catAgg.spend > 0 ? Math.round((c.amount / catAgg.spend) * 100) : 0}%
+                      </span>
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between py-1.5 text-sm font-bold">
+                  <span>Total spend · {scopeLabel}</span>
+                  <span className="tabular-nums">{fmtUSD(catAgg.spend)}</span>
+                </div>
+              </div>
+            )}
+          </section>
+        );
+      })()}
 
       {/* Trends */}
       <section className="card p-4">
