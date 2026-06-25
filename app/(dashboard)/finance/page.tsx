@@ -11,12 +11,14 @@ import {
   aggregateMonth,
   buildTxnDocs,
   detectFormat,
+  feedCoverage,
   fmtUSD,
   matchAmazonOrders,
   monthLabel,
   parseAmazonOrders,
   parseCsv,
   parseTransactions,
+  resolveMonthTotals,
 } from "@/lib/finance";
 import FinanceCategoryChart from "@/components/charts/FinanceCategoryChart";
 import FinanceTrendChart, { type TrendPoint } from "@/components/charts/FinanceTrendChart";
@@ -68,6 +70,15 @@ export default function FinancePage() {
   const agg = useMemo(() => aggregateMonth(monthTxns), [monthTxns]);
   const snapshot = useMemo(() => snapshots.find((s) => s.month === month), [snapshots, month]);
 
+  // Headline income/spend: trust transactions only for fully-covered months, else
+  // the snapshot (fixes the partial first Plaid month, e.g. late-March-only data).
+  const coverage = useMemo(() => feedCoverage(txns), [txns]);
+  const totals = useMemo(
+    () => resolveMonthTotals(month, monthTxns, snapshot, coverage),
+    [month, monthTxns, snapshot, coverage]
+  );
+  const savingsPct = totals.income > 0 ? (totals.income - totals.spend) / totals.income : null;
+
   // Year-to-date aggregation for the selected month's year (e.g. all of 2026).
   const year = month.slice(0, 4);
   const yearAgg = useMemo(
@@ -81,16 +92,17 @@ export default function FinancePage() {
     const all = new Set<string>();
     txns.forEach((t) => all.add(t.month));
     snapshots.forEach((s) => all.add(s.month));
+    const cov = feedCoverage(txns);
     return Array.from(all)
       .sort()
       .map((m) => {
         const mTxns = txns.filter((t) => t.month === m);
         const snap = snapshots.find((s) => s.month === m);
-        const a = mTxns.length ? aggregateMonth(mTxns) : null;
+        const { income, spend } = resolveMonthTotals(m, mTxns, snap, cov);
         return {
           month: m,
-          income: a ? a.income : snap?.income ?? 0,
-          spend: a ? a.spend : snap?.spend ?? 0,
+          income,
+          spend,
           bitcoin: snap?.bitcoin ?? 0,
           ira: snap?.ira ?? 0,
           savings: snap?.savings ?? 0,
@@ -197,12 +209,16 @@ export default function FinancePage() {
         <>
       {/* Headline stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Income" value={fmtUSD(agg.income)} accent="text-teal" />
-        <Stat label="Spend" value={fmtUSD(agg.spend)} accent="text-coral" />
-        <Stat label="Net saved" value={fmtUSD(agg.net)} accent={agg.net >= 0 ? "text-teal" : "text-coral"} />
+        <Stat label="Income" value={fmtUSD(totals.income)} accent="text-teal" />
+        <Stat label="Spend" value={fmtUSD(totals.spend)} accent="text-coral" />
+        <Stat
+          label="Net saved"
+          value={fmtUSD(totals.income - totals.spend)}
+          accent={totals.income - totals.spend >= 0 ? "text-teal" : "text-coral"}
+        />
         <Stat
           label="Savings rate"
-          value={agg.savingsPct === null ? "—" : `${Math.round(agg.savingsPct * 100)}%`}
+          value={savingsPct === null ? "—" : `${Math.round(savingsPct * 100)}%`}
           accent="text-indigo"
         />
       </div>

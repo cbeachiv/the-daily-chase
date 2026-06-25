@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
-import { aggregateMonth, addMonths, fmtUSD, monthLabel } from "@/lib/finance";
+import { aggregateMonth, addMonths, feedCoverage, fmtUSD, monthLabel, resolveMonthTotals } from "@/lib/finance";
 import { shortDate } from "@/lib/dates";
 import type { FinanceSnapshot, FinanceTransaction } from "@/lib/types";
 import { buildEmailHtml, type FinanceMonthlyEmailData } from "./email";
@@ -75,10 +75,9 @@ export async function GET(req: Request) {
   const snap = snapshots.find((s) => s.month === month);
   const prevSnap = snapshots.find((s) => s.month === prevMonth);
 
-  // Use transaction totals when present, else fall back to the snapshot's stored
-  // monthly figures (for historical/backfilled months).
-  const income = monthTxns.length ? agg.income : snap?.income ?? 0;
-  const spend = monthTxns.length ? agg.spend : snap?.spend ?? 0;
+  // Transactions for fully-covered months, else the snapshot's stored figures
+  // (historical/backfilled months + the partial first feed month).
+  const { income, spend } = resolveMonthTotals(month, monthTxns, snap, feedCoverage(txns));
   const net = income - spend;
   const savingsPct = income > 0 ? net / income : null;
   const spendDelta = prevAgg.spend > 0 ? spend - prevAgg.spend : null;

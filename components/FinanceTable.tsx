@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { FinanceSnapshot, FinanceTransaction } from "@/lib/types";
-import { aggregateMonth, fmtUSD, monthLabel } from "@/lib/finance";
+import { aggregateMonth, feedCoverage, fmtUSD, monthLabel } from "@/lib/finance";
 
 // A spreadsheet-style month-over-month grid (newest month first), mirroring the
 // budget Google Sheet: income, savings balance + monthly change, investments,
@@ -42,10 +42,14 @@ export default function FinanceTable({
     txns.forEach((t) => months.add(t.month));
     const asc = Array.from(months).sort();
 
+    const cov = feedCoverage(txns);
     const built: Col[] = asc.map((month) => {
       const mTxns = txns.filter((t) => t.month === month);
-      const agg = mTxns.length ? aggregateMonth(mTxns) : null;
       const snap = snapshots.find((s) => s.month === month);
+      // Transactions only for months the feed fully covers; otherwise the
+      // snapshot's stored totals (pre-feed history + the partial boundary month).
+      const fullyCovered = cov !== null && (month > cov.month || (month === cov.month && cov.full));
+      const agg = fullyCovered && mTxns.length ? aggregateMonth(mTxns) : null;
       const income = agg ? agg.income : snap?.income;
       const totalSpend = agg ? agg.spend : snap?.spend;
       const rent = snap?.rent;

@@ -447,6 +447,45 @@ export function aggregateMonth(txns: FinanceTransaction[]): MonthAgg {
   return { income, spend, net, savingsPct: income > 0 ? net / income : null, byCategory };
 }
 
+// ── Snapshot vs transactions: which to trust per month ───────────────────────
+// The account feed (Plaid/CSV) only goes back so far, and its first month is
+// usually partial (Plaid started mid-March). Older months — and that partial
+// boundary month — have authoritative full-month totals in their snapshot; only
+// months the feed FULLY covers should be computed from transactions.
+
+// Earliest month the account feed covers, and whether that first month is full
+// (feed started within the first 3 days). Manual/recurring rows don't count as
+// "feed coverage". Returns null if there are no fed transactions.
+export function feedCoverage(
+  txns: FinanceTransaction[]
+): { month: string; full: boolean } | null {
+  const fed = txns.filter((t) => t.source === "plaid" || t.source === "capitalone" || t.source === "chase");
+  if (fed.length === 0) return null;
+  const earliest = fed.reduce((min, t) => (t.date < min ? t.date : min), fed[0].date);
+  return { month: earliest.slice(0, 7), full: Number(earliest.slice(8, 10)) <= 3 };
+}
+
+// Resolve a month's income/spend: transactions for fully-covered months, else the
+// snapshot's stored totals (pre-feed history + the partial boundary month).
+export function resolveMonthTotals(
+  month: string,
+  monthTxns: FinanceTransaction[],
+  snapshot: { income?: number; spend?: number } | undefined,
+  coverage: { month: string; full: boolean } | null
+): { income: number; spend: number } {
+  const fullyCovered =
+    coverage !== null && (month > coverage.month || (month === coverage.month && coverage.full));
+  if (fullyCovered && monthTxns.length > 0) {
+    const a = aggregateMonth(monthTxns);
+    return { income: a.income, spend: a.spend };
+  }
+  if (snapshot && (snapshot.income != null || snapshot.spend != null)) {
+    return { income: snapshot.income ?? 0, spend: snapshot.spend ?? 0 };
+  }
+  const a = aggregateMonth(monthTxns);
+  return { income: a.income, spend: a.spend };
+}
+
 // ── Formatting / month helpers ───────────────────────────────────────────────
 export function fmtUSD(n: number, withCents = false): string {
   return n.toLocaleString("en-US", {
