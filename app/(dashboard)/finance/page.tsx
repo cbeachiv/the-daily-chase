@@ -630,15 +630,19 @@ function TransactionList({
 }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FinanceCategory | "all">("all");
+  const [sort, setSort] = useState<"date" | "amount">("date");
 
   const rows = useMemo(() => {
     const q = search.toLowerCase();
-    return monthTxns.filter(
+    const filtered = monthTxns.filter(
       (t) =>
         (filter === "all" || t.category === filter) &&
         (!q || t.description.toLowerCase().includes(q) || (t.note ?? "").toLowerCase().includes(q))
     );
-  }, [monthTxns, search, filter]);
+    // "Largest spend" → biggest expense first (amounts are negative for spend);
+    // "date" keeps the parent's newest-first order.
+    return sort === "amount" ? [...filtered].sort((a, b) => a.amount - b.amount) : filtered;
+  }, [monthTxns, search, filter, sort]);
 
   return (
     <section className="card space-y-3 p-4">
@@ -653,6 +657,10 @@ function TransactionList({
                 {c}
               </option>
             ))}
+          </select>
+          <select className="input w-36" value={sort} onChange={(e) => setSort(e.target.value as "date" | "amount")}>
+            <option value="date">Newest first</option>
+            <option value="amount">Largest spend</option>
           </select>
         </div>
       </div>
