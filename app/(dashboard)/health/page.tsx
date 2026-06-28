@@ -2,12 +2,22 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
+import type {
+  CoffeeLog,
+  FoodEntry,
+  MoodLog,
+  WakeupLog,
+  WeightLog,
+  Workout,
+} from "@/lib/types";
+import type { LoggedSessionDoc } from "@/lib/lifts";
+import type { CardioLog } from "@/lib/cardio";
 import { addDays, todayStr } from "@/lib/dates";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
 import MoodSection from "@/components/MoodSection";
 import InjuriesSection from "@/components/InjuriesSection";
+import HealthCalendar from "@/components/HealthCalendar";
 
 const RANGES: { label: string; days: number | null }[] = [
   { label: "1M", days: 30 },
@@ -21,8 +31,12 @@ export default function HealthPage() {
   const today = todayStr();
   const { data: weights, uid } = useCollection<WeightLog>("weightLogs");
   const { data: workouts } = useCollection<Workout>("workouts");
+  const { data: lifts } = useCollection<LoggedSessionDoc>("liftSessions");
+  const { data: cardio } = useCollection<CardioLog>("cardio");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
+  const { data: moods } = useCollection<MoodLog>("moodLogs");
+  const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
   const [weightInput, setWeightInput] = useState("");
   const [range, setRange] = useState("3M");
   const [weightOpen, setWeightOpen] = useState(false);
@@ -44,6 +58,12 @@ export default function HealthPage() {
   const latest = sortedWeights[sortedWeights.length - 1];
   const prev = sortedWeights[sortedWeights.length - 2];
   const delta = latest && prev ? latest.weightLbs - prev.weightLbs : null;
+  const avg7 = useMemo(() => {
+    const cutoff = addDays(today, -6);
+    const recent = sortedWeights.filter((w) => w.date >= cutoff);
+    if (!recent.length) return null;
+    return recent.reduce((sum, w) => sum + w.weightLbs, 0) / recent.length;
+  }, [sortedWeights, today]);
 
   // Last 7 days of exercise; today is tappable and stays in sync with the
   // home-page Quick log tile (same workouts collection).
@@ -129,6 +149,17 @@ export default function HealthPage() {
           ))}
         </div>
       </header>
+
+      <HealthCalendar
+        weights={weights}
+        workouts={workouts}
+        lifts={lifts}
+        cardio={cardio}
+        foods={foods}
+        wakeups={wakeups}
+        moods={moods}
+        coffees={coffees}
+      />
 
       {/* 5am wakeup + exercise, side by side */}
       <div className="grid items-start gap-3 sm:grid-cols-2 sm:gap-4">
@@ -227,6 +258,9 @@ export default function HealthPage() {
         >
           <h2 className="section-title">Weight</h2>
           <span className="flex items-center gap-2 text-sm text-muted">
+            {avg7 !== null && (
+              <span className="text-muted/70">7d avg {avg7.toFixed(1)}</span>
+            )}
             {latest && (
               <>
                 {latest.weightLbs} lb

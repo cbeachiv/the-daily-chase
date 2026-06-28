@@ -51,6 +51,15 @@ export function prettyTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
+// "HH:MM" 24-hour clock -> "7:00 AM" / "11:30 PM".
+export function prettyClock(hm: string): string {
+  const [h, m] = hm.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return hm;
+  const period = h < 12 ? "AM" : "PM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 // Hours between an "HH:MM" bedtime and wake time, wrapping past midnight.
 // e.g. "23:30" -> "07:00" = 7.5
 export function sleepHours(bedtime: string, wakeTime: string): number | null {
