@@ -19,6 +19,7 @@ export const FINANCE_CATEGORIES: FinanceCategory[] = [
   "Chase Discretionary",
   "Subscription",
   "Annie",
+  "Babysitting",
 ];
 
 // Chart/chip colors, one per category (reuse the app's palette where it fits).
@@ -35,6 +36,7 @@ export const CATEGORY_COLOR: Record<FinanceCategory, string> = {
   "Chase Discretionary": "#6366f1",
   Subscription: "#a855f7",
   Annie: "#f97316",
+  Babysitting: "#84cc16",
 };
 
 // The catch-all for an expense that matches no rule (there's no "Other" bucket).
@@ -98,6 +100,11 @@ const RULES: [string, FinanceCategory][] = [
   ["childcare", "Annie"],
   ["daycare", "Annie"],
   ["pediatric", "Annie"],
+  // Babysitting (its own bucket, separate from daycare/childcare above)
+  ["babysit", "Babysitting"],
+  ["babysitter", "Babysitting"],
+  ["nanny", "Babysitting"],
+  ["au pair", "Babysitting"],
   // Health (after Annie's pediatric so kid-medical can still land on Annie above)
   ["pharmacy", "Health"],
   ["cvs", "Health"],

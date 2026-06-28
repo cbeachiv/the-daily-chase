@@ -49,6 +49,9 @@ export function mapPlaidCategory(txn: PlaidTransaction): { category: FinanceCate
   if (/\bamazon\b|amzn/.test(who) && !who.includes("prime")) {
     return { category: "Amazon", excluded: false };
   }
+  if (/babysit|nanny|au pair/.test(who)) {
+    return { category: "Babysitting", excluded: false };
+  }
 
   // Everything else (general merchandise/services, personal care, entertainment,
   // home improvement, bank fees) → the discretionary catch-all.
