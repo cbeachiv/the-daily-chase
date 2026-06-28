@@ -1,11 +1,12 @@
 // Cardio logging — outdoor run, treadmill run, or any other activity
 // (pickleball, tennis, …). Stored in Firestore users/{uid}/cardio.
 
-export type CardioKind = "outdoor" | "treadmill" | "other";
+export type CardioKind = "outdoor" | "treadmill" | "pickleball" | "other";
 
 export const CARDIO_KIND_LABEL: Record<CardioKind, string> = {
   outdoor: "Outdoor run",
   treadmill: "Treadmill",
+  pickleball: "Pickleball",
   other: "Other",
 };
 
@@ -22,7 +23,11 @@ export interface CardioLog {
   pace?: string; // "MM:SS" per mile
   // other
   activity?: string; // e.g. "Pickleball", "Tennis"
-  notes?: string; // free-text notes (used for "other" activities)
+  notes?: string; // free-text notes (used for "other"/pickleball activities)
+  // pickleball
+  playedWith?: string; // who you played with, e.g. "Mom, Dave"
+  wins?: number; // games won
+  losses?: number; // games lost
   createdAt: string;
 }
 
@@ -88,4 +93,34 @@ export function cardioPaceMin(c: CardioLog): number | null {
 /** Newest-first. */
 export function cardioDesc(items: CardioLog[]): CardioLog[] {
   return [...items].sort((a, b) => b.dateTime.localeCompare(a.dateTime));
+}
+
+/** Display label used to group an entry by activity (chart + rows). */
+export function activityLabel(c: CardioLog): string {
+  if (c.kind === "other") return c.activity?.trim() || "Other";
+  return CARDIO_KIND_LABEL[c.kind];
+}
+
+export type CardioScope = "month" | "year" | "all";
+
+/**
+ * Total minutes per activity within a window, sorted longest-first.
+ * `month` / `year` filter on the entry date prefix relative to `today`.
+ */
+export function timeByActivity(
+  items: CardioLog[],
+  scope: CardioScope,
+  today: string
+): { label: string; minutes: number }[] {
+  const prefix = scope === "month" ? today.slice(0, 7) : scope === "year" ? today.slice(0, 4) : "";
+  const totals = new Map<string, number>();
+  for (const c of items) {
+    if (prefix && !c.date.startsWith(prefix)) continue;
+    if (!(c.durationMin > 0)) continue;
+    const label = activityLabel(c);
+    totals.set(label, (totals.get(label) ?? 0) + c.durationMin);
+  }
+  return [...totals.entries()]
+    .map(([label, minutes]) => ({ label, minutes }))
+    .sort((a, b) => b.minutes - a.minutes);
 }

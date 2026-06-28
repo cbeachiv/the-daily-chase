@@ -268,10 +268,15 @@ export function buildEmailHtml(d: RenrData): string {
       : emptyLine("Quiet in the repositories this week — the keyboard got a breather.");
   const repos = section("\u{1F4BB}", "Repositories", AMBER, repoCards, repoBars, chartImg(repoChartUrl(d.repos.rows), "Lines added per repo"));
 
-  const noteParas = d.note
+  const noteLines = d.note
     .split("\n")
     .map((l) => l.trim())
-    .filter(Boolean)
+    .filter(Boolean);
+  // The template adds Tim's signature below, so drop any sign-off the note ends with.
+  while (noteLines.length && /^[—–-]+\s*tim\b/i.test(noteLines[noteLines.length - 1])) {
+    noteLines.pop();
+  }
+  const noteParas = noteLines
     .map((l) => `<p style="font:400 15px/1.6 'Courier New',Courier,monospace;color:#2a2620;margin:0 0 11px">${l}</p>`)
     .join("");
 

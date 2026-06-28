@@ -14,7 +14,7 @@ import {
   type CardioLog,
 } from "@/lib/cardio";
 
-const KINDS: CardioKind[] = ["outdoor", "treadmill", "other"];
+const KINDS: CardioKind[] = ["outdoor", "treadmill", "pickleball", "other"];
 
 export default function CardioLogger() {
   const router = useRouter();
@@ -27,7 +27,10 @@ export default function CardioLogger() {
   const [speed, setSpeed] = useState(""); // mph
   const [pace, setPace] = useState(""); // "MM:SS" /mi
   const [activity, setActivity] = useState(""); // other
-  const [notes, setNotes] = useState(""); // other — free-text
+  const [notes, setNotes] = useState(""); // other/pickleball — free-text
+  const [playedWith, setPlayedWith] = useState(""); // pickleball
+  const [wins, setWins] = useState(""); // pickleball
+  const [losses, setLosses] = useState(""); // pickleball
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,6 +59,11 @@ export default function CardioLogger() {
       payload.speedMph = parseFloat(speed) || 0;
     } else if (kind === "outdoor") {
       payload.pace = pace.trim();
+    } else if (kind === "pickleball") {
+      if (playedWith.trim()) payload.playedWith = playedWith.trim();
+      if (wins.trim()) payload.wins = parseInt(wins, 10) || 0;
+      if (losses.trim()) payload.losses = parseInt(losses, 10) || 0;
+      if (notes.trim()) payload.notes = notes.trim();
     } else {
       payload.activity = activity.trim();
       if (notes.trim()) payload.notes = notes.trim();

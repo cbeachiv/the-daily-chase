@@ -211,6 +211,7 @@ export async function GET(req: Request) {
     "On lifting, Chase's goal is PROGRESSIVE OVERLOAD — getting a little stronger each week. Praise lifts that BEAT a previous best and any new PRs. Do NOT harp on total pounds moved.",
     "You can mention the station, the coffee, the highway, the weather — keep it light. Write TO Gino ABOUT Chase.",
     "Keep it to 80–130 words, plain text, no markdown headers, no bullet lists (the email already shows the charts).",
+    "Do NOT sign the note or add a sign-off line (e.g. '— Tim') — the email already adds your signature.",
   ].join("\n");
 
   const userPrompt = [
