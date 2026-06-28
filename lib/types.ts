@@ -331,7 +331,8 @@ export type FinanceCategory =
   | "Chase Discretionary"
   | "Subscription"
   | "Annie"
-  | "Babysitting";
+  | "Babysitting"
+  | "Uncategorized";
 
 export type FinanceSource = "capitalone" | "chase" | "manual" | "recurring" | "plaid";
 

@@ -20,6 +20,7 @@ export const FINANCE_CATEGORIES: FinanceCategory[] = [
   "Subscription",
   "Annie",
   "Babysitting",
+  "Uncategorized",
 ];
 
 // Chart/chip colors, one per category (reuse the app's palette where it fits).
@@ -37,10 +38,13 @@ export const CATEGORY_COLOR: Record<FinanceCategory, string> = {
   Subscription: "#a855f7",
   Annie: "#f97316",
   Babysitting: "#84cc16",
+  Uncategorized: "#94a3b8",
 };
 
-// The catch-all for an expense that matches no rule (there's no "Other" bucket).
-const DEFAULT_EXPENSE: FinanceCategory = "Chase Discretionary";
+// The catch-all for an expense that matches no rule — a neutral "I don't know what
+// this is yet" bucket, kept separate from Chase Discretionary so real discretionary
+// spend isn't inflated by unidentified charges.
+const DEFAULT_EXPENSE: FinanceCategory = "Uncategorized";
 
 // Substring → category rules, checked in order against the raw category string
 // (card export) first, then the description as a fallback. Lowercased compare.

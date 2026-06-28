@@ -54,8 +54,9 @@ export function mapPlaidCategory(txn: PlaidTransaction): { category: FinanceCate
   }
 
   // Everything else (general merchandise/services, personal care, entertainment,
-  // home improvement, bank fees) → the discretionary catch-all.
-  return { category: "Chase Discretionary", excluded: false };
+  // home improvement, bank fees) → the neutral "needs identifying" bucket, kept
+  // separate from Chase Discretionary so real discretionary spend isn't inflated.
+  return { category: "Uncategorized", excluded: false };
 }
 
 // Convert a Plaid transaction into our Firestore FinanceTransaction doc fields.
