@@ -5,7 +5,7 @@ import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
 import { addDays, prettyDateLong, startOfMonth, startOfWeek, weekEndingSaturday } from "@/lib/dates";
 import { mergeSessions, type LoggedSessionDoc } from "@/lib/lifts";
 import { cardioDistanceMi, type CardioLog } from "@/lib/cardio";
-import type { AboutProfile, DailyReview, FoodEntry, Goal, MoodLog, Task, TrackedProject, WeightLog } from "@/lib/types";
+import type { AboutProfile, DailyReview, FoodEntry, Goal, MoodLog, Task, TrackedProject, WakeupLog, WeightLog } from "@/lib/types";
 import { buildEmailHtml, type WeeklyEmailData } from "./email";
 
 export const runtime = "nodejs";
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
   const weekEnding = weekEndingSaturday(today); // Saturday
   const month = startOfMonth(today);
 
-  const [tasks, liftLogged, cardioLogs, weights, foods, goals, moods, dailyReviews, trackedProjects] =
+  const [tasks, liftLogged, cardioLogs, weights, foods, goals, moods, dailyReviews, trackedProjects, wakeupLogs] =
     await Promise.all([
       colData<Task>(uid, "tasks"),
       colData<LoggedSessionDoc>(uid, "liftSessions"),
@@ -88,6 +88,7 @@ export async function GET(req: Request) {
       colData<MoodLog>(uid, "moodLogs"),
       colData<DailyReview>(uid, "dailyReviews"),
       colData<TrackedProject>(uid, "trackedProjects"),
+      colData<WakeupLog>(uid, "wakeupLogs"),
     ]);
 
   // --- Tasks ----------------------------------------------------------------
@@ -109,6 +110,29 @@ export async function GET(req: Request) {
   const weekCardio = cardioLogs.filter((c) => c.date >= weekStart);
   const cardioMin = Math.round(weekCardio.reduce((s, c) => s + (c.durationMin || 0), 0));
   const cardioMiles = weekCardio.reduce((s, c) => s + (cardioDistanceMi(c) || 0), 0);
+
+  // --- 5am wake-ups ---------------------------------------------------------
+  // Chase only targets 5am on weekdays, so both the weekly count and the streak
+  // ignore Saturday/Sunday entirely (a missing weekend day never breaks a streak).
+  const isWeekday = (dateStr: string) => {
+    const dow = new Date(dateStr + "T00:00:00").getDay(); // 0=Sun … 6=Sat
+    return dow >= 1 && dow <= 5;
+  };
+  const wakeupDates = new Set(wakeupLogs.map((w) => w.date));
+  const weekWakeups = wakeupLogs.filter(
+    (w) => w.date >= weekStart && w.date <= weekEnding && isWeekday(w.date),
+  );
+  const wakeups5am = weekWakeups.length; // out of 5 possible weekdays
+  // Current weekday-only streak, walking back from the most recent weekday on or
+  // before today and skipping weekends so they neither count nor break the run.
+  let wakeupStreak = 0;
+  let cursor = today;
+  while (!isWeekday(cursor)) cursor = addDays(cursor, -1);
+  while (wakeupDates.has(cursor)) {
+    wakeupStreak++;
+    cursor = addDays(cursor, -1);
+    while (!isWeekday(cursor)) cursor = addDays(cursor, -1);
+  }
 
   // --- Weight ---------------------------------------------------------------
   const weekWeights = weights.filter((w) => w.date >= weekStart).sort((a, b) => a.date.localeCompare(b.date));
@@ -179,6 +203,12 @@ export async function GET(req: Request) {
       milestones: `${p.milestoneDone}/${p.milestoneTotal}`,
       todosDoneThisWeek: p.todosThisWeek,
     })),
+    mornings: {
+      wakeups5amWeekday: wakeups5am,
+      possibleWeekdays: 5,
+      weekdayStreak: wakeupStreak,
+      note: "5am goal is weekdays only (Mon–Fri); weekends don't count or break the streak",
+    },
     lifts: { sessions: weekLifts.length, volumeLb: liftVolume, prs: liftPRs },
     cardio: { sessions: weekCardio.length, minutes: cardioMin, miles: Math.round(cardioMiles * 10) / 10 },
     weightChangeLb: weightDelta,
@@ -300,6 +330,9 @@ export async function GET(req: Request) {
     cardioSessions: weekCardio.length,
     cardioMinutes: cardioMin,
     cardioMiles: cardioMiles > 0 ? `${cardioMiles.toFixed(1)} mi` : "no data",
+    wakeups5am,
+    wakeupStreak,
+    workouts: weekLifts.length + weekCardio.length,
     weightChange: weightDelta !== null ? `${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)} lb` : "no data",
     avgMood: avgMood !== null ? `${avgMood}` : "no data",
     avgEnergy: avgEnergy !== null ? `${avgEnergy}` : "no data",

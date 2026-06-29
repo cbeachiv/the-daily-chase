@@ -28,6 +28,10 @@ export interface WeeklyEmailData {
     milestoneTotal: number;
     todosThisWeek: number;
   }[];
+  // 5am club (weekday-only) + total workout count
+  wakeups5am: number; // weekday 5am wake-ups this week, out of 5 possible
+  wakeupStreak: number; // current weekday-only 5am streak (days)
+  workouts: number; // lifts + cardio sessions this week
   // training & body
   lifts: number;
   liftVolume: string; // e.g. "62,555 lb" or "no data"
@@ -228,6 +232,12 @@ export function buildEmailHtml(d: WeeklyEmailData): string {
     statCard(`${d.monthGoalsDone}/${d.monthGoalsTotal}`, "Month goals", INK),
   ]);
 
+  const fiveAmCards = cardsRow([
+    statCard(`${d.wakeups5am}/5`, "5am wake-ups", d.wakeups5am ? GO : MUTED),
+    statCard(String(d.lifts), d.lifts === 1 ? "Lift" : "Lifts", d.lifts ? INK : MUTED),
+    statCard(String(d.cardioSessions), "Cardio", d.cardioSessions ? INK : MUTED),
+  ]);
+
   const trainingCards = cardsRow([
     statCard(d.lifts ? `${d.lifts}${d.liftPRs ? ` · ${d.liftPRs}PR` : ""}` : "0", "Lifts", d.lifts ? INK : MUTED),
     statCard(
@@ -333,6 +343,15 @@ export function buildEmailHtml(d: WeeklyEmailData): string {
     </td></tr>`
         : ""
     }
+
+    <!-- 5AM CLUB -->
+    <tr><td style="padding:24px 26px 2px">
+      <div style="font:800 11px ${FONT};color:${FAINT};letter-spacing:1.5px;margin-bottom:10px">5AM CLUB &amp; MOVEMENT</div>
+      ${fiveAmCards}
+      <div style="font:400 12px/1.5 ${FONT};color:${MUTED};margin-top:10px">
+        5am tracked Mon&ndash;Fri only${d.wakeupStreak > 0 ? ` &middot; current weekday streak: ${d.wakeupStreak} day${d.wakeupStreak === 1 ? "" : "s"}` : ""}. Workouts = ${d.lifts} lift${d.lifts === 1 ? "" : "s"} + ${d.cardioSessions} cardio.
+      </div>
+    </td></tr>
 
     <!-- TRAINING & BODY -->
     <tr><td style="padding:24px 26px 2px">

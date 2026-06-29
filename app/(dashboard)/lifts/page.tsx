@@ -16,16 +16,22 @@ import {
   type LoggedSessionDoc,
 } from "@/lib/lifts";
 import { TEMPLATES } from "@/lib/workoutTemplates";
+import { useWorkouts, workoutName } from "@/lib/useWorkouts";
 import {
   cardioDesc,
   cardioDistanceMi,
   cardioPaceMin,
+  timeByActivity,
+  isRacketSport,
   fmtClock,
   fmtPace,
   CARDIO_KIND_LABEL,
   type CardioLog,
+  type CardioScope,
 } from "@/lib/cardio";
+import { todayISO } from "@/lib/lifts";
 import LiftProgressChart from "@/components/charts/LiftProgressChart";
+import CardioTimeChart from "@/components/charts/CardioTimeChart";
 
 function compact(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -117,7 +123,10 @@ function CardioRow({ c, onDelete }: { c: CardioLog; onDelete?: () => void }) {
   const dist = cardioDistanceMi(c);
   const pace = cardioPaceMin(c);
   const parts: string[] = [];
-  if (c.kind === "other") {
+  if (isRacketSport(c.kind)) {
+    parts.push(fmtClock(c.durationMin));
+    if (c.wins != null || c.losses != null) parts.push(`${c.wins ?? 0}–${c.losses ?? 0}`);
+  } else if (c.kind === "other") {
     parts.push(c.activity || "Activity", fmtClock(c.durationMin));
   } else {
     parts.push(fmtClock(c.durationMin));
@@ -133,6 +142,8 @@ function CardioRow({ c, onDelete }: { c: CardioLog; onDelete?: () => void }) {
   const badge =
     c.kind === "treadmill" ? "bg-amber/15 text-amber"
     : c.kind === "outdoor" ? "bg-teal/15 text-teal"
+    : c.kind === "pickleball" ? "bg-coral/15 text-coral"
+    : c.kind === "tennis" ? "bg-sky/15 text-sky"
     : "bg-indigo/15 text-indigo";
 
   return (
@@ -145,6 +156,7 @@ function CardioRow({ c, onDelete }: { c: CardioLog; onDelete?: () => void }) {
           </span>
         </div>
         <p className="truncate text-sm text-muted">{parts.join(" · ")}</p>
+        {c.playedWith && <p className="truncate text-sm text-muted/80">with {c.playedWith}</p>}
         {c.notes && <p className="mt-0.5 text-sm text-muted/80">{c.notes}</p>}
       </div>
       {onDelete && (
@@ -160,6 +172,14 @@ export default function LiftsPage() {
   const { data: logged, uid } = useCollection<LoggedSessionDoc>("liftSessions");
   const { data: cardio } = useCollection<CardioLog>("cardio");
   const cardioList = useMemo(() => cardioDesc(cardio), [cardio]);
+  const [cardioScope, setCardioScope] = useState<CardioScope>("month");
+  const today = todayISO();
+  const activityData = useMemo(
+    () => timeByActivity(cardio, cardioScope, today),
+    [cardio, cardioScope, today]
+  );
+  const { config, retire, unretire, move } = useWorkouts();
+  const [editing, setEditing] = useState(false);
   const sessions = useMemo(() => mergeSessions(logged), [logged]);
   const stats = useMemo(() => summarize(sessions), [sessions]);
   const names = useMemo(() => exerciseNames(sessions), [sessions]);
@@ -169,6 +189,19 @@ export default function LiftsPage() {
   const current = names.includes(selected) ? selected : names[0] ?? "";
   const points = useMemo(() => (current ? exerciseProgress(sessions, current) : []), [sessions, current]);
   const bodyweight = points.length > 0 && points.every((p) => p.weight === 0);
+
+  // Group the progression dropdown by workout (A/B/C), with everything else in "Retired".
+  const exerciseGroups = useMemo(() => {
+    const tmplSets = TEMPLATES.map((t) => new Set((config.templates[t.key] ?? []).map((e) => e.name)));
+    const groups = TEMPLATES.map((t) => ({ label: t.name, items: [] as string[] }));
+    const retired: string[] = [];
+    for (const n of names) {
+      const gi = tmplSets.findIndex((s) => s.has(n));
+      if (gi >= 0) groups[gi].items.push(n);
+      else retired.push(n);
+    }
+    return [...groups, { label: "Retired", items: retired }];
+  }, [names, config.templates]);
 
   const remove = async (s: LiftSession) => {
     if (!uid || !s.docId) return;
@@ -191,23 +224,79 @@ export default function LiftsPage() {
 
       {/* Start a workout */}
       <section className="card p-4 sm:p-5">
-        <h2 className="section-title mb-3">Start a workout</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {TEMPLATES.map((t) => (
-            <Link
-              key={t.key}
-              href={`/lifts/new/${t.key}`}
-              className="btn-primary flex-col !items-start gap-0.5 px-4 py-3 text-left"
-            >
-              <span className="text-base font-bold">{t.name}</span>
-              <span className="text-xs font-medium opacity-80">{t.exercises.length} exercises</span>
-            </Link>
-          ))}
-          <Link href="/lifts/new/empty" className="btn-ghost flex-col gap-0.5 px-4 py-3">
-            <span className="text-base font-bold">Empty</span>
-            <span className="text-xs font-medium text-muted">Blank</span>
-          </Link>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="section-title">Start a workout</h2>
+          <button
+            onClick={() => setEditing((e) => !e)}
+            className="text-xs font-semibold text-indigo hover:underline"
+          >
+            {editing ? "Done" : "Edit"}
+          </button>
         </div>
+
+        {editing ? (
+          <div className="space-y-4">
+            {TEMPLATES.map((t) => {
+              const exercises = config.templates[t.key] ?? [];
+              return (
+                <div key={t.key}>
+                  <h3 className="mb-1 text-sm font-bold text-ink">{t.name}</h3>
+                  <ul className="divide-y divide-line">
+                    {exercises.length === 0 && (
+                      <li className="py-2 text-sm text-muted">No exercises — un-retire some below.</li>
+                    )}
+                    {exercises.map((ex, i) => (
+                      <li key={`${ex.name}-${i}`} className="flex items-center justify-between gap-3 py-2">
+                        <span className="truncate text-sm text-ink">
+                          <span className="text-muted">{ex.sets} × </span>{ex.name}
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          <button
+                            onClick={() => move(t.key, i, -1)}
+                            disabled={i === 0}
+                            aria-label="Move up"
+                            className="flex h-6 w-6 items-center justify-center rounded-md border border-line text-muted hover:border-indigo hover:text-indigo disabled:opacity-30 disabled:hover:border-line disabled:hover:text-muted"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => move(t.key, i, 1)}
+                            disabled={i === exercises.length - 1}
+                            aria-label="Move down"
+                            className="flex h-6 w-6 items-center justify-center rounded-md border border-line text-muted hover:border-indigo hover:text-indigo disabled:opacity-30 disabled:hover:border-line disabled:hover:text-muted"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            onClick={() => retire(t.key, i)}
+                            className="text-xs font-medium text-muted hover:text-coral"
+                          >
+                            Retire
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {TEMPLATES.map((t) => (
+              <Link
+                key={t.key}
+                href={`/lifts/new/${t.key}`}
+                className="btn-primary flex-col !items-start gap-0.5 px-4 py-3 text-left"
+              >
+                <span className="text-base font-bold">{t.name}</span>
+                <span className="text-xs font-medium opacity-80">
+                  {(config.templates[t.key] ?? t.exercises).length} exercises
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Cardio */}
@@ -226,6 +315,36 @@ export default function LiftsPage() {
           </div>
         )}
       </section>
+
+      {/* Time by activity */}
+      {cardioList.length > 0 && (
+        <section className="card p-4 sm:p-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="section-title">Time by activity</h2>
+            <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
+              {(
+                [
+                  ["week", "This week"],
+                  ["month", "This month"],
+                  ["year", today.slice(0, 4)],
+                  ["all", "All time"],
+                ] as const
+              ).map(([v, label]) => (
+                <button
+                  key={v}
+                  onClick={() => setCardioScope(v)}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                    cardioScope === v ? "bg-card text-ink shadow-card" : "text-muted"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <CardioTimeChart data={activityData} />
+        </section>
+      )}
 
       {sessions.length === 0 ? (
         <div className="card p-6 text-sm text-muted">
@@ -252,7 +371,13 @@ export default function LiftsPage() {
                 onChange={(e) => setSelected(e.target.value)}
                 className="input max-w-[60%] sm:max-w-xs"
               >
-                {names.map((n) => (<option key={n} value={n}>{n}</option>))}
+                {exerciseGroups.map((g) =>
+                  g.items.length > 0 ? (
+                    <optgroup key={g.label} label={g.label}>
+                      {g.items.map((n) => (<option key={n} value={n}>{n}</option>))}
+                    </optgroup>
+                  ) : null
+                )}
               </select>
             </div>
             <LiftProgressChart points={points} bodyweight={bodyweight} />
@@ -262,6 +387,38 @@ export default function LiftsPage() {
                 : "Estimated 1-rep max (Epley) of your best set each session."}
             </p>
           </section>
+
+          {/* Retired exercises */}
+          {config.retired.length > 0 && (
+            <details className="card p-4 sm:p-5">
+              <summary className="section-title flex cursor-pointer items-center justify-between">
+                <span>Retired exercises</span>
+                <span className="text-xs font-medium text-muted">{config.retired.length}</span>
+              </summary>
+              <ul className="mt-2 divide-y divide-line">
+                {config.retired.map((ex, i) => (
+                  <li key={`${ex.name}-${i}`} className="flex items-center justify-between gap-3 py-2.5">
+                    <span className="truncate text-sm text-ink">
+                      <span className="text-muted">{ex.sets} × </span>{ex.name}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="text-xs font-medium text-muted">Un-retire to</span>
+                      {TEMPLATES.map((t) => (
+                        <button
+                          key={t.key}
+                          onClick={() => unretire(i, t.key)}
+                          title={`Un-retire to ${workoutName(t.key)}`}
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-line text-xs font-bold text-muted hover:border-indigo hover:text-indigo"
+                        >
+                          {t.key.toUpperCase()}
+                        </button>
+                      ))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
 
           <section className="space-y-6">
             {monthGroups.map((g) => (

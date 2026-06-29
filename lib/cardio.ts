@@ -1,14 +1,20 @@
 // Cardio logging — outdoor run, treadmill run, or any other activity
 // (pickleball, tennis, …). Stored in Firestore users/{uid}/cardio.
 
-export type CardioKind = "outdoor" | "treadmill" | "pickleball" | "other";
+export type CardioKind = "outdoor" | "treadmill" | "pickleball" | "tennis" | "other";
 
 export const CARDIO_KIND_LABEL: Record<CardioKind, string> = {
   outdoor: "Outdoor run",
   treadmill: "Treadmill",
   pickleball: "Pickleball",
+  tennis: "Tennis",
   other: "Other",
 };
+
+/** Racket sports share the same fields (played with, wins/losses, notes). */
+export function isRacketSport(kind: CardioKind): boolean {
+  return kind === "pickleball" || kind === "tennis";
+}
 
 export interface CardioLog {
   id: string;
@@ -24,7 +30,7 @@ export interface CardioLog {
   // other
   activity?: string; // e.g. "Pickleball", "Tennis"
   notes?: string; // free-text notes (used for "other"/pickleball activities)
-  // pickleball
+  // racket sports (pickleball, tennis)
   playedWith?: string; // who you played with, e.g. "Mom, Dave"
   wins?: number; // games won
   losses?: number; // games lost
@@ -101,21 +107,36 @@ export function activityLabel(c: CardioLog): string {
   return CARDIO_KIND_LABEL[c.kind];
 }
 
-export type CardioScope = "month" | "year" | "all";
+export type CardioScope = "week" | "month" | "year" | "all";
+
+/** Monday-start date (YYYY-MM-DD) of the week containing `today`, in local time. */
+export function weekStartISO(today: string): string {
+  const d = new Date(`${today}T00:00:00`);
+  const offset = (d.getDay() + 6) % 7; // Mon=0, Tue=1, … Sun=6
+  d.setDate(d.getDate() - offset);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** True if `date` (YYYY-MM-DD) falls inside the given window relative to `today`. */
+function inScope(date: string, scope: CardioScope, today: string): boolean {
+  if (scope === "week") return date >= weekStartISO(today) && date <= today;
+  if (scope === "month") return date.startsWith(today.slice(0, 7));
+  if (scope === "year") return date.startsWith(today.slice(0, 4));
+  return true; // "all"
+}
 
 /**
  * Total minutes per activity within a window, sorted longest-first.
- * `month` / `year` filter on the entry date prefix relative to `today`.
+ * Window is relative to `today` (YYYY-MM-DD).
  */
 export function timeByActivity(
   items: CardioLog[],
   scope: CardioScope,
   today: string
 ): { label: string; minutes: number }[] {
-  const prefix = scope === "month" ? today.slice(0, 7) : scope === "year" ? today.slice(0, 4) : "";
   const totals = new Map<string, number>();
   for (const c of items) {
-    if (prefix && !c.date.startsWith(prefix)) continue;
+    if (!inScope(c.date, scope, today)) continue;
     if (!(c.durationMin > 0)) continue;
     const label = activityLabel(c);
     totals.set(label, (totals.get(label) ?? 0) + c.durationMin);

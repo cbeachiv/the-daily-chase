@@ -9,12 +9,13 @@ import {
   paceToMin,
   cardioDistanceMi,
   fmtPace,
+  isRacketSport,
   CARDIO_KIND_LABEL,
   type CardioKind,
   type CardioLog,
 } from "@/lib/cardio";
 
-const KINDS: CardioKind[] = ["outdoor", "treadmill", "pickleball", "other"];
+const KINDS: CardioKind[] = ["outdoor", "treadmill", "pickleball", "tennis", "other"];
 
 export default function CardioLogger() {
   const router = useRouter();
@@ -27,10 +28,10 @@ export default function CardioLogger() {
   const [speed, setSpeed] = useState(""); // mph
   const [pace, setPace] = useState(""); // "MM:SS" /mi
   const [activity, setActivity] = useState(""); // other
-  const [notes, setNotes] = useState(""); // other/pickleball — free-text
-  const [playedWith, setPlayedWith] = useState(""); // pickleball
-  const [wins, setWins] = useState(""); // pickleball
-  const [losses, setLosses] = useState(""); // pickleball
+  const [notes, setNotes] = useState(""); // other/racket — free-text
+  const [playedWith, setPlayedWith] = useState(""); // racket sports
+  const [wins, setWins] = useState(""); // racket sports
+  const [losses, setLosses] = useState(""); // racket sports
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,7 +60,7 @@ export default function CardioLogger() {
       payload.speedMph = parseFloat(speed) || 0;
     } else if (kind === "outdoor") {
       payload.pace = pace.trim();
-    } else if (kind === "pickleball") {
+    } else if (isRacketSport(kind)) {
       if (playedWith.trim()) payload.playedWith = playedWith.trim();
       if (wins.trim()) payload.wins = parseInt(wins, 10) || 0;
       if (losses.trim()) payload.losses = parseInt(losses, 10) || 0;
@@ -88,12 +89,12 @@ export default function CardioLogger() {
       </header>
 
       <div className="card space-y-4 p-4 sm:p-5">
-        <div className="inline-flex w-full rounded-lg border border-line bg-bg p-0.5">
+        <div className="grid grid-cols-3 gap-0.5 rounded-lg border border-line bg-bg p-0.5 sm:grid-cols-5">
           {KINDS.map((k) => (
             <button
               key={k}
               onClick={() => setKind(k)}
-              className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
+              className={`whitespace-nowrap rounded-md px-2 py-2 text-xs font-semibold transition ${
                 kind === k ? "bg-card text-ink shadow-card" : "text-muted"
               }`}
             >
@@ -107,8 +108,14 @@ export default function CardioLogger() {
         </Field>
 
         {kind === "other" && (
-          <Field label="Activity" hint="e.g. Pickleball, Tennis">
-            <input placeholder="Pickleball" value={activity} onChange={(e) => setActivity(e.target.value)} className="input" />
+          <Field label="Activity" hint="e.g. Tennis, Basketball">
+            <input placeholder="Tennis" value={activity} onChange={(e) => setActivity(e.target.value)} className="input" />
+          </Field>
+        )}
+
+        {isRacketSport(kind) && (
+          <Field label="Played with" hint="optional">
+            <input placeholder="Mom, Dave" value={playedWith} onChange={(e) => setPlayedWith(e.target.value)} className="input" />
           </Field>
         )}
 
@@ -133,7 +140,18 @@ export default function CardioLogger() {
           </Field>
         )}
 
-        {kind === "other" && (
+        {isRacketSport(kind) && (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Wins" hint="games won">
+              <input inputMode="numeric" placeholder="3" value={wins} onChange={(e) => setWins(e.target.value)} className="input" />
+            </Field>
+            <Field label="Losses" hint="games lost">
+              <input inputMode="numeric" placeholder="1" value={losses} onChange={(e) => setLosses(e.target.value)} className="input" />
+            </Field>
+          </div>
+        )}
+
+        {(kind === "other" || isRacketSport(kind)) && (
           <Field label="Notes" hint="optional">
             <textarea
               rows={3}

@@ -34,14 +34,13 @@ const B: WorkoutTemplate = {
   key: "b",
   name: "Workout B",
   exercises: [
-    { name: "Belt Squat", sets: 3, targetReps: "8-10", bodyweight: false },
-    { name: "Weighted Sit up", sets: 3, targetReps: "10", bodyweight: false },
+    { name: "Hack Squat", sets: 3, targetReps: "8-10", bodyweight: false },
     { name: "Overhead Press (Barbell)", sets: 3, targetReps: "8", bodyweight: false },
     { name: "Plate Loaded Chest press", sets: 3, targetReps: "8", bodyweight: false },
     { name: "Iso-Lateral Row (Machine)", sets: 3, targetReps: "8-10", bodyweight: false },
     { name: "Seated Calf Raise (Machine)", sets: 3, targetReps: "10", bodyweight: false },
     { name: "Triceps Extension (Dumbbell)", sets: 3, targetReps: "10", bodyweight: false },
-    { name: "Reverse Crunch", sets: 3, targetReps: "15", bodyweight: true },
+    { name: "Russian Twists", sets: 3, targetReps: "20", bodyweight: true },
   ],
 };
 
@@ -62,6 +61,14 @@ const C: WorkoutTemplate = {
 const EMPTY: WorkoutTemplate = { key: "empty", name: "Workout", exercises: [] };
 
 export const TEMPLATES: WorkoutTemplate[] = [A, B, C];
+
+// Exercises benched out of a workout. Seeds the "Retired" bucket the first time;
+// after that, retire/un-retire is saved per-user in Firestore (see useWorkouts).
+export const RETIRED_DEFAULTS: TemplateExercise[] = [
+  { name: "Belt Squat", sets: 3, targetReps: "8-10", bodyweight: false },
+  { name: "Weighted Sit up", sets: 3, targetReps: "10", bodyweight: false },
+  { name: "Reverse Crunch", sets: 3, targetReps: "15", bodyweight: true },
+];
 
 export function getTemplate(key: string): WorkoutTemplate {
   return TEMPLATES.find((t) => t.key === key) ?? EMPTY;

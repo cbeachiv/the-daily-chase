@@ -12,6 +12,7 @@ import {
   type LoggedSessionDoc,
 } from "@/lib/lifts";
 import { getTemplate } from "@/lib/workoutTemplates";
+import { useWorkouts } from "@/lib/useWorkouts";
 
 interface DraftSet { weight: string; reps: string; done: boolean }
 interface DraftExercise { name: string; bodyweight: boolean; targetReps: string; sets: DraftSet[] }
@@ -34,7 +35,12 @@ function fmtElapsed(ms: number): string {
 
 export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
   const router = useRouter();
-  const template = useMemo(() => getTemplate(workoutKey), [workoutKey]);
+  const { config, loading: cfgLoading } = useWorkouts();
+  const base = getTemplate(workoutKey);
+  const template = useMemo(
+    () => ({ name: base.name, exercises: config.templates[workoutKey] ?? base.exercises }),
+    [base.name, base.exercises, config.templates, workoutKey]
+  );
   const { data: logged, loading, uid } = useCollection<LoggedSessionDoc>("liftSessions");
   const sessionsDesc = useMemo(() => mergeSessions(logged), [logged]);
 
@@ -58,7 +64,7 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
     if (saved) {
       try { setDraft(JSON.parse(saved)); initRef.current = true; return; } catch { /* rebuild */ }
     }
-    if (loading) return;
+    if (loading || cfgLoading) return;
 
     const exercises: DraftExercise[] = template.exercises.map((te) => {
       const prev = lastExercise(sessionsDesc, te.name);
@@ -83,7 +89,7 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
       exercises,
     });
     initRef.current = true;
-  }, [loading, sessionsDesc, template, workoutKey, STORAGE]);
+  }, [loading, cfgLoading, sessionsDesc, template, workoutKey, STORAGE]);
 
   // Autosave the draft.
   useEffect(() => {
