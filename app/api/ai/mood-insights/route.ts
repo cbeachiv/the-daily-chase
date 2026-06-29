@@ -40,6 +40,7 @@ export async function POST(req: Request) {
       coffees: l.caffeineCups,
       drinks: l.alcoholDrinks,
       exercised: l.exercised,
+      dinnerPlan: l.dinnerPlan,
       bedtime: l.bedtime,
       wakeTime: l.wakeTime,
       note: l.aiAnswer || l.notes || undefined,
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
 
   const prompt = [
     `You are analyzing Chase's mood/energy logs to find what drives how he feels.`,
-    `Each entry has a timestamp, mood (1–10), energy (1–10), and context: coffees so far that day, alcoholic drinks, whether he exercised, bedtime/wake time (sleep), and an optional note.`,
+    `Each entry has a timestamp, mood (1–10), energy (1–10), and context: coffees so far that day, alcoholic drinks, whether he exercised, whether he followed his dinner plan (dinnerPlan), bedtime/wake time (sleep), and an optional note.`,
     `Logs (JSON):\n${JSON.stringify(compact)}`,
     ...(coffeeTimes.length
       ? [
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
           `Pay special attention to coffee timing: how the time of day, spacing, and count of coffees relate to his mood and energy later that same day, and whether late coffees line up with worse sleep or a dip the next day.`,
         ]
       : []),
-    `Identify when his mood and energy peak and dip, and any correlations with sleep, caffeine, alcohol, exercise, and time of day. Be concrete and reference the data; don't invent patterns that aren't there.`,
+    `Identify when his mood and energy peak and dip, and any correlations with sleep, caffeine, alcohol, exercise, following his dinner plan, and time of day. Chase believes dinner/food affects him more than coffee, so pay particular attention to how following his dinner plan relates to his mood and energy. Be concrete and reference the data; don't invent patterns that aren't there.`,
     `Respond with ONLY valid JSON of the form {"summary": string, "patterns": string[]} — "summary" is one short paragraph (2–3 sentences), "patterns" is 2–4 short bullet strings. No markdown, no prose outside the JSON.`,
   ].join("\n\n");
 

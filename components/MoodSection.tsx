@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem, setItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import type { CoffeeLog, MoodLog, Workout } from "@/lib/types";
+import type { CoffeeLog, DinnerPlanLog, MoodLog, Workout } from "@/lib/types";
 import { prettyDate, prettyTime, sleepHours, todayStr } from "@/lib/dates";
 import MoodChart from "@/components/charts/MoodChart";
 
@@ -13,6 +13,7 @@ const EMPTY_FORM = {
   caffeineCups: 0, // only edited directly on old logs; new logs snapshot from coffeeLogs
   alcoholDrinks: 0,
   exercised: false,
+  dinnerPlan: false,
   bedtime: "",
   wakeTime: "",
   aiAnswer: "",
@@ -46,6 +47,9 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     [coffees, today]
   );
   const coffeeTimes = todaysCoffees.map((c) => prettyTime(c.loggedAt));
+  // Dinner plan is a shared per-day yes/no toggle (same source the Quick Log uses).
+  const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
+  const dinnerPlanToday = dinnerPlans.some((d) => d.date === today);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -73,7 +77,12 @@ export default function MoodSection({ startDate }: { startDate: string | null })
 
   const latest = recent[0];
 
-  function contextSummary(f: typeof EMPTY_FORM, exercised: boolean, times?: string[]) {
+  function contextSummary(
+    f: typeof EMPTY_FORM,
+    exercised: boolean,
+    dinnerPlan: boolean,
+    times?: string[]
+  ) {
     const parts: string[] = [];
     const cups = times ? times.length : f.caffeineCups;
     if (cups)
@@ -82,6 +91,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
       );
     if (f.alcoholDrinks) parts.push(`${f.alcoholDrinks} drink${f.alcoholDrinks > 1 ? "s" : ""}`);
     if (exercised) parts.push("exercised");
+    if (dinnerPlan) parts.push("followed dinner plan");
     if (f.bedtime && f.wakeTime) {
       const h = sleepHours(f.bedtime, f.wakeTime);
       if (h !== null) parts.push(`slept ${h}h`);
@@ -94,6 +104,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     energy: number,
     f: typeof EMPTY_FORM,
     exercised: boolean,
+    dinnerPlan: boolean,
     times?: string[]
   ) {
     setAiLoading(true);
@@ -117,6 +128,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           coffees: l.caffeineCups,
           drinks: l.alcoholDrinks,
           exercised: l.exercised,
+          dinnerPlan: l.dinnerPlan,
           bedtime: l.bedtime,
           wakeTime: l.wakeTime,
           q: l.aiQuestion || undefined,
@@ -130,7 +142,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           localTime,
           mood,
           energy,
-          context: contextSummary(f, exercised, times),
+          context: contextSummary(f, exercised, dinnerPlan, times),
           history,
         }),
       });
@@ -149,19 +161,14 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     setEditingId(null);
     setAiQuestion("");
     setShowForm(true);
-    fetchQuestion(EMPTY_FORM.mood, EMPTY_FORM.energy, EMPTY_FORM, exercisedToday, coffeeTimes);
-  }
-
-  // One tap = one timestamped coffee. Counts and mood snapshots derive from these.
-  async function logCoffee() {
-    if (!uid) return;
-    await addItem(uid, "coffeeLogs", { date: today, loggedAt: new Date().toISOString() });
-  }
-
-  async function undoCoffee() {
-    if (!uid) return;
-    const last = todaysCoffees[todaysCoffees.length - 1];
-    if (last) await deleteItem(uid, "coffeeLogs", last.id);
+    fetchQuestion(
+      EMPTY_FORM.mood,
+      EMPTY_FORM.energy,
+      EMPTY_FORM,
+      exercisedToday,
+      dinnerPlanToday,
+      coffeeTimes
+    );
   }
 
   // Toggle today's shared workout (same source the main page / Exercise section use).
@@ -172,6 +179,14 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     else await addItem(uid, "workouts", { date: today, type: "Exercise" });
   }
 
+  // Toggle today's shared dinner-plan flag (same source the Quick Log uses).
+  async function toggleDinnerPlan() {
+    if (!uid) return;
+    const todays = dinnerPlans.find((d) => d.date === today);
+    if (todays) await deleteItem(uid, "dinnerPlanLogs", todays.id);
+    else await addItem(uid, "dinnerPlanLogs", { date: today, loggedAt: new Date().toISOString() });
+  }
+
   function startEdit(l: MoodLog) {
     setForm({
       mood: l.mood,
@@ -179,6 +194,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
       caffeineCups: l.caffeineCups ?? 0,
       alcoholDrinks: l.alcoholDrinks ?? 0,
       exercised: !!l.exercised,
+      dinnerPlan: !!l.dinnerPlan,
       bedtime: l.bedtime ?? "",
       wakeTime: l.wakeTime ?? "",
       aiAnswer: l.aiAnswer ?? "",
@@ -208,6 +224,8 @@ export default function MoodSection({ startDate }: { startDate: string | null })
       alcoholDrinks: form.alcoholDrinks,
       // New logs snapshot today's shared exercise status; edits keep their own.
       exercised: editingId ? form.exercised : exercisedToday,
+      // Same for the shared dinner-plan flag.
+      dinnerPlan: editingId ? form.dinnerPlan : dinnerPlanToday,
       bedtime: form.bedtime,
       wakeTime: form.wakeTime,
       aiQuestion,
@@ -279,13 +297,6 @@ export default function MoodSection({ startDate }: { startDate: string | null })
             </span>
           )}
           <button
-            onClick={logCoffee}
-            className="btn-ghost px-3 py-1.5 text-xs"
-            title="Log a coffee right now"
-          >
-            ☕ {todaysCoffees.length > 0 ? todaysCoffees.length : "Log"}
-          </button>
-          <button
             onClick={() => (showForm ? closeForm() : openLog())}
             className="btn-primary px-3 py-1.5 text-xs"
           >
@@ -300,19 +311,6 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           </button>
         </div>
       </div>
-
-      {todaysCoffees.length > 0 && (
-        <p className="-mt-1 mb-3 text-xs text-muted">
-          ☕ Today: {coffeeTimes.join(" · ")}
-          <button
-            onClick={undoCoffee}
-            className="ml-2 font-semibold text-muted underline hover:text-coral"
-            title="Remove the last coffee"
-          >
-            undo
-          </button>
-        </p>
-      )}
 
       {showForm && (
         <form onSubmit={save} className="mb-4 space-y-4 rounded-lg border border-line bg-bg/50 p-4">
@@ -336,18 +334,16 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                 value={form.caffeineCups}
                 onChange={(v) => setForm({ ...form, caffeineCups: v })}
               />
-            ) : (
+            ) : todaysCoffees.length > 0 ? (
               <div>
                 <p className="mb-1 text-xs font-semibold text-muted">☕ Coffees so far</p>
-                {todaysCoffees.length > 0 ? (
-                  <p className="text-sm">
-                    <span className="font-semibold">{todaysCoffees.length}</span>{" "}
-                    <span className="text-muted">· {coffeeTimes.join(" · ")}</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted">None yet — tap “☕ Log” when you have one.</p>
-                )}
+                <p className="text-sm">
+                  <span className="font-semibold">{todaysCoffees.length}</span>{" "}
+                  <span className="text-muted">· {coffeeTimes.join(" · ")}</span>
+                </p>
               </div>
+            ) : (
+              <div />
             )}
             <PillGroup
               label="🍷 Drinks Yesterday"
@@ -357,21 +353,40 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           </div>
 
           <div>
-            <button
-              type="button"
-              onClick={() =>
-                editingId ? setForm({ ...form, exercised: !form.exercised }) : toggleTodayWorkout()
-              }
-              className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                (editingId ? form.exercised : exercisedToday)
-                  ? "bg-teal/15 text-teal"
-                  : "bg-bg text-muted hover:text-ink"
-              }`}
-            >
-              {(editingId ? form.exercised : exercisedToday) ? "✓ " : "○ "}🏃 Exercised today
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  editingId
+                    ? setForm({ ...form, exercised: !form.exercised })
+                    : toggleTodayWorkout()
+                }
+                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+                  (editingId ? form.exercised : exercisedToday)
+                    ? "bg-teal/15 text-teal"
+                    : "bg-bg text-muted hover:text-ink"
+                }`}
+              >
+                {(editingId ? form.exercised : exercisedToday) ? "✓ " : "○ "}🏃 Exercised today
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  editingId
+                    ? setForm({ ...form, dinnerPlan: !form.dinnerPlan })
+                    : toggleDinnerPlan()
+                }
+                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+                  (editingId ? form.dinnerPlan : dinnerPlanToday)
+                    ? "bg-teal/15 text-teal"
+                    : "bg-bg text-muted hover:text-ink"
+                }`}
+              >
+                {(editingId ? form.dinnerPlan : dinnerPlanToday) ? "✓ " : "○ "}🫐 Followed dinner plan
+              </button>
+            </div>
             {!editingId && (
-              <p className="mt-1 text-xs text-muted">Synced with your exercise log above.</p>
+              <p className="mt-1 text-xs text-muted">Synced with your logs above.</p>
             )}
           </div>
 
@@ -414,6 +429,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                     form.energy,
                     form,
                     editingId ? form.exercised : exercisedToday,
+                    editingId ? form.dinnerPlan : dinnerPlanToday,
                     editingId ? undefined : coffeeTimes
                   )
                 }
@@ -519,6 +535,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                   {!!l.caffeineCups && <span>☕ {l.caffeineCups}</span>}
                   {!!l.alcoholDrinks && <span>🍷 {l.alcoholDrinks}</span>}
                   {l.exercised && <span>🏃 exercised</span>}
+                  {l.dinnerPlan && <span>🫐 dinner plan</span>}
                   {slept !== null && <span>🛏 {slept}h</span>}
                 </div>
                 {l.aiQuestion && (

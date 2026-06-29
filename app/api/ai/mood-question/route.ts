@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     `He rates his mood ${body.mood}/10 and energy ${body.energy}/10.`,
     body.context ? `Already noted today: ${body.context}` : "",
     hasHistory
-      ? `Here are his recent past logs (newest first) — each with timestamp, mood, energy, coffees, drinks, exercised, bed/wake times, and any prior question (q) and his answer (a). STUDY these to learn his personal patterns and what tends to drive his mood/energy:\n${JSON.stringify(
+      ? `Here are his recent past logs (newest first) — each with timestamp, mood, energy, coffees, drinks, exercised, dinnerPlan (whether he followed his dinner plan that day), bed/wake times, and any prior question (q) and his answer (a). STUDY these to learn his personal patterns and what tends to drive his mood/energy:\n${JSON.stringify(
           body.history
         )}`
       : "",
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     hasHistory
       ? `Make it personalized: build on what you've learned from his history — reference or probe a pattern you notice (e.g. a recurring afternoon dip, a link between a factor and how he feels, or a follow-up to something he mentioned before). Don't just ask a generic question.`
       : "",
-    `Do NOT ask about sleep, caffeine/coffee, alcohol, or exercise — those are already captured separately. Instead probe other likely causes or context (stress, workload, food, social, weather, what he's working on, etc.).`,
+    `Do NOT ask about sleep, caffeine/coffee, alcohol, exercise, or whether he followed his dinner plan — those are already captured separately. Instead probe other likely causes or context (stress, workload, what he ate, social, weather, what he's working on, etc.).`,
     `Respond with ONLY the question text — one sentence, no preamble, no quotes.`,
   ]
     .filter(Boolean)

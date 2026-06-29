@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { CoffeeLog, FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
+import type { DinnerPlanLog, FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
 import { todayStr } from "@/lib/dates";
 
 export default function QuickLog() {
@@ -10,7 +10,7 @@ export default function QuickLog() {
   const { data: workouts, uid } = useCollection<Workout>("workouts");
   const { data: weights } = useCollection<WeightLog>("weightLogs");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
-  const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
+  const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
 
   const [open, setOpen] = useState<"weight" | "calories" | null>(null);
@@ -18,22 +18,21 @@ export default function QuickLog() {
 
   const todayWorkout = useMemo(() => workouts.find((w) => w.date === today), [workouts, today]);
   const todayWakeup = useMemo(() => wakeups.find((w) => w.date === today), [wakeups, today]);
+  const todayDinnerPlan = useMemo(
+    () => dinnerPlans.find((d) => d.date === today),
+    [dinnerPlans, today]
+  );
   const todayWeight = useMemo(() => weights.find((w) => w.date === today), [weights, today]);
   const todayCalories = useMemo(
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
     [foods, today]
   );
 
-  const todayCoffees = useMemo(
-    () => coffees.filter((c) => c.date === today).length,
-    [coffees, today]
-  );
-
-  // One tap per coffee — each becomes a timestamped doc so mood logs and AI
-  // insights can correlate timing, not just counts.
-  async function logCoffee() {
+  // Yes/no per day: did Chase follow his dinner plan? One doc per day, like wakeups.
+  async function toggleDinnerPlan() {
     if (!uid) return;
-    await addItem(uid, "coffeeLogs", { date: today, loggedAt: new Date().toISOString() });
+    if (todayDinnerPlan) await deleteItem(uid, "dinnerPlanLogs", todayDinnerPlan.id);
+    else await addItem(uid, "dinnerPlanLogs", { date: today, loggedAt: new Date().toISOString() });
   }
 
   async function toggleWakeup() {
@@ -84,13 +83,17 @@ export default function QuickLog() {
         </button>
 
         <button
-          onClick={logCoffee}
-          className={`${tile} ${todayCoffees > 0 ? "border-amber bg-amber/10" : ""}`}
-          title="Log a coffee right now"
+          onClick={toggleDinnerPlan}
+          className={`${tile} ${todayDinnerPlan ? "border-teal bg-teal/10" : ""}`}
+          title={
+            todayDinnerPlan
+              ? "Tap to undo today's dinner plan"
+              : "Followed your dinner plan? Tap to log it"
+          }
         >
-          <span className="text-2xl">☕</span>
+          <span className="text-2xl">{todayDinnerPlan ? "✅" : "🫐"}</span>
           <span className="text-xs font-semibold">
-            {todayCoffees > 0 ? `${todayCoffees} today` : "Coffee"}
+            {todayDinnerPlan ? "Plan ✓" : "Dinner Plan"}
           </span>
         </button>
 

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type {
   CoffeeLog,
+  DinnerPlanLog,
   FoodEntry,
   MoodLog,
   WakeupLog,
@@ -17,7 +18,7 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const RACKET_KINDS = new Set<string>(["pickleball", "tennis"]);
 
 // A month-grid overview of the daily health log. Each cell surfaces, when
-// present: 5am wakeup, exercise, mood, weight, coffees, wake/bed time, calories.
+// present: 5am wakeup, exercise, mood, weight, coffees, dinner plan, wake/bed time, calories.
 export default function HealthCalendar({
   weights,
   workouts,
@@ -27,6 +28,7 @@ export default function HealthCalendar({
   wakeups,
   moods,
   coffees,
+  dinnerPlans,
 }: {
   weights: WeightLog[];
   workouts: Workout[];
@@ -36,6 +38,7 @@ export default function HealthCalendar({
   wakeups: WakeupLog[];
   moods: MoodLog[];
   coffees: CoffeeLog[];
+  dinnerPlans: DinnerPlanLog[];
 }) {
   const today = todayStr();
   const [month, setMonth] = useState(today.slice(0, 7)); // "YYYY-MM"
@@ -70,6 +73,8 @@ export default function HealthCalendar({
     const coffeeCount: Record<string, number> = {};
     for (const c of coffees) coffeeCount[c.date] = (coffeeCount[c.date] ?? 0) + 1;
 
+    const dinnerPlanSet = new Set(dinnerPlans.map((d) => d.date));
+
     // Latest mood log of each day carries that day's mood + sleep times.
     const mood: Record<string, MoodLog> = {};
     for (const m of moods) {
@@ -77,8 +82,8 @@ export default function HealthCalendar({
       if (!cur || m.loggedAt > cur.loggedAt) mood[m.date] = m;
     }
 
-    return { wakeupSet, exercise, weight, calories, coffeeCount, mood };
-  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees]);
+    return { wakeupSet, exercise, weight, calories, coffeeCount, dinnerPlanSet, mood };
+  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees, dinnerPlans]);
 
   const { cells, label } = useMemo(() => {
     const [y, m] = month.split("-").map(Number);
@@ -142,6 +147,7 @@ export default function HealthCalendar({
           const weight = byDate.weight[date];
           const calories = byDate.calories[date] ?? 0;
           const coffees = byDate.coffeeCount[date] ?? 0;
+          const followedDinnerPlan = byDate.dinnerPlanSet.has(date);
           const woke = byDate.wakeupSet.has(date);
           const exercises = byDate.exercise[date] ?? [];
           // A logged 5am wakeup is an explicit "got up at 5" signal, so it sets
@@ -190,6 +196,11 @@ export default function HealthCalendar({
                     </span>
                   )}
                   {coffees > 0 && <span title="Coffees">☕ {coffees}</span>}
+                  {followedDinnerPlan && (
+                    <span className="text-teal" title="Followed dinner plan">
+                      🫐 plan
+                    </span>
+                  )}
                   {calories > 0 && <span title="Calories">🍽️ {fmtCal(calories)}</span>}
                   {mood?.bedtime && (
                     <span title="Went to bed at">🛏️ {prettyClock(mood.bedtime)}</span>
@@ -208,6 +219,7 @@ export default function HealthCalendar({
         <span>🙂 mood</span>
         <span>⚖️ weight</span>
         <span>☕ coffee</span>
+        <span>🫐 dinner plan</span>
         <span>🍽️ calories</span>
         <span>⏰ woke</span>
         <span>🛏️ bed</span>

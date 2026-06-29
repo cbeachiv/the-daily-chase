@@ -232,6 +232,14 @@ export interface CoffeeLog {
   createdAt: string;
 }
 
+// One doc per day Chase follows his dinner plan — a yes/no toggle, like wakeupLogs.
+export interface DinnerPlanLog {
+  id: string;
+  date: string; // YYYY-MM-DD
+  loggedAt: string; // ISO timestamp — when it was marked
+  createdAt: string;
+}
+
 export interface MoodLog {
   id: string;
   date: string; // YYYY-MM-DD (for grouping/filtering)
@@ -242,6 +250,7 @@ export interface MoodLog {
   caffeineCups?: number; // # coffees so far today — snapshotted from coffeeLogs at save time
   alcoholDrinks?: number; // # alcoholic drinks
   exercised?: boolean; // worked out today
+  dinnerPlan?: boolean; // followed his dinner plan today — snapshotted from dinnerPlanLogs
   bedtime?: string; // "HH:MM" — time went to bed last night
   wakeTime?: string; // "HH:MM" — time woke up
   // sleep duration is derived from bedtime/wakeTime when both are set

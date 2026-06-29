@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import type {
   CoffeeLog,
+  DinnerPlanLog,
   FoodEntry,
   MoodLog,
   WakeupLog,
@@ -37,6 +38,7 @@ export default function HealthPage() {
   const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
   const { data: moods } = useCollection<MoodLog>("moodLogs");
   const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
+  const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const [weightInput, setWeightInput] = useState("");
   const [range, setRange] = useState("3M");
   const [weightOpen, setWeightOpen] = useState(false);
@@ -159,6 +161,7 @@ export default function HealthPage() {
         wakeups={wakeups}
         moods={moods}
         coffees={coffees}
+        dinnerPlans={dinnerPlans}
       />
 
       {/* 5am wakeup + exercise, side by side */}
