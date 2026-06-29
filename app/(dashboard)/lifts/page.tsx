@@ -420,18 +420,32 @@ export default function LiftsPage() {
             </details>
           )}
 
-          <section className="space-y-6">
-            {monthGroups.map((g) => (
-              <div key={g.label} className="space-y-3">
-                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">{g.label}</h2>
-                {g.sessions.map((s) => (
-                  <SessionCard
-                    key={s.id}
-                    session={s}
-                    onDelete={s.source === "logged" ? () => remove(s) : undefined}
-                  />
-                ))}
-              </div>
+          <section className="space-y-4">
+            {monthGroups.map((g, i) => (
+              <details key={g.label} open={i === 0} className="group space-y-3">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted [&::-webkit-details-marker]:hidden">
+                  <span className="flex items-center gap-1.5">
+                    <svg
+                      width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      className="transition-transform group-open:rotate-90"
+                    >
+                      <path d="M9 6l6 6-6 6" />
+                    </svg>
+                    {g.label}
+                  </span>
+                  <span className="text-muted/80">{g.sessions.length}</span>
+                </summary>
+                <div className="space-y-3">
+                  {g.sessions.map((s) => (
+                    <SessionCard
+                      key={s.id}
+                      session={s}
+                      onDelete={s.source === "logged" ? () => remove(s) : undefined}
+                    />
+                  ))}
+                </div>
+              </details>
             ))}
           </section>
         </>
