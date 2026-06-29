@@ -382,7 +382,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                     : "bg-bg text-muted hover:text-ink"
                 }`}
               >
-                {(editingId ? form.dinnerPlan : dinnerPlanToday) ? "✓ " : "○ "}🫐 Followed dinner plan
+                {(editingId ? form.dinnerPlan : dinnerPlanToday) ? "✓ " : "○ "}🫐🥭 Followed dinner plan
               </button>
             </div>
             {!editingId && (
@@ -535,7 +535,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                   {!!l.caffeineCups && <span>☕ {l.caffeineCups}</span>}
                   {!!l.alcoholDrinks && <span>🍷 {l.alcoholDrinks}</span>}
                   {l.exercised && <span>🏃 exercised</span>}
-                  {l.dinnerPlan && <span>🫐 dinner plan</span>}
+                  {l.dinnerPlan && <span>🫐🥭 dinner plan</span>}
                   {slept !== null && <span>🛏 {slept}h</span>}
                 </div>
                 {l.aiQuestion && (

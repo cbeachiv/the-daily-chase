@@ -198,7 +198,7 @@ export default function HealthCalendar({
                   {coffees > 0 && <span title="Coffees">☕ {coffees}</span>}
                   {followedDinnerPlan && (
                     <span className="text-teal" title="Followed dinner plan">
-                      🫐 plan
+                      🫐🥭 plan
                     </span>
                   )}
                   {calories > 0 && <span title="Calories">🍽️ {fmtCal(calories)}</span>}
@@ -219,7 +219,7 @@ export default function HealthCalendar({
         <span>🙂 mood</span>
         <span>⚖️ weight</span>
         <span>☕ coffee</span>
-        <span>🫐 dinner plan</span>
+        <span>🫐🥭 dinner plan</span>
         <span>🍽️ calories</span>
         <span>⏰ woke</span>
         <span>🛏️ bed</span>

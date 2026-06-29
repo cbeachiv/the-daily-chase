@@ -91,7 +91,7 @@ export default function QuickLog() {
               : "Followed your dinner plan? Tap to log it"
           }
         >
-          <span className="text-2xl">{todayDinnerPlan ? "✅" : "🫐"}</span>
+          <span className="text-2xl">{todayDinnerPlan ? "✅" : "🫐🥭"}</span>
           <span className="text-xs font-semibold">
             {todayDinnerPlan ? "Plan ✓" : "Dinner Plan"}
           </span>
