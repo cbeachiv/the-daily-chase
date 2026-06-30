@@ -6,13 +6,14 @@ import type {
   DinnerPlanLog,
   FoodEntry,
   MoodLog,
+  Travel,
   WakeupLog,
   WeightLog,
   Workout,
 } from "@/lib/types";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import { type CardioLog, CARDIO_KIND_LABEL } from "@/lib/cardio";
-import { prettyClock, todayStr } from "@/lib/dates";
+import { addDays, prettyClock, todayStr } from "@/lib/dates";
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const RACKET_KINDS = new Set<string>(["pickleball", "tennis"]);
@@ -29,6 +30,7 @@ export default function HealthCalendar({
   moods,
   coffees,
   dinnerPlans,
+  travel,
 }: {
   weights: WeightLog[];
   workouts: Workout[];
@@ -39,6 +41,7 @@ export default function HealthCalendar({
   moods: MoodLog[];
   coffees: CoffeeLog[];
   dinnerPlans: DinnerPlanLog[];
+  travel: Travel[];
 }) {
   const today = todayStr();
   const [month, setMonth] = useState(today.slice(0, 7)); // "YYYY-MM"
@@ -82,8 +85,17 @@ export default function HealthCalendar({
       if (!cur || m.loggedAt > cur.loggedAt) mood[m.date] = m;
     }
 
-    return { wakeupSet, exercise, weight, calories, coffeeCount, dinnerPlanSet, mood };
-  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees, dinnerPlans]);
+    // Each trip paints every day in its [startDate, endDate] range.
+    const trip: Record<string, string[]> = {};
+    for (const t of travel) {
+      const end = t.endDate || t.startDate;
+      for (let d = t.startDate; d <= end; d = addDays(d, 1)) {
+        (trip[d] ??= []).push(t.destination);
+      }
+    }
+
+    return { wakeupSet, exercise, weight, calories, coffeeCount, dinnerPlanSet, mood, trip };
+  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees, dinnerPlans, travel]);
 
   const { cells, label } = useMemo(() => {
     const [y, m] = month.split("-").map(Number);
@@ -150,6 +162,8 @@ export default function HealthCalendar({
           const followedDinnerPlan = byDate.dinnerPlanSet.has(date);
           const woke = byDate.wakeupSet.has(date);
           const exercises = byDate.exercise[date] ?? [];
+          const trips = byDate.trip[date] ?? [];
+          const drinks = mood?.alcoholDrinks ?? 0;
           // A logged 5am wakeup is an explicit "got up at 5" signal, so it sets
           // the wake time to 5:00 AM; otherwise fall back to the mood log's time.
           const wakeTime = woke ? "05:00" : mood?.wakeTime;
@@ -173,6 +187,15 @@ export default function HealthCalendar({
               </div>
               {!isFuture && (
                 <div className="mt-0.5 flex flex-col gap-px text-[10px] leading-tight text-muted">
+                  {trips.map((dest, j) => (
+                    <span
+                      key={j}
+                      className="truncate font-medium text-sky"
+                      title={`${dest} (travel)`}
+                    >
+                      ✈️ {dest}
+                    </span>
+                  ))}
                   {wakeTime && (
                     <span title="Woke up at">⏰ {prettyClock(wakeTime)}</span>
                   )}
@@ -190,9 +213,14 @@ export default function HealthCalendar({
                       {e.icon} {e.label}
                     </span>
                   ))}
-                  {mood && (
+                  {mood?.mood != null && (
                     <span className="font-semibold text-indigo" title="Mood (1–10)">
                       🙂 {mood.mood}
+                    </span>
+                  )}
+                  {drinks > 0 && (
+                    <span className="text-coral" title="Alcoholic drinks">
+                      🍷 {drinks}
                     </span>
                   )}
                   {coffees > 0 && <span title="Coffees">☕ {coffees}</span>}
@@ -217,6 +245,8 @@ export default function HealthCalendar({
         <span>🏋️ lift</span>
         <span>🏃 cardio</span>
         <span>🙂 mood</span>
+        <span>🍷 drinks</span>
+        <span>✈️ travel</span>
         <span>⚖️ weight</span>
         <span>☕ coffee</span>
         <span>🫐🥭 dinner plan</span>

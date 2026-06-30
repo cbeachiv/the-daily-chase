@@ -75,7 +75,11 @@ export default function MoodSection({ startDate }: { startDate: string | null })
   );
   const visibleLogs = showAllLogs ? recent : recent.slice(0, 3);
 
-  const latest = recent[0];
+  // Newest log that actually carries a mood score — a drinks-only entry has none,
+  // so it shouldn't drive the header badge.
+  const latest = recent.find((l) => l.mood != null);
+  // Only mood-bearing logs belong on the trend chart.
+  const moodTrend = useMemo(() => logsInRange.filter((l) => l.mood != null), [logsInRange]);
 
   function contextSummary(
     f: typeof EMPTY_FORM,
@@ -349,6 +353,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
               label="🍷 Drinks Yesterday"
               value={form.alcoholDrinks}
               onChange={(v) => setForm({ ...form, alcoholDrinks: v })}
+              opts={DRINK_PILL_OPTS}
             />
           </div>
 
@@ -462,7 +467,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
         </form>
       )}
 
-      <MoodChart logs={logsInRange} compact={!detailsOpen} />
+      <MoodChart logs={moodTrend} compact={!detailsOpen} />
 
       {detailsOpen && (
       <>
@@ -523,12 +528,16 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                     {prettyDate(l.date)} · {prettyTime(l.loggedAt)}
                   </span>
                   <span className="flex gap-2 text-xs font-semibold">
-                    <span className="rounded-full bg-indigo/10 px-2 py-0.5 text-indigo">
-                      Mood {l.mood}
-                    </span>
-                    <span className="rounded-full bg-amber/10 px-2 py-0.5 text-amber">
-                      Energy {l.energy}
-                    </span>
+                    {l.mood != null && (
+                      <span className="rounded-full bg-indigo/10 px-2 py-0.5 text-indigo">
+                        Mood {l.mood}
+                      </span>
+                    )}
+                    {l.energy != null && (
+                      <span className="rounded-full bg-amber/10 px-2 py-0.5 text-amber">
+                        Energy {l.energy}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
@@ -629,21 +638,35 @@ function Slider({
   );
 }
 
+const DEFAULT_PILL_OPTS = [
+  { v: 0, t: "0" },
+  { v: 1, t: "1" },
+  { v: 2, t: "2" },
+  { v: 3, t: "3+" },
+];
+
+// 0–6 with a 6+ cap — drinks can run higher than the default 3+ scale.
+const DRINK_PILL_OPTS = [
+  { v: 0, t: "0" },
+  { v: 1, t: "1" },
+  { v: 2, t: "2" },
+  { v: 3, t: "3" },
+  { v: 4, t: "4" },
+  { v: 5, t: "5" },
+  { v: 6, t: "6+" },
+];
+
 function PillGroup({
   label,
   value,
   onChange,
+  opts = DEFAULT_PILL_OPTS,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
+  opts?: { v: number; t: string }[];
 }) {
-  const opts = [
-    { v: 0, t: "0" },
-    { v: 1, t: "1" },
-    { v: 2, t: "2" },
-    { v: 3, t: "3+" },
-  ];
   return (
     <div>
       <p className="mb-1 text-xs font-semibold text-muted">{label}</p>

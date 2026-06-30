@@ -7,6 +7,7 @@ import type {
   DinnerPlanLog,
   FoodEntry,
   MoodLog,
+  Travel,
   WakeupLog,
   WeightLog,
   Workout,
@@ -39,6 +40,7 @@ export default function HealthPage() {
   const { data: moods } = useCollection<MoodLog>("moodLogs");
   const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
+  const { data: trips } = useCollection<Travel>("travel");
   const [weightInput, setWeightInput] = useState("");
   const [range, setRange] = useState("3M");
   const [weightOpen, setWeightOpen] = useState(false);
@@ -162,6 +164,7 @@ export default function HealthPage() {
         moods={moods}
         coffees={coffees}
         dinnerPlans={dinnerPlans}
+        travel={trips}
       />
 
       {/* 5am wakeup + exercise, side by side */}
