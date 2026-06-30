@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { Resend } from "resend";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
@@ -14,36 +15,56 @@ import type { DesignClient, DesignHoursEntry } from "@/lib/types";
 export const runtime = "nodejs";
 
 // Inbound-email → hours pipeline for Sarah Beach Interiors. Sarah emails the
-// Postmark inbound address (forwarded to/aliased as hours@thedailychase.com)
-// describing what she worked on and for how long. Postmark POSTs the parsed
-// message here as JSON. We authenticate via a secret token in the webhook URL
-// (?token=...) plus a sender allowlist, let Claude parse the project + hours +
-// kind + a short description, match it to a client, append a designHours entry,
-// and reply via Resend to confirm. We always return 200 on a parse/match miss so
-// Postmark doesn't retry; auth failures return 401.
+// Resend receiving address (e.g. hours@<account>.resend.app, or a custom domain)
+// describing what she worked on and for how long. Resend forwards the message
+// here as a Svix-signed webhook (`email.received`). We verify the signature,
+// confirm the sender is allowlisted, let Claude parse the project + hours + kind
+// + a short description, match it to a client, append a designHours entry, and
+// reply via Resend to confirm. We always return 200 on a parse/match miss so
+// Resend doesn't retry; a bad signature returns 401.
 
-// Postmark inbound payload — only the fields we use. `FromFull` carries the
-// structured sender; `TextBody`/`HtmlBody` carry the message.
-interface PostmarkInbound {
-  FromFull?: { Email?: string; Name?: string };
-  From?: string;
-  Subject?: string;
-  TextBody?: string;
-  HtmlBody?: string;
+// Verify a Svix-signed webhook (Resend uses Svix). The signed content is
+// `${id}.${timestamp}.${body}`, HMAC-SHA256'd with the base64 secret after the
+// `whsec_` prefix; the header may carry several space-separated `v1,<sig>` pairs.
+function verifySvix(rawBody: string, headers: Headers, secret: string): boolean {
+  const id = headers.get("svix-id");
+  const timestamp = headers.get("svix-timestamp");
+  const sigHeader = headers.get("svix-signature");
+  if (!id || !timestamp || !sigHeader) return false;
+
+  const key = Buffer.from(secret.replace(/^whsec_/, ""), "base64");
+  const expected = createHmac("sha256", key)
+    .update(`${id}.${timestamp}.${rawBody}`)
+    .digest();
+
+  return sigHeader.split(" ").some((part) => {
+    const sig = part.split(",")[1];
+    if (!sig) return false;
+    const given = Buffer.from(sig, "base64");
+    return given.length === expected.length && timingSafeEqual(given, expected);
+  });
 }
 
-function senderEmail(body: PostmarkInbound): string {
-  const structured = body.FromFull?.Email;
-  if (structured) return structured.trim().toLowerCase();
-  const from = body.From ?? "";
-  const m = from.match(/<([^>]+)>/);
-  return (m ? m[1] : from).trim().toLowerCase();
+// The inbound `from` can arrive as "Name <addr>", a bare address, or an object
+// with an address/email field. Normalize to a lowercase email.
+function senderEmail(from: unknown): string {
+  if (typeof from === "string") {
+    const m = from.match(/<([^>]+)>/);
+    return (m ? m[1] : from).trim().toLowerCase();
+  }
+  if (from && typeof from === "object") {
+    const o = from as { address?: string; email?: string };
+    return String(o.address ?? o.email ?? "").trim().toLowerCase();
+  }
+  return "";
 }
 
 // Plain text when available, otherwise a rough strip of the HTML body.
-function bodyText(body: PostmarkInbound): string {
-  if (body.TextBody && body.TextBody.trim()) return body.TextBody;
-  return (body.HtmlBody ?? "")
+function bodyText(data: Record<string, unknown>): string {
+  const text = data.text ?? data.plain ?? data.TextBody;
+  if (typeof text === "string" && text.trim()) return text;
+  const html = (data.html ?? data.HtmlBody ?? "") as string;
+  return String(html)
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
@@ -131,26 +152,26 @@ async function reply(to: string, subject: string, html: string) {
 }
 
 export async function POST(req: Request) {
-  // Authenticate the webhook via a shared secret carried in the URL (?token=...).
-  // Postmark lets you set the inbound webhook URL with this query string, so only
-  // requests that know the token reach the handler.
-  const expected = process.env.INBOUND_WEBHOOK_TOKEN;
-  if (expected) {
-    const token = new URL(req.url).searchParams.get("token");
-    if (token !== expected) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const rawBody = await req.text();
+
+  // Verify the Svix signature when a secret is configured (skip locally so the
+  // route can be exercised with a sample payload before the webhook is wired up).
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (secret && !verifySvix(rawBody, req.headers, secret)) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  let body: PostmarkInbound;
+  let event: { type?: string; data?: Record<string, unknown> };
   try {
-    body = (await req.json()) as PostmarkInbound;
+    event = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ ok: true });
   }
+  // Resend nests the email under `data`; tolerate a flat payload too.
+  const data = (event.data ?? (event as Record<string, unknown>)) as Record<string, unknown>;
 
   // Defense in depth: only act on mail from Sarah (or Chase).
-  const sender = senderEmail(body);
+  const sender = senderEmail(data.from);
   const allow = [process.env.SARAH_EMAIL, "chasetbeach@gmail.com"]
     .filter(Boolean)
     .map((s) => String(s).toLowerCase());
@@ -158,8 +179,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, ignored: "sender not allowlisted" });
   }
 
-  const subject = String(body.Subject ?? "");
-  const text = bodyText(body);
+  const subject = String(data.subject ?? data.Subject ?? "");
+  const text = bodyText(data);
 
   const list = await adminAuth().listUsers(1);
   const user = list.users[0];
