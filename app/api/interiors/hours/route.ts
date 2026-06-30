@@ -140,8 +140,11 @@ async function reply(to: string, subject: string, html: string) {
   if (!to) return;
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    // Send from the verified domain (and the same receiving address Sarah emails)
+    // so the confirmation reliably delivers and threads with her message, rather
+    // than the rate-limited onboarding@resend.dev shared sender.
     await resend.emails.send({
-      from: process.env.RESEND_FROM || "The Daily Chase <onboarding@resend.dev>",
+      from: process.env.INTERIORS_FROM || "Sarah Beach Interiors <hours@thedailychase.com>",
       to,
       subject,
       html,
