@@ -130,7 +130,7 @@ export default function PlaidConnect({
   }, [linkToken, ready, open]);
 
   async function syncNow() {
-    setBusy("Syncing…");
+    setBusy("Refreshing banks & syncing…");
     const res = await authedFetch("/api/plaid/sync", { method: "POST" });
     const r = res.ok ? await res.json() : null;
     setBusy(r ? `Synced: +${r.added} new, ${r.modified} updated` : "Sync failed");

@@ -17,6 +17,24 @@ function errorCode(err: unknown): string | undefined {
   return (err as { response?: { data?: { error_code?: string } } })?.response?.data?.error_code;
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Force Plaid to pull the latest from the institution on demand. The app's normal
+// sync only drains what Plaid has already cached, and Plaid re-polls banks on its
+// own (slow) cadence — so a manual "Sync now" can miss transactions that already
+// show on the bank's own statement. /transactions/refresh kicks off a fresh pull.
+// Best-effort: it's an async, paid product call that can fail (rate limit,
+// unsupported institution, re-auth needed). On failure we log and let the plain
+// sync below return whatever Plaid already had; the webhook + daily cron backstop
+// anything that lands later.
+async function refreshItem(item: ItemDoc): Promise<void> {
+  try {
+    await plaidClient().transactionsRefresh({ access_token: item.accessToken });
+  } catch (err) {
+    console.warn(`Plaid transactions/refresh skipped for item ${item.id}:`, errorCode(err) || err);
+  }
+}
+
 // Sync a single item. Returns counts, or marks the item login_required on auth errors.
 export async function syncItem(item: ItemDoc): Promise<{ added: number; modified: number; removed: number }> {
   const client = plaidClient();
@@ -153,6 +171,44 @@ export async function syncAllForUid(uid: string): Promise<{ items: number; added
   }
   await reconcileTransfers(uid);
   return { items: snap.size, added, modified, removed };
+}
+
+// Manual "Sync now": force a fresh pull from each bank, then sync. Because
+// /transactions/refresh is async (fresh data lands a few seconds later), poll the
+// cursor sync a handful of times so a single click surfaces today's activity
+// instead of reporting "+0 new" and waiting on the webhook/cron. Bounded well
+// under the sync route's maxDuration. Returns the same counts as syncAllForUid.
+export async function refreshAndSyncForUid(
+  uid: string
+): Promise<{ items: number; added: number; modified: number; removed: number }> {
+  const snap = await adminDb().collection("plaidItems").where("uid", "==", uid).get();
+  const itemIds = snap.docs.map((d) => d.id);
+
+  // Kick off an on-demand pull from every bank up front so they refresh in parallel.
+  await Promise.all(snap.docs.map((d) => refreshItem({ id: d.id, ...(d.data() as Omit<ItemDoc, "id">) })));
+
+  let added = 0,
+    modified = 0,
+    removed = 0;
+  const attempts = 3;
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) await sleep(4000); // give the refresh time to land before retrying
+    let gotNew = false;
+    for (const id of itemIds) {
+      // Re-read each item so we sync from the cursor the previous round persisted.
+      const fresh = await adminDb().doc(`plaidItems/${id}`).get();
+      if (!fresh.exists) continue;
+      const r = await syncItem({ id, ...(fresh.data() as Omit<ItemDoc, "id">) });
+      added += r.added;
+      modified += r.modified;
+      removed += r.removed;
+      if (r.added + r.modified + r.removed > 0) gotNew = true;
+    }
+    if (gotNew) break; // something arrived — stop polling
+  }
+
+  await reconcileTransfers(uid);
+  return { items: itemIds.length, added, modified, removed };
 }
 
 export async function syncAllItems(): Promise<{ items: number }> {
