@@ -324,6 +324,40 @@ export interface Project {
   sortOrder: number;
 }
 
+// ── Sarah Beach Interiors ──────────────────────────────────────────────────
+// Sarah's interior-design business. One doc per client project; her logged
+// hours live in the sibling `designHours` collection and are summed in.
+// users/{uid}/designClients
+export interface DesignClient {
+  id: string;
+  clientName: string; // "Julie Griswold"
+  address?: string; // "1 Albert Place"
+  rooms: string[]; // ["Living room", "Master bedroom", "Guest bedroom"]
+  designFee: number; // flat fee covering the design work, e.g. 2700
+  hourlyRate?: number; // purchase/install management rate, e.g. 125; omit if none
+  status: "active" | "completed";
+  startDate?: string; // YYYY-MM-DD — when the project started
+  completedDate?: string; // YYYY-MM-DD — set when status flips to completed
+  notes?: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+// users/{uid}/designHours — one doc per logged work session. "design" hours are
+// the actual designing (covered by the flat fee, tracked only to see time spent);
+// "billable" hours are purchase/install management billed at the client's
+// hourlyRate. Each carries a short description so a project builds a work log.
+export interface DesignHoursEntry {
+  id: string;
+  clientId: string;
+  date: string; // YYYY-MM-DD
+  hours: number;
+  kind: "design" | "billable";
+  description: string; // what she worked on
+  source: "email" | "manual";
+  createdAt: string;
+}
+
 // ── Finance ────────────────────────────────────────────────────────────────
 // Normalized spend/income categories. Raw category strings from card exports
 // are mapped onto this clean set in lib/finance.ts (CATEGORY_MAP).
