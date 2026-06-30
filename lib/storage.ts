@@ -103,3 +103,40 @@ export async function deleteAnnieMedia(path: string): Promise<void> {
     // Non-fatal — the moment is gone regardless of whether the file lingered.
   }
 }
+
+// Design files (proposals, renderings, mood boards) are uploaded as-is so PDFs
+// and high-res images keep their fidelity. Capped to protect the free Storage
+// quota; one file is plenty for a proposal.
+export const MAX_DESIGN_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
+
+/**
+ * Upload a design or proposal for a client under
+ * users/{uid}/designFiles/{clientId}/. Stored unmodified. Returns the download
+ * URL, the storage path (kept on the doc so the file can be deleted), the
+ * original filename, content type, and byte size.
+ */
+export async function uploadDesignFile(
+  uid: string,
+  clientId: string,
+  file: File,
+): Promise<{ url: string; path: string; name: string; contentType: string; size: number }> {
+  if (file.size > MAX_DESIGN_FILE_BYTES) {
+    throw new Error("File is too large — keep it under 25 MB.");
+  }
+  const ext = nameExt(file.name) || "bin";
+  const contentType = file.type || "application/octet-stream";
+  const path = `users/${uid}/designFiles/${clientId}/${uuid()}-${baseName(file.name)}.${ext}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file, { contentType });
+  const url = await getDownloadURL(storageRef);
+  return { url, path, name: file.name, contentType, size: file.size };
+}
+
+/** Best-effort delete of a previously uploaded design file. */
+export async function deleteDesignFile(path: string): Promise<void> {
+  try {
+    await deleteObject(ref(storage, path));
+  } catch {
+    // Non-fatal — the doc is gone regardless of whether the file lingered.
+  }
+}

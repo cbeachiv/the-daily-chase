@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { DesignClient, DesignHoursEntry } from "@/lib/types";
+import type { DesignClient, DesignHoursEntry, DesignFile } from "@/lib/types";
 import {
   hoursByClient,
   clientEarnings,
@@ -11,6 +11,7 @@ import {
   todayISO,
   type HourTotals,
 } from "@/lib/interiors";
+import { uploadDesignFile, deleteDesignFile } from "@/lib/storage";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -28,6 +29,12 @@ function fmtDate(iso?: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function fmtBytes(n: number): string {
+  if (n >= 1024 * 1024) return (n / (1024 * 1024)).toFixed(1) + " MB";
+  if (n >= 1024) return Math.round(n / 1024) + " KB";
+  return n + " B";
 }
 
 const EMPTY: HourTotals = { design: 0, billable: 0 };
@@ -265,18 +272,38 @@ function ClientCard({
   client,
   totals,
   entries,
+  files,
   uid,
   onEdit,
 }: {
   client: DesignClient;
   totals: HourTotals;
   entries: DesignHoursEntry[];
+  files: DesignFile[];
   uid: string;
   onEdit: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [fileErr, setFileErr] = useState("");
   const earnings = clientEarnings(client, totals.billable);
   const billablePay = totals.billable * (client.hourlyRate ?? 0);
+
+  async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // let the same file be re-picked after an error
+    if (!file) return;
+    setFileErr("");
+    setUploading(true);
+    try {
+      const meta = await uploadDesignFile(uid, client.id, file);
+      await addItem(uid, "designFiles", { clientId: client.id, ...meta });
+    } catch (err) {
+      setFileErr(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="card p-4 sm:p-5">
@@ -345,7 +372,7 @@ function ClientCard({
 
       <div className="mt-3 flex gap-3 text-xs font-semibold">
         <button className="text-indigo" onClick={() => setOpen((o) => !o)}>
-          {open ? "Hide" : "Log hours / work log"}
+          {open ? "Hide" : "Hours · designs"}
         </button>
         <button className="text-muted hover:text-ink" onClick={onEdit}>
           Edit
@@ -396,6 +423,60 @@ function ClientCard({
               ))}
             </ul>
           </div>
+
+          <div className="mt-3">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Designs &amp; proposals
+              </span>
+              <label
+                className={`cursor-pointer text-xs font-semibold ${
+                  uploading ? "text-muted" : "text-indigo"
+                }`}
+              >
+                {uploading ? "Uploading…" : "+ Upload"}
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*,application/pdf"
+                  onChange={onPickFile}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+            {fileErr && <p className="mb-1 text-xs text-coral">{fileErr}</p>}
+            <ul className="space-y-1">
+              {files.length === 0 && (
+                <li className="text-sm text-muted">No designs or proposals uploaded yet.</li>
+              )}
+              {files.map((f) => (
+                <li
+                  key={f.id}
+                  className="group flex items-center gap-2 rounded-lg px-1 py-1.5 hover:bg-bg"
+                >
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 truncate text-sm text-indigo hover:underline"
+                  >
+                    {f.name}
+                  </a>
+                  <span className="shrink-0 text-xs text-muted">{fmtBytes(f.size)}</span>
+                  <button
+                    onClick={async () => {
+                      await deleteDesignFile(f.path);
+                      await deleteItem(uid, "designFiles", f.id);
+                    }}
+                    className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"
+                    aria-label="Delete file"
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </>
       )}
     </div>
@@ -406,6 +487,7 @@ function ClientCard({
 export default function InteriorsPage() {
   const { data: clients, uid } = useCollection<DesignClient>("designClients");
   const { data: hours } = useCollection<DesignHoursEntry>("designHours");
+  const { data: filesData } = useCollection<DesignFile>("designFiles");
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -416,6 +498,12 @@ export default function InteriorsPage() {
     for (const list of Object.values(map)) list.sort((a, b) => b.date.localeCompare(a.date));
     return map;
   }, [hours]);
+  const filesByClient = useMemo(() => {
+    const map: Record<string, DesignFile[]> = {};
+    for (const f of filesData) (map[f.clientId] ??= []).push(f);
+    for (const list of Object.values(map)) list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return map;
+  }, [filesData]);
 
   const sorted = useMemo(
     () =>
@@ -499,6 +587,7 @@ export default function InteriorsPage() {
               client={c}
               totals={totalsByClient[c.id] ?? EMPTY}
               entries={entriesByClient[c.id] ?? []}
+              files={filesByClient[c.id] ?? []}
               uid={uid}
               onEdit={() => {
                 setAdding(false);

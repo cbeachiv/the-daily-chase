@@ -358,6 +358,21 @@ export interface DesignHoursEntry {
   createdAt: string;
 }
 
+// users/{uid}/designFiles — a design or proposal uploaded for a client (PDF,
+// rendering, mood board). The file lives in Storage at
+// users/{uid}/designFiles/{clientId}/...; this doc holds the download URL and
+// the storage path (kept so the file can be deleted).
+export interface DesignFile {
+  id: string;
+  clientId: string;
+  name: string; // original filename, shown in the list
+  url: string; // download URL
+  path: string; // storage path, for deletion
+  contentType?: string;
+  size: number; // bytes
+  createdAt: string;
+}
+
 // ── Finance ────────────────────────────────────────────────────────────────
 // Normalized spend/income categories. Raw category strings from card exports
 // are mapped onto this clean set in lib/finance.ts (CATEGORY_MAP).
