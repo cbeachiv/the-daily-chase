@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { Resend } from "resend";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
@@ -14,46 +13,42 @@ import type { DesignClient, DesignHoursEntry } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-// Inbound-email → hours pipeline for Sarah Beach Interiors. Sarah emails an
-// address (e.g. hours@thedailychase.com) describing what she worked on and for
-// how long; Resend forwards the message here as a Svix-signed webhook. We verify
-// the signature, confirm the sender is allowlisted, let Claude parse the project
-// + hours + kind + a short description, match it to a client, append a
-// designHours entry, and reply to confirm (so the design/billable call is easy
-// to correct). We always return 200 so Resend doesn't retry a parse failure.
+// Inbound-email → hours pipeline for Sarah Beach Interiors. Sarah emails the
+// Postmark inbound address (forwarded to/aliased as hours@thedailychase.com)
+// describing what she worked on and for how long. Postmark POSTs the parsed
+// message here as JSON. We authenticate via a secret token in the webhook URL
+// (?token=...) plus a sender allowlist, let Claude parse the project + hours +
+// kind + a short description, match it to a client, append a designHours entry,
+// and reply via Resend to confirm. We always return 200 on a parse/match miss so
+// Postmark doesn't retry; auth failures return 401.
 
-// Verify a Svix-signed webhook (Resend uses Svix). The signed content is
-// `${id}.${timestamp}.${body}`, HMAC-SHA256'd with the base64 secret after the
-// `whsec_` prefix; the header may carry several space-separated `v1,<sig>` pairs.
-function verifySvix(rawBody: string, headers: Headers, secret: string): boolean {
-  const id = headers.get("svix-id");
-  const timestamp = headers.get("svix-timestamp");
-  const sigHeader = headers.get("svix-signature");
-  if (!id || !timestamp || !sigHeader) return false;
-
-  const key = Buffer.from(secret.replace(/^whsec_/, ""), "base64");
-  const expected = createHmac("sha256", key)
-    .update(`${id}.${timestamp}.${rawBody}`)
-    .digest();
-
-  return sigHeader.split(" ").some((part) => {
-    const sig = part.split(",")[1];
-    if (!sig) return false;
-    const given = Buffer.from(sig, "base64");
-    return given.length === expected.length && timingSafeEqual(given, expected);
-  });
+// Postmark inbound payload — only the fields we use. `FromFull` carries the
+// structured sender; `TextBody`/`HtmlBody` carry the message.
+interface PostmarkInbound {
+  FromFull?: { Email?: string; Name?: string };
+  From?: string;
+  Subject?: string;
+  TextBody?: string;
+  HtmlBody?: string;
 }
 
-// `from` may be a plain "Name <addr>" string or a { address, name } object.
-function senderEmail(from: unknown): string {
-  if (typeof from === "string") {
-    const m = from.match(/<([^>]+)>/);
-    return (m ? m[1] : from).trim().toLowerCase();
-  }
-  if (from && typeof from === "object" && "address" in from) {
-    return String((from as { address: string }).address).trim().toLowerCase();
-  }
-  return "";
+function senderEmail(body: PostmarkInbound): string {
+  const structured = body.FromFull?.Email;
+  if (structured) return structured.trim().toLowerCase();
+  const from = body.From ?? "";
+  const m = from.match(/<([^>]+)>/);
+  return (m ? m[1] : from).trim().toLowerCase();
+}
+
+// Plain text when available, otherwise a rough strip of the HTML body.
+function bodyText(body: PostmarkInbound): string {
+  if (body.TextBody && body.TextBody.trim()) return body.TextBody;
+  return (body.HtmlBody ?? "")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 interface Parsed {
@@ -136,25 +131,26 @@ async function reply(to: string, subject: string, html: string) {
 }
 
 export async function POST(req: Request) {
-  const rawBody = await req.text();
-
-  // Verify the Svix signature when a secret is configured (skip locally so the
-  // route can be exercised with a sample payload before DNS is set up).
-  const secret = process.env.RESEND_WEBHOOK_SECRET;
-  if (secret && !verifySvix(rawBody, req.headers, secret)) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  // Authenticate the webhook via a shared secret carried in the URL (?token=...).
+  // Postmark lets you set the inbound webhook URL with this query string, so only
+  // requests that know the token reach the handler.
+  const expected = process.env.INBOUND_WEBHOOK_TOKEN;
+  if (expected) {
+    const token = new URL(req.url).searchParams.get("token");
+    if (token !== expected) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
-  let event: { type?: string; data?: Record<string, unknown> };
+  let body: PostmarkInbound;
   try {
-    event = JSON.parse(rawBody);
+    body = (await req.json()) as PostmarkInbound;
   } catch {
     return NextResponse.json({ ok: true });
   }
-  const data = event.data ?? {};
 
   // Defense in depth: only act on mail from Sarah (or Chase).
-  const sender = senderEmail(data.from);
+  const sender = senderEmail(body);
   const allow = [process.env.SARAH_EMAIL, "chasetbeach@gmail.com"]
     .filter(Boolean)
     .map((s) => String(s).toLowerCase());
@@ -162,8 +158,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, ignored: "sender not allowlisted" });
   }
 
-  const subject = String(data.subject ?? "");
-  const text = String(data.text ?? data.html ?? "");
+  const subject = String(body.Subject ?? "");
+  const text = bodyText(body);
 
   const list = await adminAuth().listUsers(1);
   const user = list.users[0];
@@ -178,7 +174,7 @@ export async function POST(req: Request) {
     await reply(
       sender,
       "Couldn't log those hours",
-      "<p>I couldn't tell which project or how many hours from that note. Try something like: <em>“2 hours on Julie's living room today — sketched the layout”.</em></p>"
+      "<p>I couldn't tell which project or how many hours from that note. Try something like: <em>“2 hours on Julie's living room today, sketched the layout”.</em></p>"
     );
     return NextResponse.json({ ok: true, parsed: false });
   }
@@ -188,7 +184,7 @@ export async function POST(req: Request) {
     await reply(
       sender,
       "Which client?",
-      `<p>I logged ${formatHours(parsed.hours)} hours but couldn't match a client from “${parsed.clientName}”. Add the client name and resend, or log it in the app.</p>`
+      `<p>I read ${formatHours(parsed.hours)} hours but couldn't match a client from “${parsed.clientName}”. Add the client name and resend, or log it in the app.</p>`
     );
     return NextResponse.json({ ok: true, matched: false });
   }
@@ -221,7 +217,7 @@ export async function POST(req: Request) {
 
   await reply(
     sender,
-    `Logged ${formatHours(parsed.hours)} ${parsed.kind} hrs — ${client.clientName}`,
+    `Logged ${formatHours(parsed.hours)} ${parsed.kind} hrs, ${client.clientName}`,
     `<p>Logged <strong>${formatHours(parsed.hours)} ${parsed.kind} hours</strong> to ${client.clientName}${
       parsed.description ? ` — “${parsed.description}”` : ""
     }.</p>
