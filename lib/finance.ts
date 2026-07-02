@@ -41,6 +41,10 @@ export const CATEGORY_COLOR: Record<FinanceCategory, string> = {
   Uncategorized: "#94a3b8",
 };
 
+// The Hugga investment is a fixed holding. Treat it as $5,000 in net worth for any
+// month whose snapshot doesn't specify its own value.
+export const DEFAULT_HUGGA = 5000;
+
 // The catch-all for an expense that matches no rule — a neutral "I don't know what
 // this is yet" bucket, kept separate from Chase Discretionary so real discretionary
 // spend isn't inflated by unidentified charges.

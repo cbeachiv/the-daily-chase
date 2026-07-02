@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { FinanceSnapshot, FinanceTransaction } from "@/lib/types";
-import { aggregateMonth, feedCoverage, fmtUSD, monthLabel } from "@/lib/finance";
+import { aggregateMonth, feedCoverage, fmtUSD, monthLabel, DEFAULT_HUGGA } from "@/lib/finance";
 
 // A spreadsheet-style month-over-month grid (newest month first), mirroring the
 // budget Google Sheet: income, savings balance + monthly change, investments,
@@ -54,6 +54,9 @@ export default function FinanceTable({
       const totalSpend = agg ? agg.spend : snap?.spend;
       const rent = snap?.rent;
       const cardSpend = totalSpend != null && rent != null ? totalSpend - rent : undefined;
+      // Hugga is a fixed $5,000 holding: default it for any month that has a
+      // snapshot but no explicit value. Months with no snapshot stay blank.
+      const hugga = snap ? snap.hugga ?? DEFAULT_HUGGA : undefined;
       return {
         month,
         income,
@@ -63,8 +66,8 @@ export default function FinanceTable({
         savings: snap?.savings,
         bitcoin: snap?.bitcoin,
         ira: snap?.ira,
-        hugga: snap?.hugga,
-        netWorth: sum([snap?.savings, snap?.bitcoin, snap?.ira, snap?.hugga]),
+        hugga,
+        netWorth: sum([snap?.savings, snap?.bitcoin, snap?.ira, hugga]),
       };
     });
 

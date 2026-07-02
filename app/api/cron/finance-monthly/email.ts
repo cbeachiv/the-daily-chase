@@ -22,8 +22,11 @@ export interface FinanceMonthlyEmailData {
   savingsBarPct: number; // 0–100 fill toward the goal (rate / goal, capped)
   savingsGoalNote: string; // e.g. "28 pts to your 50% goal" or "Goal hit 🎉"
   goalReached: boolean;
+  avgSavings6mo: string; // rolling 6-month average savings rate, e.g. "34%" or "—"
+  avgSavings6moCount: number; // how many of the last 6 months had income
   netPositive: boolean;
   spendDelta: string | null; // e.g. "+$1,300 vs Apr" or null
+  incomeSources: { label: string; amount: string; amountMxn: string }[]; // where money came in
   topCategories: { label: string; amount: string; pct: number }[];
   ytdAverages: { label: string; amount: string; amountMxn: string }[]; // avg/month this year
   ytdYear: string; // e.g. "2026"
@@ -34,6 +37,7 @@ export interface FinanceMonthlyEmailData {
   bitcoin: string;
   ira: string;
   savings: string;
+  hugga: string;
   appUrl: string;
 }
 
@@ -56,11 +60,11 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function statCard(value: string, label: string, accent: string): string {
+function statCard(value: string, label: string, accent: string, width = "33%"): string {
   const len = value.length;
   const fs = len > 9 ? 18 : len > 6 ? 22 : 26;
   return `
-  <td width="33%" align="center" valign="middle" style="background:${CARD_BG};border:1px solid ${CARD_BORDER};border-radius:12px;padding:16px 8px">
+  <td width="${width}" align="center" valign="middle" style="background:${CARD_BG};border:1px solid ${CARD_BORDER};border-radius:12px;padding:16px 8px">
     <div style="font:800 ${fs}px ${FONT};color:${accent};line-height:1.15">${value}</div>
     <div style="font:700 10px ${FONT};color:${FAINT};text-transform:uppercase;letter-spacing:1px;margin-top:6px">${label}</div>
   </td>`;
@@ -125,11 +129,11 @@ export function buildEmailHtml(d: FinanceMonthlyEmailData): string {
   ]);
   const scoreboardMxn = mxnRow([d.incomeMxn, d.spendMxn, d.netMxn]);
 
-  const worthCards = cardsRow([
-    statCard(d.bitcoin, "Bitcoin", INK),
-    statCard(d.ira, "IRA", INK),
-    statCard(d.savings, "Savings", INK),
-  ]);
+  // Four holdings in a 2x2 grid (Bitcoin, IRA, Savings, Hugga).
+  const worthCards =
+    cardsRow([statCard(d.bitcoin, "Bitcoin", INK, "50%"), statCard(d.ira, "IRA", INK, "50%")]) +
+    `<div style="line-height:10px;font-size:0">&nbsp;</div>` +
+    cardsRow([statCard(d.savings, "Savings", INK, "50%"), statCard(d.hugga, "Hugga", INK, "50%")]);
 
   // Draft-only banner + approve button.
   const draftBanner =
@@ -137,7 +141,7 @@ export function buildEmailHtml(d: FinanceMonthlyEmailData): string {
       ? `<tr><td style="padding:0">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fff7ed;border-bottom:1px solid #fed7aa">
         <tr><td style="padding:13px 26px;font:700 13px ${FONT};color:${AMBER}">
-          &#9998; PREVIEW &mdash; Sarah hasn&rsquo;t received this yet. Review the numbers below, then approve to send it to you both.
+          &#9998; PREVIEW. Sarah hasn&rsquo;t received this yet. Review the numbers below, then approve to send it to you both.
         </td></tr>
       </table>
     </td></tr>`
@@ -154,7 +158,7 @@ export function buildEmailHtml(d: FinanceMonthlyEmailData): string {
               <a href="${d.approveUrl}" style="display:inline-block;font:800 15px ${FONT};color:#ffffff;text-decoration:none;padding:15px 34px;border-radius:12px">Approve &amp; send to Sarah &rarr;</a>
             </td>
           </tr></table>
-          <div style="font:400 11px/1.5 ${FONT};color:${FAINT};margin-top:13px">Something off? Upload last month&rsquo;s Capital One &amp; Chase exports in the finance tab, then click approve &mdash; it recomputes fresh before sending.</div>
+          <div style="font:400 11px/1.5 ${FONT};color:${FAINT};margin-top:13px">Something off? Upload last month&rsquo;s Capital One &amp; Chase exports in the finance tab, then click approve. It recomputes fresh before sending.</div>
         </td></tr>
       </table>
     </td></tr>`
@@ -202,8 +206,20 @@ export function buildEmailHtml(d: FinanceMonthlyEmailData): string {
         <tr><td style="height:10px;width:${Math.max(d.savingsBarPct, 2)}%;background:${goalColor};border-radius:999px;font-size:0;line-height:0">&nbsp;</td>
         ${d.savingsBarPct < 100 ? `<td style="font-size:0;line-height:0">&nbsp;</td>` : ""}</tr>
       </table>
-      ${d.spendDelta ? `<div style="font:600 12px ${FONT};color:${MUTED};text-align:center;margin-top:10px">Spend ${escapeHtml(d.spendDelta)}</div>` : ""}
+      <div style="font:600 12px ${FONT};color:${MUTED};text-align:center;margin-top:10px">
+        Six-month average savings rate <strong style="color:${INDIGO}">${d.avgSavings6mo}</strong>${d.spendDelta ? ` &middot; spend ${escapeHtml(d.spendDelta)}` : ""}
+      </div>
     </td></tr>
+
+    ${
+      d.incomeSources.length
+        ? `<tr><td style="padding:24px 26px 2px">
+      <div style="font:800 11px ${FONT};color:${FAINT};letter-spacing:1.5px;margin-bottom:4px">WHERE IT CAME FROM</div>
+      <div style="font:400 11px ${FONT};color:${FAINT};margin-bottom:10px">The income that landed this month.</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CARD_BG};border:1px solid ${CARD_BORDER};border-radius:10px;padding:8px 14px">${d.incomeSources.map((s) => avgRow(s.label, s.amount, s.amountMxn)).join("")}</table>
+    </td></tr>`
+        : ""
+    }
 
     ${
       d.topCategories.length
@@ -253,9 +269,9 @@ export function buildEmailHtml(d: FinanceMonthlyEmailData): string {
     <tr><td style="padding:18px 26px 28px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr><td style="border-top:1px solid ${CARD_BORDER};padding-top:16px">
-          <p style="font:600 13px ${FONT};color:${SLATE};margin:0 0 2px">&mdash; ${escapeHtml(ADVISOR_NAME)}</p>
+          <p style="font:600 13px ${FONT};color:${SLATE};margin:0 0 2px">Warmly, ${escapeHtml(ADVISOR_NAME)}</p>
           <p style="font:400 12px ${FONT};color:${FAINT};margin:0 0 12px">Your financial advisor</p>
-          <p style="font:400 12px/1.6 ${FONT};color:${FAINT};margin:0">Reflects whatever&rsquo;s been imported so far &mdash; upload last month&rsquo;s Capital One &amp; Chase exports to fill it in. Peso figures are estimates at the current exchange rate.</p>
+          <p style="font:400 12px/1.6 ${FONT};color:${FAINT};margin:0">Reflects whatever&rsquo;s been imported so far. Upload last month&rsquo;s Capital One &amp; Chase exports to fill it in. Peso figures are estimates at the current exchange rate.</p>
         </td></tr>
       </table>
     </td></tr>
