@@ -136,8 +136,7 @@ export default function HealthCalendar({
           <span className="min-w-[8.5rem] text-center text-sm font-semibold">{label}</span>
           <button
             onClick={() => shiftMonth(1)}
-            disabled={month >= today.slice(0, 7)}
-            className="rounded-md px-2 py-1 text-muted transition hover:bg-bg hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
+            className="rounded-md px-2 py-1 text-muted transition hover:bg-bg hover:text-ink"
             title="Next month"
           >
             ›
@@ -173,7 +172,7 @@ export default function HealthCalendar({
               key={i}
               className={`flex min-h-[78px] flex-col rounded-lg border p-1 ${
                 isToday ? "border-indigo bg-indigo/5" : "border-line"
-              } ${isFuture ? "opacity-40" : ""}`}
+              } ${isFuture && trips.length === 0 ? "opacity-40" : ""}`}
             >
               <div className="flex items-center justify-between">
                 <span
@@ -185,7 +184,7 @@ export default function HealthCalendar({
                   {woke && <span title="Woke up at 5am">☀️</span>}
                 </span>
               </div>
-              {!isFuture && (
+              {(!isFuture || trips.length > 0) && (
                 <div className="mt-0.5 flex flex-col gap-px text-[10px] leading-tight text-muted">
                   {trips.map((dest, j) => (
                     <span
