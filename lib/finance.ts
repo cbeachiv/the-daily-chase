@@ -163,37 +163,52 @@ export function isTransfer(rawCategory: string, description: string): boolean {
 }
 
 // ── CSV parsing ──────────────────────────────────────────────────────────────
-// Minimal CSV line parser (handles quoted fields containing commas/quotes).
-// Ported from scripts/import-history.mjs.
-function parseLine(line: string): string[] {
-  const out: string[] = [];
+// Full-text CSV parser: handles quoted fields containing commas, escaped quotes,
+// and embedded newlines (Amazon DSAR exports wrap some product names across
+// lines, so line-splitting would corrupt those rows). Strips a leading BOM and
+// drops blank lines.
+export function parseCsv(text: string): { header: string[]; rows: string[][] } {
+  const src = text.replace(/^\uFEFF/, "");
+  const records: string[][] = [];
+  let row: string[] = [];
   let cur = "";
   let inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
+  let sawAny = false; // any field content or delimiter on the current record
+  const endRow = () => {
+    row.push(cur);
+    records.push(row);
+    row = [];
+    cur = "";
+    sawAny = false;
+  };
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
     if (inQ) {
       if (c === '"') {
-        if (line[i + 1] === '"') {
+        if (src[i + 1] === '"') {
           cur += '"';
           i++;
         } else inQ = false;
       } else cur += c;
-    } else if (c === '"') inQ = true;
-    else if (c === ",") {
-      out.push(cur);
+    } else if (c === '"') {
+      inQ = true;
+      sawAny = true;
+    } else if (c === ",") {
+      row.push(cur);
       cur = "";
-    } else cur += c;
+      sawAny = true;
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && src[i + 1] === "\n") i++;
+      if (sawAny || cur.trim().length > 0) endRow();
+      else cur = "";
+    } else {
+      cur += c;
+      sawAny = true;
+    }
   }
-  out.push(cur);
-  return out;
-}
-
-export function parseCsv(text: string): { header: string[]; rows: string[][] } {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length === 0) return { header: [], rows: [] };
-  const header = parseLine(lines[0]).map((h) => h.trim());
-  const rows = lines.slice(1).map(parseLine);
-  return { header, rows };
+  if (sawAny || cur.trim().length > 0) endRow();
+  if (records.length === 0) return { header: [], rows: [] };
+  return { header: records[0].map((h) => h.trim()), rows: records.slice(1) };
 }
 
 export type CsvFormat = "capitalone" | "chase" | "amazon" | "unknown";
@@ -269,9 +284,12 @@ export interface ParsedTransaction {
 }
 
 export interface AmazonOrder {
-  date: string;
-  title: string;
-  amount: number; // positive dollars
+  date: string; // ship date when known — card charges track shipment, not order
+  altDate?: string; // order date, tried as a secondary match window
+  title: string; // shipment groups: item titles joined "; "
+  amount: number; // positive dollars — sum of item totals (post-discount)
+  altAmount?: number; // shipment-level total when it differs (subtotal+tax+shipping−discounts)
+  orderId?: string;
 }
 
 // Parse a Capital One or Chase export into normalized transactions.
@@ -340,13 +358,99 @@ export function parseTransactions(text: string): { format: CsvFormat; txns: Pars
   return { format, txns: [] };
 }
 
-// Parse an Amazon order-history export into orders for reconciliation.
+// Cap enriched notes so a 20-item grocery shipment doesn't blow up the ledger UI.
+const NOTE_MAX = 500;
+export function joinTitles(titles: string[]): string {
+  let out = "";
+  for (let i = 0; i < titles.length; i++) {
+    const next = out ? `${out}; ${titles[i]}` : titles[i];
+    if (next.length > NOTE_MAX && out) return `${out} …(+${titles.length - i} more)`;
+    out = next;
+  }
+  return out;
+}
+
+// Parse an Amazon order-history export into orders for reconciliation. Handles
+// both the legacy retail order report (one order per row) and the privacy-central
+// DSAR export (one ITEM per row): DSAR rows are grouped by (Order ID, Ship Date)
+// because Amazon charges the card per shipment, on the ship date.
 export function parseAmazonOrders(text: string): AmazonOrder[] {
   const { header, rows } = parseCsv(text);
   const di = col(header, ["order date"]);
   const title = col(header, ["product name", "title"]);
-  const total = col(header, ["total owed", "item total", "total charged", "item subtotal"]);
+  const total = col(header, ["total owed", "total amount", "item total", "total charged", "item subtotal"]);
   if (di < 0 || title < 0 || total < 0) return [];
+  const oid = col(header, ["order id"]);
+  const ship = col(header, ["ship date"]);
+  const status = col(header, ["order status"]);
+  const currency = col(header, ["currency"]);
+
+  // DSAR export: item-level rows with Order ID + Ship Date → group into shipments.
+  if (oid >= 0 && ship >= 0) {
+    const sub = col(header, ["shipment item subtotal"]);
+    const subTax = col(header, ["shipment item subtotal tax"]);
+    const shipping = col(header, ["shipping charge"]);
+    const disc = col(header, ["total discounts"]);
+    interface Group {
+      date: string;
+      altDate?: string;
+      orderId: string;
+      titles: string[];
+      itemCents: number; // Σ per-item "Total Amount" (qty- and discount-inclusive)
+      shipCents: number; // shipment-level subtotal+tax+shipping (repeats per row)
+      discCents: number; // Σ per-item discounts (Amazon records them negative)
+    }
+    const groups = new Map<string, Group>();
+    for (const r of rows) {
+      if (status >= 0 && (r[status] ?? "").trim().toLowerCase() === "cancelled") continue;
+      const cur = currency >= 0 ? (r[currency] ?? "").trim().toUpperCase() : "";
+      if (cur && cur !== "USD") continue;
+      const t = (r[title] ?? "").trim();
+      const itemCents = cents(toNum(r[total] ?? ""));
+      if (!t || itemCents === 0) continue;
+      const orderDate = parseDate(r[di] ?? "");
+      const shipDate = parseDate(r[ship] ?? "");
+      const date = shipDate ?? orderDate;
+      if (!date) continue;
+      const orderId = (r[oid] ?? "").trim();
+      const key = `${orderId}|${shipDate ?? ""}`;
+      let g = groups.get(key);
+      if (!g) {
+        const shipCents =
+          sub >= 0 && subTax >= 0
+            ? cents(toNum(r[sub] ?? "")) +
+              cents(toNum(r[subTax] ?? "")) +
+              (shipping >= 0 ? cents(toNum(r[shipping] ?? "")) : 0)
+            : 0;
+        g = {
+          date,
+          ...(orderDate && orderDate !== date ? { altDate: orderDate } : {}),
+          orderId,
+          titles: [],
+          itemCents: 0,
+          shipCents,
+          discCents: 0,
+        };
+        groups.set(key, g);
+      }
+      g.titles.push(t);
+      g.itemCents += itemCents;
+      if (disc >= 0) g.discCents += cents(toNum(r[disc] ?? ""));
+    }
+    return [...groups.values()].map((g) => {
+      const alt = g.shipCents - g.discCents;
+      return {
+        date: g.date,
+        ...(g.altDate ? { altDate: g.altDate } : {}),
+        title: joinTitles(g.titles),
+        amount: g.itemCents / 100,
+        ...(alt > 0 && alt !== g.itemCents ? { altAmount: alt / 100 } : {}),
+        orderId: g.orderId,
+      };
+    });
+  }
+
+  // Legacy retail order report: one order per row.
   const orders: AmazonOrder[] = [];
   for (const r of rows) {
     const date = parseDate(r[di] ?? "");
@@ -356,6 +460,45 @@ export function parseAmazonOrders(text: string): AmazonOrder[] {
     orders.push({ date, title: t, amount });
   }
   return orders;
+}
+
+// Parse the DSAR "Digital Content Orders.csv" (Kindle, Audible, Prime Video…).
+// Each order spans multiple component rows (Price Amount, Tax) whose
+// "Transaction Amount" values sum to what the card was charged.
+export function parseAmazonDigitalOrders(text: string): AmazonOrder[] {
+  const { header, rows } = parseCsv(text);
+  const oid = col(header, ["order id"]);
+  const title = col(header, ["product name"]);
+  const amt = col(header, ["transaction amount"]);
+  const di = col(header, ["fulfilled date", "order date"]);
+  if (oid < 0 || title < 0 || amt < 0 || di < 0) return [];
+  const status = col(header, ["order status"]);
+  const currency = col(header, ["base currency code"]);
+  interface Group {
+    date: string;
+    titles: string[];
+    amountCents: number;
+  }
+  const groups = new Map<string, Group>();
+  for (const r of rows) {
+    if (status >= 0 && !/success/i.test(r[status] ?? "")) continue;
+    const cur = currency >= 0 ? (r[currency] ?? "").trim().toUpperCase() : "";
+    if (cur && cur !== "USD") continue;
+    const date = parseDate(r[di] ?? "");
+    const t = (r[title] ?? "").trim();
+    if (!date || !t) continue;
+    const id = (r[oid] ?? "").trim();
+    let g = groups.get(id);
+    if (!g) {
+      g = { date, titles: [], amountCents: 0 };
+      groups.set(id, g);
+    }
+    if (!g.titles.includes(t)) g.titles.push(t);
+    g.amountCents += cents(toNum(r[amt] ?? ""));
+  }
+  return [...groups.values()]
+    .filter((g) => g.amountCents > 0)
+    .map((g) => ({ date: g.date, title: joinTitles(g.titles), amount: g.amountCents / 100 }));
 }
 
 // ── Dedupe ids ───────────────────────────────────────────────────────────────
@@ -412,17 +555,45 @@ export function matchAmazonOrders(
   const used = new Set<number>();
   const dayDiff = (a: string, b: string) =>
     Math.abs((Date.parse(a + "T00:00:00") - Date.parse(b + "T00:00:00")) / 86400000);
+  // Distance from a charge to an order: ship date or order date, whichever is closer
+  // (the card usually posts 0–3 days after shipping, but sometimes on order day).
+  const dist = (o: AmazonOrder, chargeDate: string) =>
+    Math.min(dayDiff(o.date, chargeDate), o.altDate ? dayDiff(o.altDate, chargeDate) : Infinity);
+  const hits = (o: AmazonOrder, target: number) =>
+    cents(o.amount) === target || (o.altAmount !== undefined && cents(o.altAmount) === target);
 
   for (const charge of charges) {
     const target = cents(charge.amount);
     // Candidate orders within the date window, not yet consumed.
     const cands = orders
       .map((o, i) => ({ o, i }))
-      .filter(({ o, i }) => !used.has(i) && dayDiff(o.date, charge.date) <= dayWindow);
+      .filter(({ o, i }) => !used.has(i) && dist(o, charge.date) <= dayWindow);
 
-    // 1) single-order exact match
-    let picked = cands.filter(({ o }) => cents(o.amount) === target);
-    // 2) otherwise try to sum a few same-day orders to the charge total
+    // 1) single-shipment exact match — nearest date wins
+    let picked = cands
+      .filter(({ o }) => hits(o, target))
+      .sort((a, b) => dist(a.o, charge.date) - dist(b.o, charge.date))
+      .slice(0, 1);
+
+    // 2) split-shipment order charged once: all of an order's shipments sum to the charge
+    if (picked.length === 0) {
+      const byOrder = new Map<string, typeof cands>();
+      for (const c of cands) {
+        if (!c.o.orderId) continue;
+        const g = byOrder.get(c.o.orderId);
+        if (g) g.push(c);
+        else byOrder.set(c.o.orderId, [c]);
+      }
+      for (const group of byOrder.values()) {
+        if (group.length < 2) continue;
+        if (group.reduce((s, c) => s + cents(c.o.amount), 0) === target) {
+          picked = group;
+          break;
+        }
+      }
+    }
+
+    // 3) several same-day orders paid in one charge: greedy sum
     if (picked.length === 0) {
       const sameDay = cands.filter(({ o }) => o.date === charge.date);
       let sum = 0;
@@ -434,13 +605,11 @@ export function matchAmazonOrders(
         }
       }
       if (sum === target && acc.length > 0) picked = acc;
-    } else {
-      picked = [picked[0]]; // one order, one charge
     }
 
     if (picked.length > 0) {
       picked.forEach((p) => used.add(p.i));
-      updates.push({ id: charge.id, note: picked.map((p) => p.o.title).join("; ") });
+      updates.push({ id: charge.id, note: joinTitles(picked.map((p) => p.o.title)) });
     }
   }
   return updates;

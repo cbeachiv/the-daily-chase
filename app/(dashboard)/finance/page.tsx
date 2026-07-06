@@ -15,6 +15,7 @@ import {
   fmtUSD,
   matchAmazonOrders,
   monthLabel,
+  parseAmazonDigitalOrders,
   parseAmazonOrders,
   parseCsv,
   parseTransactions,
@@ -38,7 +39,7 @@ type ImportPreview =
       dateMin: string;
       dateMax: string;
     }
-  | { kind: "amazon"; updates: { id: string; note: string }[]; orderCount: number }
+  | { kind: "amazon"; updates: { id: string; note: string }[]; orderCount: number; unmatchedCount: number }
   | { kind: "error"; message: string };
 
 export default function FinancePage() {
@@ -118,10 +119,12 @@ export default function FinancePage() {
     const format = detectFormat(header);
 
     if (format === "amazon") {
-      const orders = parseAmazonOrders(text);
+      // Retail order history and the DSAR digital-content export share the format
+      // detection; each parser returns [] for the other's file.
+      const orders = [...parseAmazonOrders(text), ...parseAmazonDigitalOrders(text)];
       const amazonCharges = txns.filter((t) => /amazon|amzn/i.test(t.description) && !t.excluded);
       const updates = matchAmazonOrders(amazonCharges, orders);
-      setPreview({ kind: "amazon", updates, orderCount: orders.length });
+      setPreview({ kind: "amazon", updates, orderCount: orders.length, unmatchedCount: amazonCharges.length - updates.length });
       return;
     }
     if (format === "capitalone" || format === "chase") {
@@ -300,6 +303,7 @@ export default function FinancePage() {
             <p className="text-muted">
               {preview.orderCount} orders read · {preview.updates.length} Amazon charge
               {preview.updates.length === 1 ? "" : "s"} will be labeled with their items
+              {preview.unmatchedCount > 0 ? ` · ${preview.unmatchedCount} left unmatched` : ""}
             </p>
             <div className="mt-3 flex gap-2">
               <button className="btn-primary" disabled={busy || preview.updates.length === 0} onClick={confirmImport}>
