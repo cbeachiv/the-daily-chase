@@ -27,6 +27,12 @@ export function startOfMonth(dateStr: string = todayStr()): string {
   return dateStr.slice(0, 7) + "-01";
 }
 
+// First day of the month `n` months away from `monthStart` (negative = earlier).
+export function addMonths(monthStart: string, n: number): string {
+  const [y, m] = monthStart.split("-").map(Number);
+  return todayStr(new Date(y, m - 1 + n, 1));
+}
+
 // Saturday that closes the Monday-based week containing `dateStr`.
 export function weekEndingSaturday(dateStr: string = todayStr()): string {
   return addDays(startOfWeek(dateStr), 5);
