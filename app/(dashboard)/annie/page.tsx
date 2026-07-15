@@ -1,5 +1,6 @@
 "use client";
 
+import AnnieGrowth from "@/components/AnnieGrowth";
 import AnnieInterests from "@/components/AnnieInterests";
 import AnnieMoments from "@/components/AnnieMoments";
 import { ANNIE_BORN, ageString, prettyDateLong } from "@/lib/dates";
@@ -16,6 +17,7 @@ export default function AnniePage() {
 
       <AnnieInterests />
       <AnnieMoments />
+      <AnnieGrowth />
     </div>
   );
 }

@@ -13,6 +13,7 @@
     "seed:finance": "node --env-file=.env.local scripts/seed-finance.mjs",
     "seed:interiors": "node --env-file=.env.local scripts/seed-interiors.mjs",
     "seed:beers": "node --env-file=.env.local scripts/seed-beers.mjs",
+    "seed:annie-growth": "node --env-file=.env.local scripts/seed-annie-growth.mjs",
     "migrate:finance-cats": "node --env-file=.env.local scripts/migrate-finance-categories.mjs",
     "match:amazon": "node --env-file=.env.local scripts/match-amazon.ts",
     "migrate:pickleball": "node --env-file=.env.local scripts/migrate-pickleball.mjs",

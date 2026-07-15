@@ -139,6 +139,25 @@ export interface AnnieMoment {
   createdAt: string;
 }
 
+// users/{uid}/annieGrowth — one doc per pediatric measurement day. All three
+// measurements are optional so a weight-only weigh-in is a valid entry. Weight is
+// stored as lb + oz and length in inches (how the pediatrician reports them);
+// head circumference in cm. Percentiles are computed from the WHO girls standards
+// (see lib/growth.ts); the *PctManual fields let you pin the doctor's stated number.
+export interface AnnieGrowth {
+  id: string;
+  date: string; // YYYY-MM-DD
+  weightLb?: number | null; // pounds portion
+  weightOz?: number | null; // ounces portion (decimals ok, e.g. 8.2)
+  lengthIn?: number | null; // length/height in inches
+  headCm?: number | null; // head circumference in cm
+  weightPctManual?: number | null; // 0–100 override; shown instead of computed
+  lengthPctManual?: number | null;
+  headPctManual?: number | null;
+  note?: string | null; // e.g. "9 month appointment"
+  createdAt: string;
+}
+
 // Evolving "About Chase" profile (doc id "latest"). Refined by Claude each time a
 // daily reflection is submitted; feeds back into the next day's tailored question.
 export interface AboutProfile {
