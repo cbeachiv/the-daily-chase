@@ -54,6 +54,8 @@ const C: WorkoutTemplate = {
     { name: "Leg Extension (Machine)", sets: 3, targetReps: "10-15", bodyweight: false },
     { name: "Lateral Raise (Dumbbell)", sets: 3, targetReps: "10", bodyweight: false },
     { name: "Preacher Curl (Dumbbell)", sets: 3, targetReps: "8-10", bodyweight: false },
+    { name: "Lat Pulldown (Cable)", sets: 3, targetReps: "8-10", bodyweight: false },
+    { name: "Preacher Curl (EZ Bar)", sets: 3, targetReps: "8-10", bodyweight: false },
     { name: "Hanging Leg Raise", sets: 3, targetReps: "15", bodyweight: true },
   ],
 };
