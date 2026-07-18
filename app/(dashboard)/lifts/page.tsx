@@ -178,7 +178,7 @@ export default function LiftsPage() {
     () => timeByActivity(cardio, cardioScope, today),
     [cardio, cardioScope, today]
   );
-  const { config, retire, unretire, move } = useWorkouts();
+  const { config, retire, unretire, move, add } = useWorkouts();
   const [editing, setEditing] = useState(false);
   const sessions = useMemo(() => mergeSessions(logged), [logged]);
   const stats = useMemo(() => summarize(sessions), [sessions]);
@@ -277,6 +277,15 @@ export default function LiftsPage() {
                       </li>
                     ))}
                   </ul>
+                  <button
+                    onClick={() => {
+                      const name = window.prompt(`Add exercise to ${t.name}`)?.trim();
+                      if (name) add(t.key, { name, sets: 3, targetReps: "8-10", bodyweight: false });
+                    }}
+                    className="mt-1 text-xs font-semibold text-indigo hover:underline"
+                  >
+                    + Add exercise
+                  </button>
                 </div>
               );
             })}

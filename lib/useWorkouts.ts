@@ -38,10 +38,19 @@ export function useWorkouts() {
   const config: WorkoutConfig = useMemo(() => {
     const base = defaults();
     if (!stored) return base;
-    return {
-      templates: { ...base.templates, ...(stored.templates ?? {}) },
-      retired: stored.retired ?? base.retired,
-    };
+    const templates = { ...base.templates, ...(stored.templates ?? {}) };
+    const retired = stored.retired ?? base.retired;
+    // A stored workout list fully replaces its code default, which would hide
+    // exercises added to workoutTemplates.ts after the user first customized.
+    // Append any default exercise the user hasn't placed somewhere themselves.
+    const placed = new Set(
+      [...Object.values(templates).flat(), ...retired].map((e) => e.name),
+    );
+    for (const t of TEMPLATES) {
+      const missing = t.exercises.filter((e) => !placed.has(e.name));
+      if (missing.length) templates[t.key] = [...(templates[t.key] ?? []), ...missing];
+    }
+    return { templates, retired };
   }, [stored]);
 
   const persist = async (next: WorkoutConfig) => {
@@ -69,6 +78,14 @@ export function useWorkouts() {
     return persist({ ...config, templates: { ...config.templates, [key]: next } });
   };
 
+  /** Append a brand-new exercise to workout `key`. */
+  const add = (key: string, exercise: TemplateExercise) => {
+    return persist({
+      ...config,
+      templates: { ...config.templates, [key]: [...(config.templates[key] ?? []), exercise] },
+    });
+  };
+
   /** Move the retired exercise at `index` back into workout `targetKey`. */
   const unretire = (index: number, targetKey: string) => {
     const ex = config.retired[index];
@@ -79,5 +96,5 @@ export function useWorkouts() {
     });
   };
 
-  return { config, loading, uid, retire, unretire, move };
+  return { config, loading, uid, retire, unretire, move, add };
 }
