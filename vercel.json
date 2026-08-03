@@ -9,10 +9,6 @@
       "schedule": "0 10 * * 6"
     },
     {
-      "path": "/api/cron/reps-and-repos",
-      "schedule": "0 16 * * 0"
-    },
-    {
       "path": "/api/cron/finance-weekly",
       "schedule": "0 21 * * 0"
     },
