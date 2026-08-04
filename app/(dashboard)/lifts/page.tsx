@@ -12,6 +12,7 @@ import {
   formatSessionDate,
   formatDuration,
   formatBestSet,
+  type LiftExercise,
   type LiftSession,
   type LoggedSessionDoc,
 } from "@/lib/lifts";
@@ -70,6 +71,28 @@ function TrophyIcon() {
   );
 }
 
+function SetBreakdown({ ex }: { ex: LiftExercise }) {
+  // Older imported sessions may not carry per-set detail — show the best set.
+  if (!ex.sets || ex.sets.length === 0) return <>{formatBestSet(ex)}</>;
+  const bestIdx = ex.sets.findIndex(
+    (s) => s.weight === ex.best.weight && s.reps === ex.best.reps
+  );
+  const bodyweight = ex.isBodyweight;
+  return (
+    <>
+      {ex.sets.map((s, i) => (
+        <span key={i}>
+          {i > 0 && <span className="text-muted/60"> · </span>}
+          <span className={i === bestIdx ? "font-semibold" : undefined}>
+            {bodyweight || s.weight === 0 ? s.reps : `${s.weight}×${s.reps}`}
+          </span>
+        </span>
+      ))}
+      {bodyweight && <span className="text-muted"> reps</span>}
+    </>
+  );
+}
+
 function SessionCard({ session, onDelete }: { session: LiftSession; onDelete?: () => void }) {
   return (
     <div className="card p-4 sm:p-5">
@@ -102,15 +125,17 @@ function SessionCard({ session, onDelete }: { session: LiftSession; onDelete?: (
 
       <div className="mt-3 border-t border-line pt-3">
         <div className="mb-1.5 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-          <span>Exercise</span><span>Best Set</span>
+          <span>Exercise</span><span>Sets × Weight</span>
         </div>
         <ul className="space-y-1.5">
           {session.exercises.map((ex, i) => (
-            <li key={i} className="grid grid-cols-[1fr_auto] items-baseline gap-3 text-sm">
-              <span className="truncate text-ink">
+            <li key={i} className="text-sm sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-baseline sm:gap-3">
+              <span className="block truncate text-ink">
                 <span className="text-muted">{ex.workingSets} × </span>{ex.name}
               </span>
-              <span className="tabular-nums text-ink">{formatBestSet(ex)}</span>
+              <span className="block pl-6 text-right tabular-nums text-ink sm:pl-0">
+                <SetBreakdown ex={ex} />
+              </span>
             </li>
           ))}
         </ul>
