@@ -20,7 +20,8 @@ const A: WorkoutTemplate = {
   key: "a",
   name: "Workout A",
   exercises: [
-    { name: "Bench Press (Barbell)", sets: 3, targetReps: "8-10", bodyweight: false },
+    // Top set of 3-5 (add 5 lb when you hit 5), then two back-off sets of 8 at 175-180.
+    { name: "Bench Press (Barbell)", sets: 3, targetReps: "3-5 top, 8 back-off", bodyweight: false },
     { name: "Romanian Deadlift (Barbell)", sets: 3, targetReps: "8-10", bodyweight: false },
     { name: "Pull Up", sets: 3, targetReps: "8-10", bodyweight: true },
     { name: "Ab Wheel", sets: 3, targetReps: "15", bodyweight: true },
@@ -36,10 +37,11 @@ const B: WorkoutTemplate = {
   exercises: [
     { name: "Hack Squat", sets: 3, targetReps: "8-10", bodyweight: false },
     { name: "Overhead Press (Barbell)", sets: 3, targetReps: "8", bodyweight: false },
-    { name: "Plate Loaded Chest press", sets: 3, targetReps: "8", bodyweight: false },
+    // Second weekly barbell-bench slot: lockout/triceps work to break the 185 plateau.
+    { name: "Close Grip Bench Press", sets: 3, targetReps: "8", bodyweight: false },
     { name: "Iso-Lateral Row (Machine)", sets: 3, targetReps: "8-10", bodyweight: false },
     { name: "Seated Calf Raise (Machine)", sets: 3, targetReps: "10", bodyweight: false },
-    { name: "Triceps Extension (Dumbbell)", sets: 3, targetReps: "10", bodyweight: false },
+    { name: "Overhead Cable Tricep Extension", sets: 3, targetReps: "10", bodyweight: false },
     { name: "Russian Twists", sets: 3, targetReps: "20", bodyweight: true },
   ],
 };
@@ -70,6 +72,8 @@ export const RETIRED_DEFAULTS: TemplateExercise[] = [
   { name: "Belt Squat", sets: 3, targetReps: "8-10", bodyweight: false },
   { name: "Weighted Sit up", sets: 3, targetReps: "10", bodyweight: false },
   { name: "Reverse Crunch", sets: 3, targetReps: "15", bodyweight: true },
+  { name: "Plate Loaded Chest press", sets: 3, targetReps: "8", bodyweight: false },
+  { name: "Triceps Extension (Dumbbell)", sets: 3, targetReps: "10", bodyweight: false },
 ];
 
 export function getTemplate(key: string): WorkoutTemplate {
