@@ -409,6 +409,7 @@ export type FinanceCategory =
   | "Subscription"
   | "Annie"
   | "Babysitting"
+  | "One Time Payment"
   | "Uncategorized";
 
 export type FinanceSource = "capitalone" | "chase" | "manual" | "recurring" | "plaid";

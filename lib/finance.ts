@@ -20,6 +20,7 @@ export const FINANCE_CATEGORIES: FinanceCategory[] = [
   "Subscription",
   "Annie",
   "Babysitting",
+  "One Time Payment",
   "Uncategorized",
 ];
 
@@ -38,6 +39,7 @@ export const CATEGORY_COLOR: Record<FinanceCategory, string> = {
   Subscription: "#a855f7",
   Annie: "#f97316",
   Babysitting: "#84cc16",
+  "One Time Payment": "#78716c",
   Uncategorized: "#94a3b8",
 };
 
