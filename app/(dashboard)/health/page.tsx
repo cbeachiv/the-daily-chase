@@ -7,6 +7,8 @@ import type {
   DinnerPlanLog,
   FoodEntry,
   MoodLog,
+  StepGoal,
+  StepLog,
   Travel,
   WakeupLog,
   WeightLog,
@@ -20,6 +22,9 @@ import CaloriesChart from "@/components/charts/CaloriesChart";
 import MoodSection from "@/components/MoodSection";
 import InjuriesSection from "@/components/InjuriesSection";
 import HealthCalendar from "@/components/HealthCalendar";
+import StepsCard from "@/components/StepsCard";
+import Chevron from "@/components/Chevron";
+import { STEP_GOALS, STEP_LOGS } from "@/lib/steps";
 
 const RANGES: { label: string; days: number | null }[] = [
   { label: "1M", days: 30 },
@@ -41,6 +46,8 @@ export default function HealthPage() {
   const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const { data: trips } = useCollection<Travel>("travel");
+  const { data: stepLogs } = useCollection<StepLog>(STEP_LOGS);
+  const { data: stepGoals } = useCollection<StepGoal>(STEP_GOALS);
   const [weightInput, setWeightInput] = useState("");
   const [range, setRange] = useState("3M");
   const [weightOpen, setWeightOpen] = useState(false);
@@ -137,7 +144,7 @@ export default function HealthPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Health</h1>
-          <p className="text-sm text-muted">Wakeups, exercise, mood, weight, calories, and injuries.</p>
+          <p className="text-sm text-muted">Wakeups, exercise, steps, mood, weight, calories, and injuries.</p>
         </div>
         <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
           {RANGES.map((r) => (
@@ -165,6 +172,7 @@ export default function HealthPage() {
         coffees={coffees}
         dinnerPlans={dinnerPlans}
         travel={trips}
+        steps={stepLogs}
       />
 
       {/* 5am wakeup + exercise, side by side */}
@@ -252,6 +260,8 @@ export default function HealthPage() {
         </section>
       </div>
 
+      <StepsCard logs={stepLogs} goals={stepGoals} uid={uid} today={today} />
+
       <MoodSection startDate={startDate} />
 
       <InjuriesSection />
@@ -323,23 +333,5 @@ export default function HealthPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-    >
-      <path d="M6 9l6 6 6-6" />
-    </svg>
   );
 }

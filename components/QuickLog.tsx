@@ -1,9 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
-import type { DinnerPlanLog, FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
+import { useCollection, addItem, updateItem, deleteItem, setItem } from "@/lib/data";
+import type {
+  DinnerPlanLog,
+  FoodEntry,
+  StepGoal,
+  StepLog,
+  WakeupLog,
+  WeightLog,
+  Workout,
+} from "@/lib/types";
 import { todayStr } from "@/lib/dates";
+import { DEFAULT_STEP_TARGET, STEP_GOALS, STEP_LOGS, monthPace, stepLogId } from "@/lib/steps";
 
 export default function QuickLog() {
   const today = todayStr();
@@ -12,8 +21,10 @@ export default function QuickLog() {
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
+  const { data: stepLogs } = useCollection<StepLog>(STEP_LOGS);
+  const { data: stepGoals } = useCollection<StepGoal>(STEP_GOALS);
 
-  const [open, setOpen] = useState<"weight" | "calories" | null>(null);
+  const [open, setOpen] = useState<"weight" | "calories" | "steps" | null>(null);
   const [val, setVal] = useState("");
 
   const todayWorkout = useMemo(() => workouts.find((w) => w.date === today), [workouts, today]);
@@ -27,6 +38,11 @@ export default function QuickLog() {
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
     [foods, today]
   );
+  const todaySteps = useMemo(() => stepLogs.find((s) => s.date === today), [stepLogs, today]);
+  const stepPace = useMemo(() => {
+    const target = stepGoals.find((g) => g.id === today.slice(0, 7))?.dailyTarget ?? DEFAULT_STEP_TARGET;
+    return monthPace(stepLogs, today, target);
+  }, [stepLogs, stepGoals, today]);
 
   // Yes/no per day: did Chase follow his dinner plan? One doc per day, like wakeups.
   async function toggleDinnerPlan() {
@@ -60,6 +76,17 @@ export default function QuickLog() {
       else await addItem(uid, "weightLogs", { date: today, weightLbs: n });
     } else if (open === "calories") {
       await addItem(uid, "foodEntries", { date: today, calories: Math.round(n), label: "" });
+    } else if (open === "steps") {
+      // Same deterministic doc the iOS Shortcut writes, so manual and automatic
+      // entries never duplicate; whichever wrote last wins.
+      const now = new Date().toISOString();
+      await setItem(uid, STEP_LOGS, stepLogId(today), {
+        date: today,
+        steps: Math.round(n),
+        source: "manual",
+        updatedAt: now,
+        ...(todaySteps ? {} : { createdAt: now }),
+      });
     }
     setOpen(null);
     setVal("");
@@ -70,7 +97,7 @@ export default function QuickLog() {
   return (
     <section>
       <h2 className="section-title mb-3">Quick log</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <button
           onClick={toggleWakeup}
           className={`${tile} ${todayWakeup ? "border-amber bg-amber/10" : ""}`}
@@ -132,6 +159,21 @@ export default function QuickLog() {
             {todayCalories > 0 ? `${todayCalories.toLocaleString()} cal` : "Calories"}
           </span>
         </button>
+
+        <button
+          onClick={() => {
+            setOpen(open === "steps" ? null : "steps");
+            setVal(todaySteps ? String(todaySteps.steps) : "");
+          }}
+          className={`${tile} ${open === "steps" ? "border-teal" : ""}`}
+          title="Log today's step count (the Shortcut fills this in automatically)"
+        >
+          <span className="text-2xl">👟</span>
+          <span className="text-xs font-semibold">
+            {todaySteps ? `${todaySteps.steps.toLocaleString()} steps` : "Steps"}
+          </span>
+          <span className="text-[10px] text-muted">{Math.round(stepPace.pct)}% of month</span>
+        </button>
       </div>
 
       {open && (
@@ -148,12 +190,14 @@ export default function QuickLog() {
             inputMode="decimal"
             step="any"
             className="input"
-            placeholder={open === "weight" ? "Weight in lbs" : "Add calories"}
+            placeholder={
+              open === "weight" ? "Weight in lbs" : open === "steps" ? "Steps today" : "Add calories"
+            }
             value={val}
             onChange={(e) => setVal(e.target.value)}
           />
           <button type="submit" className="btn-primary shrink-0">
-            {open === "weight" ? "Save" : "Add"}
+            {open === "calories" ? "Add" : "Save"}
           </button>
         </form>
       )}

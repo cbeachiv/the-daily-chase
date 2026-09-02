@@ -206,6 +206,27 @@ export interface WeightLog {
   createdAt: string;
 }
 
+// One doc per day: users/{uid}/stepLogs/s_YYYY-MM-DD. Deterministic id so the
+// iOS "Log Steps" Shortcut can re-POST the same day idempotently and a manual
+// entry from the Today tile simply overwrites. `source` records who wrote last.
+export interface StepLog {
+  id: string; // "s_2026-09-02"
+  date: string; // YYYY-MM-DD
+  steps: number; // whole steps for the day
+  source: "shortcut" | "manual";
+  updatedAt: string; // ISO — last write
+  createdAt: string; // ISO — first write (preserved on overwrite)
+}
+
+// Per-month daily step target: users/{uid}/stepGoals/YYYY-MM. A missing doc
+// means DEFAULT_STEP_TARGET (lib/steps.ts). Not prorated when changed mid-month.
+export interface StepGoal {
+  id: string; // "2026-09"
+  month: string; // YYYY-MM
+  dailyTarget: number;
+  updatedAt: string;
+}
+
 export interface FoodEntry {
   id: string;
   date: string; // YYYY-MM-DD

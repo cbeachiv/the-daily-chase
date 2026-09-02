@@ -40,6 +40,10 @@ export interface WeeklyEmailData {
   cardioMinutes: number;
   cardioMiles: string; // e.g. "4.5 mi" or "no data"
   weightChange: string; // e.g. "-1.7 lb" or "no data"
+  // steps (only rendered once step logs exist)
+  stepsWeek: string; // week total, e.g. "68.4k" or "no data"
+  stepsAvg: string; // avg per logged day, e.g. "9.8k" or "no data"
+  stepsPace: string; // "on pace" | "goal hit" | "need 13.2k/day" | "no data"
   // mood
   avgMood: string; // e.g. "8.5" or "no data"
   avgEnergy: string; // e.g. "8.3" or "no data"
@@ -248,6 +252,14 @@ export function buildEmailHtml(d: WeeklyEmailData): string {
     statCard(d.weightChange, "Weight Δ", d.weightChange === "no data" ? MUTED : INK),
   ]);
 
+  const hasSteps = d.stepsWeek !== "no data";
+  const stepsGood = d.stepsPace === "on pace" || d.stepsPace === "goal hit";
+  const stepsCards = cardsRow([
+    statCard(d.stepsWeek, "Steps", INK),
+    statCard(d.stepsAvg, "Avg / day", INK),
+    statCard(d.stepsPace, "Month pace", stepsGood ? GO : AMBER),
+  ]);
+
   const hasMood = d.avgMood !== "no data" || d.avgEnergy !== "no data";
   const moodCards = cardsRow([
     statCard(d.avgMood === "no data" ? "—" : `${d.avgMood}`, "Avg mood", d.avgMood === "no data" ? MUTED : AMBER),
@@ -358,6 +370,16 @@ export function buildEmailHtml(d: WeeklyEmailData): string {
       <div style="font:800 11px ${FONT};color:${FAINT};letter-spacing:1.5px;margin-bottom:10px">TRAINING &amp; BODY</div>
       ${trainingCards}
     </td></tr>
+
+    ${
+      hasSteps
+        ? `<!-- STEPS -->
+    <tr><td style="padding:14px 26px 2px">
+      <div style="font:800 11px ${FONT};color:${FAINT};letter-spacing:1.5px;margin-bottom:10px">STEPS</div>
+      ${stepsCards}
+    </td></tr>`
+        : ""
+    }
 
     ${
       hasMood

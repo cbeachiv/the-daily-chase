@@ -5,7 +5,8 @@ import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
 import { addDays, prettyDateLong, startOfMonth, startOfWeek, weekEndingSaturday } from "@/lib/dates";
 import { mergeSessions, type LoggedSessionDoc } from "@/lib/lifts";
 import { cardioDistanceMi, type CardioLog } from "@/lib/cardio";
-import type { AboutProfile, DailyReview, FoodEntry, Goal, MoodLog, Task, TrackedProject, WakeupLog, WeightLog } from "@/lib/types";
+import type { AboutProfile, DailyReview, FoodEntry, Goal, MoodLog, StepGoal, StepLog, Task, TrackedProject, WakeupLog, WeightLog } from "@/lib/types";
+import { DEFAULT_STEP_TARGET, STEP_GOALS, STEP_LOGS, fmtSteps, monthPace } from "@/lib/steps";
 import { buildEmailHtml, type WeeklyEmailData } from "./email";
 
 export const runtime = "nodejs";
@@ -77,7 +78,7 @@ export async function GET(req: Request) {
   const weekEnding = weekEndingSaturday(today); // Saturday
   const month = startOfMonth(today);
 
-  const [tasks, liftLogged, cardioLogs, weights, foods, goals, moods, dailyReviews, trackedProjects, wakeupLogs] =
+  const [tasks, liftLogged, cardioLogs, weights, foods, goals, moods, dailyReviews, trackedProjects, wakeupLogs, stepLogs] =
     await Promise.all([
       colData<Task>(uid, "tasks"),
       colData<LoggedSessionDoc>(uid, "liftSessions"),
@@ -89,6 +90,7 @@ export async function GET(req: Request) {
       colData<DailyReview>(uid, "dailyReviews"),
       colData<TrackedProject>(uid, "trackedProjects"),
       colData<WakeupLog>(uid, "wakeupLogs"),
+      colData<StepLog>(uid, STEP_LOGS),
     ]);
 
   // --- Tasks ----------------------------------------------------------------
@@ -138,6 +140,25 @@ export async function GET(req: Request) {
   const weekWeights = weights.filter((w) => w.date >= weekStart).sort((a, b) => a.date.localeCompare(b.date));
   const weightDelta =
     weekWeights.length >= 2 ? weekWeights[weekWeights.length - 1].weightLbs - weekWeights[0].weightLbs : null;
+
+  // --- Steps ----------------------------------------------------------------
+  // Weekly total and average over the days that actually have a log (a missing
+  // day is a Shortcut miss, not zero), plus where the month stands vs its target.
+  const weekStepLogs = stepLogs.filter((s) => s.date >= weekStart && s.date <= weekEnding);
+  const stepsWeekTotal = weekStepLogs.reduce((s, x) => s + x.steps, 0);
+  const stepsAvgPerDay = weekStepLogs.length ? Math.round(stepsWeekTotal / weekStepLogs.length) : null;
+  const stepGoalSnap = await adminDb().doc(`users/${uid}/${STEP_GOALS}/${today.slice(0, 7)}`).get();
+  const stepTarget = stepGoalSnap.exists
+    ? ((stepGoalSnap.data() as StepGoal).dailyTarget ?? DEFAULT_STEP_TARGET)
+    : DEFAULT_STEP_TARGET;
+  const stepPace = monthPace(stepLogs, today, stepTarget);
+  const stepsPaceLabel = !weekStepLogs.length
+    ? "no data"
+    : stepPace.done
+      ? "goal hit"
+      : stepPace.onPace
+        ? "on pace"
+        : `need ${fmtSteps(stepPace.neededPerDay)}/day`;
 
   // --- Goals ----------------------------------------------------------------
   const weekGoals = goals.filter((g) => g.period === "week" && g.periodStart === weekStart);
@@ -212,6 +233,18 @@ export async function GET(req: Request) {
     lifts: { sessions: weekLifts.length, volumeLb: liftVolume, prs: liftPRs },
     cardio: { sessions: weekCardio.length, minutes: cardioMin, miles: Math.round(cardioMiles * 10) / 10 },
     weightChangeLb: weightDelta,
+    steps: weekStepLogs.length
+      ? {
+          weekTotal: stepsWeekTotal,
+          avgPerDay: stepsAvgPerDay,
+          daysLogged: weekStepLogs.length,
+          monthTotal: stepPace.total,
+          monthTarget: stepPace.monthTarget,
+          dailyTarget: stepTarget,
+          neededPerDayFromHere: stepPace.neededPerDay,
+          onPace: stepPace.onPace,
+        }
+      : null,
     mood: { avg: avgMood, energyAvg: avgEnergy, logged: weekMoods.length },
     dailyReflections: weekDailies
       .slice()
@@ -334,6 +367,9 @@ export async function GET(req: Request) {
     wakeupStreak,
     workouts: weekLifts.length + weekCardio.length,
     weightChange: weightDelta !== null ? `${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)} lb` : "no data",
+    stepsWeek: weekStepLogs.length ? fmtSteps(stepsWeekTotal) : "no data",
+    stepsAvg: stepsAvgPerDay !== null ? fmtSteps(stepsAvgPerDay) : "no data",
+    stepsPace: stepsPaceLabel,
     avgMood: avgMood !== null ? `${avgMood}` : "no data",
     avgEnergy: avgEnergy !== null ? `${avgEnergy}` : "no data",
     daysReflected,

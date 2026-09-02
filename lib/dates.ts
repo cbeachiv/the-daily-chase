@@ -154,3 +154,26 @@ export function ageLabel(date: string, born: string = ANNIE_BORN): string {
   const y = `${years} year${years === 1 ? "" : "s"}`;
   return rem === 0 ? y : `${y}, ${rem} month${rem === 1 ? "" : "s"}`;
 }
+
+// Calendar date in America/New_York. Server code runs in UTC on Vercel, so
+// `todayStr()` there is already tomorrow after 8pm Eastern. Pure Intl, so it
+// is safe on both client and server.
+export function easternToday(now = new Date()): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+      .formatToParts(now)
+      .map((p) => [p.type, p.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+// Number of days in the month containing `dateStr` ("YYYY-MM" or "YYYY-MM-DD").
+export function daysInMonth(dateStr: string): number {
+  const [y, m] = dateStr.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+}

@@ -6,6 +6,7 @@ import type {
   DinnerPlanLog,
   FoodEntry,
   MoodLog,
+  StepLog,
   Travel,
   WakeupLog,
   WeightLog,
@@ -19,7 +20,7 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const RACKET_KINDS = new Set<string>(["pickleball", "tennis"]);
 
 // A month-grid overview of the daily health log. Each cell surfaces, when
-// present: 5am wakeup, exercise, mood, weight, coffees, dinner plan, wake/bed time, calories.
+// present: 5am wakeup, exercise, mood, weight, steps, coffees, dinner plan, wake/bed time, calories.
 export default function HealthCalendar({
   weights,
   workouts,
@@ -31,6 +32,7 @@ export default function HealthCalendar({
   coffees,
   dinnerPlans,
   travel,
+  steps,
 }: {
   weights: WeightLog[];
   workouts: Workout[];
@@ -42,6 +44,7 @@ export default function HealthCalendar({
   coffees: CoffeeLog[];
   dinnerPlans: DinnerPlanLog[];
   travel: Travel[];
+  steps: StepLog[];
 }) {
   const today = todayStr();
   const [month, setMonth] = useState(today.slice(0, 7)); // "YYYY-MM"
@@ -73,6 +76,9 @@ export default function HealthCalendar({
     const calories: Record<string, number> = {};
     for (const f of foods) calories[f.date] = (calories[f.date] ?? 0) + f.calories;
 
+    const stepCount: Record<string, number> = {};
+    for (const s of steps) stepCount[s.date] = s.steps;
+
     const coffeeCount: Record<string, number> = {};
     for (const c of coffees) coffeeCount[c.date] = (coffeeCount[c.date] ?? 0) + 1;
 
@@ -94,8 +100,8 @@ export default function HealthCalendar({
       }
     }
 
-    return { wakeupSet, exercise, weight, calories, coffeeCount, dinnerPlanSet, mood, trip };
-  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees, dinnerPlans, travel]);
+    return { wakeupSet, exercise, weight, calories, stepCount, coffeeCount, dinnerPlanSet, mood, trip };
+  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees, dinnerPlans, travel, steps]);
 
   const { cells, label } = useMemo(() => {
     const [y, m] = month.split("-").map(Number);
@@ -157,6 +163,7 @@ export default function HealthCalendar({
           const mood = byDate.mood[date];
           const weight = byDate.weight[date];
           const calories = byDate.calories[date] ?? 0;
+          const stepsN = byDate.stepCount[date] ?? 0;
           const coffees = byDate.coffeeCount[date] ?? 0;
           const followedDinnerPlan = byDate.dinnerPlanSet.has(date);
           const woke = byDate.wakeupSet.has(date);
@@ -203,6 +210,7 @@ export default function HealthCalendar({
                       ⚖️ {weight}
                     </span>
                   )}
+                  {stepsN > 0 && <span title="Steps">👟 {fmtCal(stepsN)}</span>}
                   {exercises.map((e, j) => (
                     <span
                       key={j}
@@ -247,6 +255,7 @@ export default function HealthCalendar({
         <span>🍷 drinks</span>
         <span>✈️ travel</span>
         <span>⚖️ weight</span>
+        <span>👟 steps</span>
         <span>☕ coffee</span>
         <span>🫐🥭 dinner plan</span>
         <span>🍽️ calories</span>
