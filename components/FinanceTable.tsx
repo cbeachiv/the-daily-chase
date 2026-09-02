@@ -135,12 +135,15 @@ export default function FinanceTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.label} className={row.tint ?? ""}>
+              {/* Opaque card background so scrolled numbers never bleed through the
+                  sticky label; the row tint is layered on top as an overlay. */}
               <th
-                className={`sticky left-0 z-10 whitespace-nowrap border-b border-line px-3 py-2 text-left font-medium ${
+                className={`sticky left-0 z-10 whitespace-nowrap border-b border-line bg-card px-3 py-2 text-left font-medium ${
                   row.bold ? "font-bold text-ink" : "text-muted"
-                } ${row.tint ?? "bg-card"}`}
+                }`}
               >
-                {row.label}
+                {row.tint && <span aria-hidden className={`pointer-events-none absolute inset-0 ${row.tint}`} />}
+                <span className="relative">{row.label}</span>
               </th>
               {cols.map((c) => {
                 const signedVal = row.signed?.(c);
