@@ -17,7 +17,7 @@ import type { CardioLog } from "@/lib/cardio";
 import { addDays, todayStr } from "@/lib/dates";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
-import MoodSection from "@/components/MoodSection";
+import MoodSection, { type OpenLogRequest } from "@/components/MoodSection";
 import InjuriesSection from "@/components/InjuriesSection";
 import HealthCalendar from "@/components/HealthCalendar";
 
@@ -45,6 +45,8 @@ export default function HealthPage() {
   const [range, setRange] = useState("3M");
   const [weightOpen, setWeightOpen] = useState(false);
   const [caloriesOpen, setCaloriesOpen] = useState(false);
+  // Set when a calendar day is tapped; MoodSection opens its form for that day.
+  const [moodRequest, setMoodRequest] = useState<OpenLogRequest | null>(null);
 
   const activeDays = RANGES.find((r) => r.label === range)?.days ?? null;
   const startDate = activeDays === null ? null : addDays(today, -activeDays);
@@ -165,6 +167,7 @@ export default function HealthPage() {
         coffees={coffees}
         dinnerPlans={dinnerPlans}
         travel={trips}
+        onSelectDate={(date) => setMoodRequest({ date, n: Date.now() })}
       />
 
       {/* 5am wakeup + exercise, side by side */}
@@ -252,7 +255,7 @@ export default function HealthPage() {
         </section>
       </div>
 
-      <MoodSection startDate={startDate} />
+      <MoodSection startDate={startDate} openRequest={moodRequest} />
 
       <InjuriesSection />
 
