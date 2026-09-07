@@ -31,6 +31,7 @@ export default function HealthCalendar({
   coffees,
   dinnerPlans,
   travel,
+  onSelectDate,
 }: {
   weights: WeightLog[];
   workouts: Workout[];
@@ -42,6 +43,8 @@ export default function HealthCalendar({
   coffees: CoffeeLog[];
   dinnerPlans: DinnerPlanLog[];
   travel: Travel[];
+  // Tapping a past/today cell hands its date up (e.g. to open the mood form).
+  onSelectDate?: (date: string) => void;
 }) {
   const today = todayStr();
   const [month, setMonth] = useState(today.slice(0, 7)); // "YYYY-MM"
@@ -123,8 +126,15 @@ export default function HealthCalendar({
 
   return (
     <section className="card p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="section-title">Daily Log</h2>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-baseline gap-2">
+          <h2 className="section-title">Daily Log</h2>
+          {onSelectDate && (
+            <span className="hidden text-xs text-muted sm:inline">
+              Tap a day to log or edit it
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => shiftMonth(-1)}
@@ -167,13 +177,14 @@ export default function HealthCalendar({
           // the wake time to 5:00 AM; otherwise fall back to the mood log's time.
           const wakeTime = woke ? "05:00" : mood?.wakeTime;
           const day = Number(date.slice(8));
-          return (
-            <div
-              key={i}
-              className={`flex min-h-[78px] flex-col rounded-lg border p-1 ${
-                isToday ? "border-indigo bg-indigo/5" : "border-line"
-              } ${isFuture && trips.length === 0 ? "opacity-40" : ""}`}
-            >
+          const clickable = !!onSelectDate && !isFuture;
+          const cellClass = `flex min-h-[78px] flex-col rounded-lg border p-1 text-left ${
+            isToday ? "border-indigo bg-indigo/5" : "border-line"
+          } ${isFuture && trips.length === 0 ? "opacity-40" : ""} ${
+            clickable ? "transition hover:border-indigo/60 hover:bg-indigo/5 active:scale-[0.98]" : ""
+          }`;
+          const cellBody = (
+            <>
               <div className="flex items-center justify-between">
                 <span
                   className={`text-[11px] font-semibold ${isToday ? "text-indigo" : "text-ink"}`}
@@ -234,6 +245,21 @@ export default function HealthCalendar({
                   )}
                 </div>
               )}
+            </>
+          );
+          return clickable ? (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onSelectDate(date)}
+              className={cellClass}
+              title="Tap to log or edit this day"
+            >
+              {cellBody}
+            </button>
+          ) : (
+            <div key={i} className={cellClass}>
+              {cellBody}
             </div>
           );
         })}

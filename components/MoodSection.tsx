@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem, setItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
 import type { CoffeeLog, DinnerPlanLog, MoodLog, Workout } from "@/lib/types";
-import { prettyDate, prettyTime, sleepHours, todayStr } from "@/lib/dates";
+import { addDays, prettyDate, prettyTime, sleepHours, todayStr } from "@/lib/dates";
 import MoodChart from "@/components/charts/MoodChart";
 
 const EMPTY_FORM = {
@@ -27,29 +27,46 @@ interface InsightsDoc {
   generatedAt: string;
 }
 
-export default function MoodSection({ startDate }: { startDate: string | null }) {
+// Ask the section to open its form for a given day (e.g. from a calendar tap).
+// `n` is a nonce so re-tapping the same day re-opens the form.
+export interface OpenLogRequest {
+  date: string;
+  n: number;
+}
+
+export default function MoodSection({
+  startDate,
+  openRequest,
+}: {
+  startDate: string | null;
+  openRequest?: OpenLogRequest | null;
+}) {
   const today = todayStr();
+  // Which day the form is logging for. Defaults to today, but any past day
+  // can be picked to backfill or correct mood, drinks, sleep, etc.
+  const [logDate, setLogDate] = useState(today);
+  const isToday = logDate === today;
   const { data: logs, uid } = useCollection<MoodLog>("moodLogs");
   const { data: insightsDocs } = useCollection<InsightsDoc>("moodInsights");
   const insights = insightsDocs.find((d) => d.id === "latest");
   // Exercise is shared with the main page / Exercise section via the workouts
   // collection, so logging it anywhere keeps everything in sync.
   const { data: workouts } = useCollection<Workout>("workouts");
-  const exercisedToday = workouts.some((w) => w.date === today);
+  const exercisedOnDate = workouts.some((w) => w.date === logDate);
   // Every "Log Coffee" tap is its own timestamped doc; the mood form just
   // reads "how many so far today" from here instead of asking.
   const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
-  const todaysCoffees = useMemo(
+  const dateCoffees = useMemo(
     () =>
       coffees
-        .filter((c) => c.date === today)
+        .filter((c) => c.date === logDate)
         .sort((a, b) => a.loggedAt.localeCompare(b.loggedAt)),
-    [coffees, today]
+    [coffees, logDate]
   );
-  const coffeeTimes = todaysCoffees.map((c) => prettyTime(c.loggedAt));
+  const coffeeTimes = dateCoffees.map((c) => prettyTime(c.loggedAt));
   // Dinner plan is a shared per-day yes/no toggle (same source the Quick Log uses).
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
-  const dinnerPlanToday = dinnerPlans.some((d) => d.date === today);
+  const dinnerPlanOnDate = dinnerPlans.some((d) => d.date === logDate);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -62,6 +79,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
   const [insightsError, setInsightsError] = useState("");
   const [showAllLogs, setShowAllLogs] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const logsInRange = useMemo(
     () => logs.filter((l) => !startDate || l.date >= startDate),
@@ -160,38 +178,78 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     }
   }
 
-  function openLog() {
+  // Newest log for a given day, if any — the one the calendar shows for that day.
+  function latestLogFor(date: string): MoodLog | undefined {
+    return logs
+      .filter((l) => l.date === date)
+      .sort((a, b) => b.loggedAt.localeCompare(a.loggedAt))[0];
+  }
+
+  // Open the form for `date` (today by default). If that day already has a
+  // log, edit it in place; otherwise start a fresh entry for that day.
+  // `preferExisting: false` always starts a new entry (the "+ Log" button),
+  // so today can still get more than one log.
+  function openLog(date: string = today, preferExisting = true) {
+    const target = date > today ? today : date;
+    const existing = preferExisting ? latestLogFor(target) : undefined;
+    if (existing) {
+      startEdit(existing);
+      return;
+    }
+    setLogDate(target);
     setForm(EMPTY_FORM);
     setEditingId(null);
     setAiQuestion("");
     setShowForm(true);
-    fetchQuestion(
-      EMPTY_FORM.mood,
-      EMPTY_FORM.energy,
-      EMPTY_FORM,
-      exercisedToday,
-      dinnerPlanToday,
-      coffeeTimes
-    );
+    // The smart question is about "right now", so only ask it for today.
+    if (target === today) {
+      fetchQuestion(
+        EMPTY_FORM.mood,
+        EMPTY_FORM.energy,
+        EMPTY_FORM,
+        workouts.some((w) => w.date === target),
+        dinnerPlans.some((d) => d.date === target),
+        coffees
+          .filter((c) => c.date === target)
+          .sort((a, b) => a.loggedAt.localeCompare(b.loggedAt))
+          .map((c) => prettyTime(c.loggedAt))
+      );
+    }
   }
 
-  // Toggle today's shared workout (same source the main page / Exercise section use).
-  async function toggleTodayWorkout() {
+  // Calendar taps land here: open (or edit) the log for that day and bring
+  // the form into view.
+  useEffect(() => {
+    if (!openRequest) return;
+    openLog(openRequest.date);
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openRequest]);
+
+  // Toggle the shared workout for the day being logged (same source the main
+  // page / Exercise section use).
+  async function toggleWorkoutOnDate() {
     if (!uid) return;
-    const todayWorkout = workouts.find((w) => w.date === today);
-    if (todayWorkout) await deleteItem(uid, "workouts", todayWorkout.id);
-    else await addItem(uid, "workouts", { date: today, type: "Exercise" });
+    const existing = workouts.find((w) => w.date === logDate);
+    if (existing) await deleteItem(uid, "workouts", existing.id);
+    else await addItem(uid, "workouts", { date: logDate, type: "Exercise" });
   }
 
-  // Toggle today's shared dinner-plan flag (same source the Quick Log uses).
+  // Toggle the shared dinner-plan flag for the day being logged (same source
+  // the Quick Log uses).
   async function toggleDinnerPlan() {
     if (!uid) return;
-    const todays = dinnerPlans.find((d) => d.date === today);
-    if (todays) await deleteItem(uid, "dinnerPlanLogs", todays.id);
-    else await addItem(uid, "dinnerPlanLogs", { date: today, loggedAt: new Date().toISOString() });
+    const existing = dinnerPlans.find((d) => d.date === logDate);
+    if (existing) await deleteItem(uid, "dinnerPlanLogs", existing.id);
+    else
+      await addItem(uid, "dinnerPlanLogs", {
+        date: logDate,
+        loggedAt: new Date().toISOString(),
+      });
   }
 
   function startEdit(l: MoodLog) {
+    setLogDate(l.date);
     setForm({
       mood: l.mood,
       energy: l.energy,
@@ -213,6 +271,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     setForm(EMPTY_FORM);
     setAiQuestion("");
     setEditingId(null);
+    setLogDate(today);
     setShowForm(false);
   }
 
@@ -224,12 +283,12 @@ export default function MoodSection({ startDate }: { startDate: string | null })
       energy: form.energy,
       // New logs snapshot how many coffees were logged up to this moment;
       // edits keep whatever the log was saved with.
-      caffeineCups: editingId ? form.caffeineCups : todaysCoffees.length,
+      caffeineCups: editingId ? form.caffeineCups : dateCoffees.length,
       alcoholDrinks: form.alcoholDrinks,
-      // New logs snapshot today's shared exercise status; edits keep their own.
-      exercised: editingId ? form.exercised : exercisedToday,
+      // New logs snapshot that day's shared exercise status; edits keep their own.
+      exercised: editingId ? form.exercised : exercisedOnDate,
       // Same for the shared dinner-plan flag.
-      dinnerPlan: editingId ? form.dinnerPlan : dinnerPlanToday,
+      dinnerPlan: editingId ? form.dinnerPlan : dinnerPlanOnDate,
       bedtime: form.bedtime,
       wakeTime: form.wakeTime,
       aiQuestion,
@@ -239,10 +298,14 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     if (editingId) {
       await updateItem(uid, "moodLogs", editingId, editable);
     } else {
+      // Backfilled days get a midday timestamp so they sort sensibly among
+      // that day's entries; today's logs keep the exact moment.
       await addItem(uid, "moodLogs", {
         ...editable,
-        date: today,
-        loggedAt: new Date().toISOString(),
+        date: logDate,
+        loggedAt: isToday
+          ? new Date().toISOString()
+          : new Date(logDate + "T12:00:00").toISOString(),
       });
     }
     closeForm();
@@ -286,7 +349,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
     form.bedtime && form.wakeTime ? sleepHours(form.bedtime, form.wakeTime) : null;
 
   return (
-    <section className="card p-4 sm:p-5">
+    <section ref={sectionRef} className="card scroll-mt-4 p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="section-title">Mood</h2>
         <div className="flex items-center gap-2">
@@ -301,7 +364,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
             </span>
           )}
           <button
-            onClick={() => (showForm ? closeForm() : openLog())}
+            onClick={() => (showForm ? closeForm() : openLog(today, false))}
             className="btn-primary px-3 py-1.5 text-xs"
           >
             {showForm ? "Close" : "+ Log"}
@@ -318,6 +381,42 @@ export default function MoodSection({ startDate }: { startDate: string | null })
 
       {showForm && (
         <form onSubmit={save} className="mb-4 space-y-4 rounded-lg border border-line bg-bg/50 p-4">
+          {/* Which day this entry is for — pick any past day to backfill or fix it. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-muted">Logging for</span>
+            <input
+              type="date"
+              className="input w-auto py-1 text-sm"
+              value={logDate}
+              max={today}
+              onChange={(e) => e.target.value && openLog(e.target.value)}
+            />
+            <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
+              {[
+                { label: "Today", date: today },
+                { label: "Yesterday", date: addDays(today, -1) },
+              ].map((o) => (
+                <button
+                  key={o.label}
+                  type="button"
+                  onClick={() => openLog(o.date)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    logDate === o.date ? "bg-card text-ink shadow-card" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-muted">
+              {editingId
+                ? `Editing ${prettyDate(logDate)}`
+                : isToday
+                  ? "New entry"
+                  : `New entry for ${prettyDate(logDate)}`}
+            </span>
+          </div>
+
           <Slider
             label="Mood"
             value={form.mood}
@@ -338,11 +437,13 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                 value={form.caffeineCups}
                 onChange={(v) => setForm({ ...form, caffeineCups: v })}
               />
-            ) : todaysCoffees.length > 0 ? (
+            ) : dateCoffees.length > 0 ? (
               <div>
-                <p className="mb-1 text-xs font-semibold text-muted">☕ Coffees so far</p>
+                <p className="mb-1 text-xs font-semibold text-muted">
+                  {isToday ? "☕ Coffees so far" : "☕ Coffees that day"}
+                </p>
                 <p className="text-sm">
-                  <span className="font-semibold">{todaysCoffees.length}</span>{" "}
+                  <span className="font-semibold">{dateCoffees.length}</span>{" "}
                   <span className="text-muted">· {coffeeTimes.join(" · ")}</span>
                 </p>
               </div>
@@ -350,7 +451,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
               <div />
             )}
             <PillGroup
-              label="🍷 Drinks Yesterday"
+              label={isToday ? "🍷 Drinks Yesterday" : "🍷 Drinks the day before"}
               value={form.alcoholDrinks}
               onChange={(v) => setForm({ ...form, alcoholDrinks: v })}
               opts={DRINK_PILL_OPTS}
@@ -364,15 +465,16 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                 onClick={() =>
                   editingId
                     ? setForm({ ...form, exercised: !form.exercised })
-                    : toggleTodayWorkout()
+                    : toggleWorkoutOnDate()
                 }
                 className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                  (editingId ? form.exercised : exercisedToday)
+                  (editingId ? form.exercised : exercisedOnDate)
                     ? "bg-teal/15 text-teal"
                     : "bg-bg text-muted hover:text-ink"
                 }`}
               >
-                {(editingId ? form.exercised : exercisedToday) ? "✓ " : "○ "}🏃 Exercised today
+                {(editingId ? form.exercised : exercisedOnDate) ? "✓ " : "○ "}🏃{" "}
+                {isToday ? "Exercised today" : "Exercised"}
               </button>
               <button
                 type="button"
@@ -382,12 +484,12 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                     : toggleDinnerPlan()
                 }
                 className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                  (editingId ? form.dinnerPlan : dinnerPlanToday)
+                  (editingId ? form.dinnerPlan : dinnerPlanOnDate)
                     ? "bg-teal/15 text-teal"
                     : "bg-bg text-muted hover:text-ink"
                 }`}
               >
-                {(editingId ? form.dinnerPlan : dinnerPlanToday) ? "✓ " : "○ "}🫐🥭 Followed dinner plan
+                {(editingId ? form.dinnerPlan : dinnerPlanOnDate) ? "✓ " : "○ "}🫐🥭 Followed dinner plan
               </button>
             </div>
             {!editingId && (
@@ -396,7 +498,9 @@ export default function MoodSection({ startDate }: { startDate: string | null })
           </div>
 
           <div>
-            <p className="mb-1 text-xs font-semibold text-muted">🛏 Sleep last night</p>
+            <p className="mb-1 text-xs font-semibold text-muted">
+              {isToday ? "🛏 Sleep last night" : "🛏 Sleep the night before"}
+            </p>
             <div className="flex flex-wrap items-end gap-3">
               <label className="text-xs font-semibold text-muted">
                 Went to bed
@@ -422,7 +526,9 @@ export default function MoodSection({ startDate }: { startDate: string | null })
             </div>
           </div>
 
-          {/* AI follow-up */}
+          {/* AI follow-up — the question is about "right now", so skip it when
+              backfilling a past day (existing logs keep whatever they were asked). */}
+          {(isToday || !!editingId) && (
           <div className="rounded-lg border border-line bg-card p-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-indigo">✦ Smart question</span>
@@ -433,8 +539,8 @@ export default function MoodSection({ startDate }: { startDate: string | null })
                     form.mood,
                     form.energy,
                     form,
-                    editingId ? form.exercised : exercisedToday,
-                    editingId ? form.dinnerPlan : dinnerPlanToday,
+                    editingId ? form.exercised : exercisedOnDate,
+                    editingId ? form.dinnerPlan : dinnerPlanOnDate,
                     editingId ? undefined : coffeeTimes
                   )
                 }
@@ -454,6 +560,7 @@ export default function MoodSection({ startDate }: { startDate: string | null })
               onChange={(e) => setForm({ ...form, aiAnswer: e.target.value })}
             />
           </div>
+          )}
 
           <input
             className="input"
@@ -462,7 +569,11 @@ export default function MoodSection({ startDate }: { startDate: string | null })
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
           />
           <button type="submit" className="btn-primary w-full">
-            {editingId ? "Save changes" : "Save log"}
+            {editingId
+              ? "Save changes"
+              : isToday
+                ? "Save log"
+                : `Save log for ${prettyDate(logDate)}`}
           </button>
         </form>
       )}
