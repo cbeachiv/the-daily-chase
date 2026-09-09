@@ -18,6 +18,7 @@ import {
   type PlanSession,
   type SessionType,
   sessionDate,
+  weekEnd,
   liftFor,
   weekFor,
   daysToRace,
@@ -82,7 +83,7 @@ function Countdown({ days }: { days: number }) {
   ];
   return (
     <section className="card p-4 sm:p-5">
-      <div className="flex items-baseline justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
         <div>
           <p className="text-4xl font-extrabold tracking-tight text-ink">
             {days > 0 ? days : days === 0 ? "Today" : "Done"}
@@ -92,7 +93,7 @@ function Countdown({ days }: { days: number }) {
             PR {fmtSec(PR.fiveK)} · {PR.fiveKSource}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2 sm:flex">
           {goals.map((g) => (
             <div key={g.label} className="rounded-lg border border-line bg-bg px-2.5 py-1.5 text-center">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{g.label} goal</p>
@@ -281,7 +282,7 @@ function FullPlan({
           const runs = w.sessions.filter((s) => s.type !== "rest").length;
           const open = openWeek === w.n;
           const isCurrent = currentWeek?.n === w.n;
-          const past = addDays(w.start, 6) < today;
+          const past = weekEnd(w) < today;
           return (
             <li key={w.n}>
               <button
@@ -293,7 +294,7 @@ function FullPlan({
                     Week {w.n} · {w.phase}
                   </p>
                   <p className="text-xs text-muted">
-                    {shortDate(w.start)} – {shortDate(addDays(w.start, 6))} · ~{w.miles} mi · target {w.weightTarget} lb
+                    {shortDate(w.start)} – {shortDate(weekEnd(w))} · ~{w.miles} mi · target {w.weightTarget} lb
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 text-xs text-muted">

@@ -84,6 +84,12 @@ export const SESSION_LABEL: Record<SessionType, string> = {
 
 export type RunDay = "Tue" | "Wed" | "Thu" | "Sat";
 
+/** Last calendar day of a plan week (race week ends on race day). */
+export function weekEnd(week: PlanWeek): string {
+  const sunday = addDays(week.start, 6);
+  return sunday > RACE.date ? RACE.date : sunday;
+}
+
 export interface PlanSession {
   day: RunDay;
   type: SessionType;
@@ -252,16 +258,15 @@ export const PLAN: PlanWeek[] = [
     sessions: [
       { day: "Tue", type: "easy", title: "2 mi easy + 4 × 200 m @ goal pace", detail: "Short and sharp.", targetMi: 2.5, targetPace: "6:50 for the 200s" },
       { day: "Wed", type: "rest", title: "Rest or 20 min walk", detail: "Lay out the kit. Bib, shoes, breakfast.", targetMi: 0 },
-      { day: "Sat", type: "race", title: "RACE — Thu 9:00 AM", detail: "Mile 1 at 6:50 (controlled, ignore the crowd). Mile 2 at 6:45. Mile 3 everything. Kick the last 0.1. Light breakfast 2.5 h before, caffeine 60 min before.", targetMi: 3.1, targetPace: "6:45" },
+      { day: "Thu", type: "race", title: "RACE — 9:00 AM", detail: "Mile 1 at 6:50 (controlled, ignore the crowd). Mile 2 at 6:45. Mile 3 everything. Kick the last 0.1. Light breakfast 2.5 h before, caffeine 60 min before.", targetMi: 3.1, targetPace: "6:45" },
     ],
   },
 ];
 
 const DAY_OFFSET: Record<RunDay, number> = { Tue: 1, Wed: 2, Thu: 3, Sat: 5 };
 
-/** Calendar date (YYYY-MM-DD) of a session. Race week's "Sat" slot is race day itself. */
+/** Calendar date (YYYY-MM-DD) of a session. */
 export function sessionDate(week: PlanWeek, s: PlanSession): string {
-  if (s.type === "race") return RACE.date;
   return addDays(week.start, DAY_OFFSET[s.day]);
 }
 
@@ -357,5 +362,5 @@ export function fmtSec(sec: number): string {
 
 /** Pace (min/mi as text) for a 5K time in seconds. */
 export function paceFor5K(sec: number): string {
-  return fmtSec(sec / RACE.distanceMi);
+  return fmtSec(Math.floor(sec / RACE.distanceMi));
 }
