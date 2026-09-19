@@ -13,5 +13,14 @@ service cloud.firestore {
     match /plaidItems/{itemId} {
       allow read, write: if false;
     }
+
+    // Laundry status for 3720centerstreet.com is written by the Shelly plug
+    // webhook and read via /api/laundry/status — both server-side.
+    match /laundry/{doc} {
+      allow read, write: if false;
+    }
+    match /laundryEvents/{doc} {
+      allow read, write: if false;
+    }
   }
 }
