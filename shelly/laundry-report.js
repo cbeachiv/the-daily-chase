@@ -1,4 +1,4 @@
-// laundry-report.js — runs ON the Shelly Plug US Gen4 (Scripts → Add script).
+// laundry-report.js - runs ON the Shelly Plug US Gen4 (Scripts -> Add script).
 // Watches the plug's power meter and tells www.3720centerstreet.com when the
 // machine starts or stops. One copy per plug; only MACHINE differs.
 //
