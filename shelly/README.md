@@ -93,8 +93,19 @@ Every start/stop is logged to the `laundryEvents` collection (machine, kind,
 watts, at), along with `power_off` / `power_restored` events and their cause.
 Plugs answer local RPC at `http://<ip>/rpc/Switch.GetStatus?id=0`; the `source`
 field says what last changed the relay, and `Sys.GetStatus` gives `uptime` and
-`reset_reason` (1 = lost power). If a machine flaps mid-cycle, raise the plug's `OFF_DEBOUNCE_MS` or
-the server's `graceMs`; if a brief jostle shows as a run, raise `ON_WATTS`.
+`reset_reason` (1 = lost power). If a machine flaps mid-cycle, raise the plug's
+`OFF_DEBOUNCE_MS` or the server's `graceMs`; if a brief jostle shows as a run,
+raise `ON_WATTS`.
+
+Maintenance over the LAN (plugs are `192.168.1.151` washer / `.152` dryer):
+- Script update: `Script.Stop {id:1}`, `Script.PutCode` with a ~40-byte first
+  chunk (`append:false`; large non-append payloads are rejected), then
+  ~1200-byte chunks with `append:true`, then `Script.Start`. Use curl with
+  `--data-binary @file`, and keep the script ASCII-only.
+- Firmware: `POST /rpc/Shelly.Update -d '{"stage":"stable"}'` returns null,
+  downloads for a minute or two, then reboots. Config and scripts survive; do it
+  while the machine is idle (the relay drops during the reboot). Both plugs
+  went 1.7.99 -> 2.0.0 this way on 2026-09-22.
 
 ## How "done" texts work
 
