@@ -17,17 +17,46 @@ let HEARTBEAT_MS = 300000;     // periodic report so the site knows the plug is 
 
 let running = false;
 let watts = 0;
+let output = true;        // relay state (true = machine has power)
+let source = "";          // what last changed the relay, per Shelly
+let restored = false;     // set when the watchdog just turned the relay back on
 let debounceTimer = null;
 let retryTimer = null;
 
-function readWatts() {
+function readStatus() {
   let st = Shelly.getComponentStatus("switch:0");
-  return st && typeof st.apower === "number" ? st.apower : 0;
+  if (!st) return;
+  watts = typeof st.apower === "number" ? st.apower : 0;
+  output = st.output !== false;
+  source = typeof st.source === "string" ? st.source : "";
+}
+
+function readWatts() {
+  readStatus();
+  return watts;
+}
+
+// Watchdog: the machines must always have power. If the relay is off for any
+// reason other than a hardware protection trip, turn it straight back on and
+// tell the site why it went off. (initial_state=on and a detached button are
+// also set in the plug config; this is the belt to those suspenders.)
+function ensureOn(why) {
+  readStatus();
+  if (output) return;
+  let protective = why === "overtemp" || why === "overpower" || why === "overcurrent" || why === "overvoltage" || why === "undervoltage";
+  print("laundry:", MACHINE, "relay OFF (source=" + why + ")", protective ? "protection trip, leaving off" : "turning back on");
+  if (protective) { send(); return; }
+  Shelly.call("Switch.Set", { id: 0, on: true }, function (res, errCode, errMsg) {
+    if (errCode === 0) { restored = true; source = why; }
+    else print("laundry:", MACHINE, "Switch.Set failed", errMsg);
+    send();
+  });
 }
 
 function send() {
-  watts = readWatts();
-  let body = JSON.stringify({ machine: MACHINE, running: running, watts: watts });
+  readStatus();
+  let body = JSON.stringify({ machine: MACHINE, running: running, watts: watts, output: output, source: source, restored: restored });
+  restored = false;
   Shelly.call(
     "HTTP.Request",
     {
@@ -83,12 +112,18 @@ function onPower(p) {
 }
 
 Shelly.addStatusHandler(function (ev) {
-  if (ev.component === "switch:0" && ev.delta && typeof ev.delta.apower === "number") {
-    onPower(ev.delta.apower);
+  if (ev.component !== "switch:0" || !ev.delta) return;
+  if (ev.delta.output === false) {
+    ensureOn(typeof ev.delta.source === "string" ? ev.delta.source : "unknown");
   }
+  if (typeof ev.delta.apower === "number") onPower(ev.delta.apower);
 });
 
-// Boot: report current state, then heartbeat.
+// Boot: make sure the machine has power, report current state, then heartbeat.
+ensureOn("boot");
 onPower(readWatts());
 send();
-Timer.set(HEARTBEAT_MS, true, send);
+Timer.set(HEARTBEAT_MS, true, function () {
+  ensureOn("heartbeat");
+  send();
+});

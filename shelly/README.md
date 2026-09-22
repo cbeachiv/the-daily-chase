@@ -52,10 +52,19 @@ have sent.
    Name them `Washer plug` / `Dryer plug`.
 3. Settings to check in the app (or the plug's local web UI at its IP):
    - **Output: on. Auto-off: disabled. Power-on default: on** — a power blip must
-     never leave the machine dead.
-   - LED: dim or off.
-   - If there is a button lock / input disable option, turn it on so nobody
-     switches the machine off by pressing the plug. Otherwise label it.
+     never leave the machine dead. (Shelly shipped these with `initial_state:
+     "off"`, which is exactly what killed the dryer on 2026-09-20/21.)
+   - LED: off.
+   - Button **detached** so nobody can cut the machine's power by pressing the
+     plug. Both can be set over the LAN without the app:
+     ```bash
+     curl -X POST http://<plug-ip>/rpc/Switch.SetConfig -d '{"id":0,"config":{"initial_state":"on","auto_off":false,"autorecover_voltage_errors":true}}'
+     curl -X POST http://<plug-ip>/rpc/PLUGS_UI.SetConfig -d '{"config":{"controls":{"switch:0":{"in_mode":"detached"}}}}'
+     ```
+   - The script also runs a watchdog: if the relay is ever off for a reason
+     other than a protection trip (overtemp/overpower/overcurrent/voltage), it
+     turns it back on and the site logs a `power_off`/`power_restored` event
+     with Shelly's `source` (button, HTTP_in, init, ...).
    - If **Scripts** is greyed out, disable Matter (and Zigbee) on the device;
      scripting is gated behind that on some Shelly models.
 4. Sanity-check the power graph over a cycle: idle < 3 W; washer running > 50 W;
@@ -80,8 +89,11 @@ Create `laundry/config` in the Firebase console to override defaults (ms):
 | `offlineMs` | 720000  | plug shown offline after this long without a report     |
 | `minRunMs`  | 300000  | runs shorter than this never trigger a text             |
 
-Every start/stop is logged to the `laundryEvents` collection (machine, running,
-watts, at). If a machine flaps mid-cycle, raise the plug's `OFF_DEBOUNCE_MS` or
+Every start/stop is logged to the `laundryEvents` collection (machine, kind,
+watts, at), along with `power_off` / `power_restored` events and their cause.
+Plugs answer local RPC at `http://<ip>/rpc/Switch.GetStatus?id=0`; the `source`
+field says what last changed the relay, and `Sys.GetStatus` gives `uptime` and
+`reset_reason` (1 = lost power). If a machine flaps mid-cycle, raise the plug's `OFF_DEBOUNCE_MS` or
 the server's `graceMs`; if a brief jostle shows as a run, raise `ON_WATTS`.
 
 ## How "done" texts work

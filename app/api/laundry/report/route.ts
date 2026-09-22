@@ -34,7 +34,11 @@ function parseReport(body: unknown): PlugReport | null {
   if (typeof b.running !== "boolean") return null;
   const watts = typeof b.watts === "number" && Number.isFinite(b.watts) ? b.watts : null;
   if (watts === null) return null;
-  return { machine: b.machine, running: b.running, watts: Math.round(watts * 10) / 10 };
+  const report: PlugReport = { machine: b.machine, running: b.running, watts: Math.round(watts * 10) / 10 };
+  if (typeof b.output === "boolean") report.output = b.output;
+  if (typeof b.source === "string") report.source = b.source.slice(0, 40);
+  if (b.restored === true) report.restored = true;
+  return report;
 }
 
 export async function POST(req: Request) {
@@ -72,10 +76,23 @@ export async function POST(req: Request) {
       if (flipped) {
         tx.create(db.collection(EVENTS_COLLECTION).doc(), {
           machine,
+          kind: report.running ? "start" : "stop",
           running: report.running,
           watts: report.watts,
           at: now,
         });
+      }
+      // Relay went off (or the plug's watchdog just restored it): keep a record
+      // of the cause so "the dryer was dead" is diagnosable after the fact.
+      if (report.output === false || report.restored) {
+        tx.create(db.collection(EVENTS_COLLECTION).doc(), {
+          machine,
+          kind: report.restored ? "power_restored" : "power_off",
+          source: report.source ?? null,
+          watts: report.watts,
+          at: now,
+        });
+        console.warn(`[laundry] ${machine} relay ${report.restored ? "restored" : "OFF"} (source=${report.source ?? "?"})`);
       }
       const merged: LaundryDoc = { ...doc, [machine]: next };
       return { doc: merged, finished };

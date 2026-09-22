@@ -23,6 +23,8 @@ export interface MachineState {
   lastRunEndedAt: number | null;
   /** When the "done" text for the current run was claimed/sent. */
   doneNotifiedAt: number | null;
+  /** Relay state from the last report (false = the machine has no power). */
+  powered: boolean | null;
 }
 
 export interface LaundryDoc {
@@ -54,6 +56,7 @@ export const EMPTY_MACHINE: MachineState = {
   runStartedAt: null,
   lastRunEndedAt: null,
   doneNotifiedAt: null,
+  powered: null,
 };
 
 export function emptyDoc(): LaundryDoc {
@@ -80,6 +83,7 @@ export function normalizeDoc(raw: unknown): LaundryDoc {
       runStartedAt: num(r.runStartedAt),
       lastRunEndedAt: num(r.lastRunEndedAt),
       doneNotifiedAt: num(r.doneNotifiedAt),
+      powered: typeof r.powered === "boolean" ? r.powered : null,
     };
   }
   return doc;
@@ -106,6 +110,8 @@ export interface MachineStatus {
   finishedAt: number | null;
   online: boolean;
   watts: number | null;
+  /** false when the plug's relay is off (machine has no power). */
+  powered: boolean | null;
 }
 
 export interface LaundryStatus {
@@ -142,6 +148,7 @@ export function deriveMachine(m: MachineState, config: LaundryConfig, now: numbe
     finishedAt,
     online,
     watts: online ? m.watts : null,
+    powered: online ? m.powered : null,
   };
 }
 
@@ -157,6 +164,12 @@ export interface PlugReport {
   machine: MachineId;
   running: boolean;
   watts: number;
+  /** Relay state; omitted by older scripts. */
+  output?: boolean;
+  /** Shelly's reason for the last relay change (button, HTTP_in, init, overpower, ...). */
+  source?: string;
+  /** The plug's watchdog just turned the relay back on. */
+  restored?: boolean;
 }
 
 export interface ApplyResult {
@@ -184,6 +197,7 @@ export function applyReport(
     running: report.running,
     watts: report.watts,
     lastReportAt: now,
+    powered: typeof report.output === "boolean" ? report.output : prev.powered,
   };
   const flipped = prev.running !== report.running;
   let finished = false;

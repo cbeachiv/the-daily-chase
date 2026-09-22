@@ -75,6 +75,11 @@ function MachineCard({ id, m, now }: { id: "washer" | "dryer"; m: MachineStatus;
           {m.watts !== null ? `${Math.round(m.watts)} W` : "—"}
         </span>
       </div>
+      {m.online && m.powered === false && (
+        <p className="mt-3 rounded-lg bg-coral/10 px-3 py-2 text-xs font-medium text-coral">
+          The smart plug has cut power to the {label.toLowerCase()}. Check the Shelly app.
+        </p>
+      )}
       {!m.online && (
         <p className="mt-3 rounded-lg bg-amber/10 px-3 py-2 text-xs font-medium text-amber">
           Plug offline{m.lastActivityAt ? ` · last seen ${ago(m.lastActivityAt, now)}` : ""}. Status may be
