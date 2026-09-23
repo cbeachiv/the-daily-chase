@@ -13,6 +13,7 @@ import {
 } from "@/lib/lifts";
 import { getTemplate } from "@/lib/workoutTemplates";
 import { useWorkouts } from "@/lib/useWorkouts";
+import type { Workout } from "@/lib/types";
 
 interface DraftSet { weight: string; reps: string; done: boolean }
 interface DraftExercise { name: string; bodyweight: boolean; targetReps: string; sets: DraftSet[] }
@@ -43,6 +44,7 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
   );
   const { data: logged, loading, uid } = useCollection<LoggedSessionDoc>("liftSessions");
   const sessionsDesc = useMemo(() => mergeSessions(logged), [logged]);
+  const { data: exerciseLogs } = useCollection<Workout>("workouts");
 
   const STORAGE = `lift-draft-${workoutKey}`;
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -155,14 +157,20 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
       return;
     }
     setSaving(true);
+    const durationMin = Math.max(1, Math.round((Date.now() - draft.startedAt) / 60000));
     try {
       await addItem(uid, "liftSessions", {
         date: draft.date,
         dateTime: nowStamp(draft.date),
         name: draft.name.trim() || "Workout",
-        durationMin: Math.max(1, Math.round((Date.now() - draft.startedAt) / 60000)),
+        durationMin,
         exercises,
       });
+      // Finishing a lift counts as exercising that day: tick the Exercise quick log
+      // (health calendar, streaks, emails) unless it's already marked.
+      if (!exerciseLogs.some((w) => w.date === draft.date)) {
+        await addItem(uid, "workouts", { date: draft.date, type: draft.name.trim() || "Workout", durationMin });
+      }
       localStorage.removeItem(STORAGE);
       router.push("/lifts");
     } catch (e) {
