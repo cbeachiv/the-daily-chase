@@ -3,8 +3,19 @@
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import { startOfWeek, startOfMonth, addDays, addMonths, prettyDate, prettyMonth } from "@/lib/dates";
+import {
+  startOfWeek,
+  startOfMonth,
+  startOfYear,
+  addDays,
+  addMonths,
+  addYears,
+  prettyDate,
+  prettyMonth,
+} from "@/lib/dates";
 import type { Goal, GoalPeriod } from "@/lib/types";
+
+const PERIOD_ADJ: Record<GoalPeriod, string> = { week: "weekly", month: "monthly", year: "yearly" };
 
 export default function GoalSection({ period }: { period: GoalPeriod }) {
   const { data: allGoals, uid } = useCollection<Goal>("goals");
@@ -16,10 +27,15 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const currentStart = period === "week" ? startOfWeek() : startOfMonth();
+  const currentStart =
+    period === "week" ? startOfWeek() : period === "month" ? startOfMonth() : startOfYear();
   const periodStart = useMemo(
     () =>
-      period === "week" ? addDays(currentStart, offset * 7) : addMonths(currentStart, offset),
+      period === "week"
+        ? addDays(currentStart, offset * 7)
+        : period === "month"
+          ? addMonths(currentStart, offset)
+          : addYears(currentStart, offset),
     [period, currentStart, offset]
   );
   const isCurrent = offset === 0;
@@ -47,7 +63,12 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
   );
 
   const done = goals.filter((g) => g.done).length;
-  const dateLabel = period === "week" ? `Week of ${prettyDate(periodStart)}` : prettyMonth(periodStart);
+  const dateLabel =
+    period === "week"
+      ? `Week of ${prettyDate(periodStart)}`
+      : period === "month"
+        ? prettyMonth(periodStart)
+        : `By end of ${periodStart.slice(0, 4)}`;
 
   async function add(t: string, aiGenerated = false) {
     const text = t.trim();
@@ -107,7 +128,7 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
               onClick={() => setOffset(0)}
               className="ml-1 text-xs font-semibold text-indigo"
             >
-              {period === "week" ? "This week" : "This month"}
+              {period === "week" ? "This week" : period === "month" ? "This month" : "This year"}
             </button>
           )}
         </div>
@@ -166,7 +187,7 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
           >
             <input
               className="input"
-              placeholder={`Add a ${period === "week" ? "weekly" : "monthly"} goal…`}
+              placeholder={`Add a ${PERIOD_ADJ[period]} goal…`}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />

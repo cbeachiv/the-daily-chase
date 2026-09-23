@@ -5,7 +5,7 @@ import { verifyUser } from "@/lib/verifyUser";
 export const runtime = "nodejs";
 
 interface Body {
-  period: "week" | "month";
+  period: "week" | "month" | "year";
   aims?: string; // big-picture context the user types in
   existing?: string[]; // titles of goals already set this period
 }
@@ -21,8 +21,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 
-  const period = body.period === "month" ? "month" : "week";
-  const horizon = period === "month" ? "this month" : "this week";
+  const period = body.period === "month" || body.period === "year" ? body.period : "week";
+  const horizon =
+    period === "year" ? "the rest of this year" : period === "month" ? "this month" : "this week";
 
   const prompt = [
     `You are a thoughtful personal coach helping Chase plan concrete, achievable goals for ${horizon}.`,

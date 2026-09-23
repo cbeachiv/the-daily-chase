@@ -168,12 +168,12 @@ export interface AboutProfile {
   reviewsSeen: number; // how many reflections have shaped this profile
 }
 
-export type GoalPeriod = "week" | "month";
+export type GoalPeriod = "week" | "month" | "year";
 
 export interface Goal {
   id: string;
   period: GoalPeriod;
-  periodStart: string; // YYYY-MM-DD (Monday for weeks, 1st for months)
+  periodStart: string; // YYYY-MM-DD (Monday for weeks, 1st for months, Jan 1 for years)
   title: string;
   description?: string;
   done: boolean;
