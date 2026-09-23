@@ -34,6 +34,13 @@ export interface CardioLog {
   playedWith?: string; // who you played with, e.g. "Mom, Dave"
   wins?: number; // games won
   losses?: number; // games lost
+  // imported from Strava (runs)
+  stravaId?: number;
+  title?: string; // Strava activity name, e.g. "Spooky Hollow Loop"
+  distanceMi?: number; // measured distance (preferred over pace × duration)
+  elevationFt?: number; // total elevation gain
+  avgHr?: number; // bpm
+  maxHr?: number; // bpm
   createdAt: string;
 }
 
@@ -76,6 +83,7 @@ export function fmtPace(minPerMile: number): string {
 
 /** Distance in miles, derived from the logged fields (null if not derivable). */
 export function cardioDistanceMi(c: CardioLog): number | null {
+  if (c.distanceMi) return c.distanceMi;
   if (c.kind === "treadmill" && c.speedMph && c.durationMin) {
     return c.speedMph * (c.durationMin / 60);
   }

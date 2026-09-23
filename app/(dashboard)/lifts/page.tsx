@@ -162,6 +162,8 @@ function CardioRow({ c, onDelete }: { c: CardioLog; onDelete?: () => void }) {
       parts.push(`${fmtPace(pace)} /mi`);
     }
     if (dist !== null) parts.push(`${dist.toFixed(2)} mi`);
+    if (c.elevationFt) parts.push(`${c.elevationFt} ft gain`);
+    if (c.avgHr) parts.push(`${c.avgHr} bpm avg`);
   }
 
   const badge =
@@ -179,7 +181,18 @@ function CardioRow({ c, onDelete }: { c: CardioLog; onDelete?: () => void }) {
           <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badge}`}>
             {CARDIO_KIND_LABEL[c.kind]}
           </span>
+          {c.stravaId && (
+            <a
+              href={`https://www.strava.com/activities/${c.stravaId}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] font-semibold uppercase tracking-wide text-coral"
+            >
+              Strava
+            </a>
+          )}
         </div>
+        {c.title && <p className="truncate text-sm font-medium text-ink/80">{c.title}</p>}
         <p className="truncate text-sm text-muted">{parts.join(" · ")}</p>
         {c.playedWith && <p className="truncate text-sm text-muted/80">with {c.playedWith}</p>}
         {c.notes && <p className="mt-0.5 text-sm text-muted/80">{c.notes}</p>}
