@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import type { CallLog } from "@/lib/types";
 import { prettyDate, startOfWeek, todayStr } from "@/lib/dates";
@@ -13,6 +13,8 @@ function prettyClock(time: string): string {
   const hr = h % 12 === 0 ? 12 : h % 12;
   return `${hr}:${String(m).padStart(2, "0")} ${am ? "AM" : "PM"}`;
 }
+
+const COLLAPSE_KEY = "calls_collapsed";
 
 export default function CallsSection() {
   const today = todayStr();
@@ -28,18 +30,31 @@ export default function CallsSection() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  // Collapsed state is remembered per browser so the card stays folded between visits.
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
+    } catch {}
+  }, []);
+  function toggleCollapsed(next = !collapsed) {
+    setCollapsed(next);
+    try {
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+    } catch {}
+  }
 
   const sorted = useMemo(
-    () =>
-      [...calls].sort((a, b) =>
-        `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`)
-      ),
+    () => [...calls].sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`)),
     [calls]
   );
   const visible = showAll ? sorted : sorted.slice(0, 5);
 
   const weekStart = startOfWeek(today);
-  const weekCount = useMemo(() => calls.filter((c) => c.date >= weekStart).length, [calls, weekStart]);
+  const weekCount = useMemo(
+    () => calls.filter((c) => c.date >= weekStart).length,
+    [calls, weekStart]
+  );
   const monthCalls = useMemo(
     () => calls.filter((c) => c.date.slice(0, 7) === today.slice(0, 7)),
     [calls, today]
@@ -55,6 +70,7 @@ export default function CallsSection() {
     setForm(emptyForm());
     setEditingId(null);
     setShowForm(true);
+    if (collapsed) toggleCollapsed(false);
   }
 
   function startEdit(c: CallLog) {
@@ -85,13 +101,25 @@ export default function CallsSection() {
 
   return (
     <section className="card p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-baseline gap-3">
+      <div className={`flex items-center justify-between gap-2 ${collapsed ? "" : "mb-3"}`}>
+        <button
+          onClick={() => toggleCollapsed()}
+          aria-expanded={!collapsed}
+          className="flex items-baseline gap-3 text-left"
+        >
+          <span
+            aria-hidden
+            className={`inline-block w-3 text-xs text-muted transition-transform ${
+              collapsed ? "" : "rotate-90"
+            }`}
+          >
+            ›
+          </span>
           <h2 className="section-title">Calls</h2>
           <span className="text-xs text-muted">
             {weekCount} this week · {monthCalls.length} this month
           </span>
-        </div>
+        </button>
         <button
           onClick={() => (showForm ? closeForm() : openForm())}
           className="btn-primary px-3 py-1.5 text-xs"
@@ -100,93 +128,103 @@ export default function CallsSection() {
         </button>
       </div>
 
-      {topPeople.length > 0 && (
-        <p className="mb-3 text-xs text-muted">
-          Most this month:{" "}
-          {topPeople.map(([person, n], i) => (
-            <span key={person}>
-              {i > 0 && ", "}
-              <span className="font-semibold text-ink">{person}</span> ({n})
-            </span>
-          ))}
-        </p>
-      )}
+      {!collapsed && (
+        <>
+          {topPeople.length > 0 && (
+            <p className="mb-3 text-xs text-muted">
+              Most this month:{" "}
+              {topPeople.map(([person, n], i) => (
+                <span key={person}>
+                  {i > 0 && ", "}
+                  <span className="font-semibold text-ink">{person}</span> ({n})
+                </span>
+              ))}
+            </p>
+          )}
 
-      {showForm && (
-        <form onSubmit={save} className="mb-4 space-y-3 rounded-lg border border-line bg-bg/50 p-4">
-          <input
-            className="input"
-            placeholder="Who was the call with?"
-            value={form.person}
-            onChange={(e) => setForm({ ...form, person: e.target.value })}
-          />
-          <div className="flex gap-2">
-            <label className="flex-1 text-xs font-semibold text-muted">
-              Date
+          {showForm && (
+            <form
+              onSubmit={save}
+              className="mb-4 space-y-3 rounded-lg border border-line bg-bg/50 p-4"
+            >
               <input
-                type="date"
-                className="input mt-1"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="input"
+                placeholder="Who was the call with?"
+                value={form.person}
+                onChange={(e) => setForm({ ...form, person: e.target.value })}
               />
-            </label>
-            <label className="flex-1 text-xs font-semibold text-muted">
-              Time
+              <div className="flex gap-2">
+                <label className="flex-1 text-xs font-semibold text-muted">
+                  Date
+                  <input
+                    type="date"
+                    className="input mt-1"
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  />
+                </label>
+                <label className="flex-1 text-xs font-semibold text-muted">
+                  Time
+                  <input
+                    type="time"
+                    className="input mt-1"
+                    value={form.time}
+                    onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  />
+                </label>
+              </div>
               <input
-                type="time"
-                className="input mt-1"
-                value={form.time}
-                onChange={(e) => setForm({ ...form, time: e.target.value })}
+                className="input"
+                placeholder="Notes (optional)"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
-            </label>
+              <button type="submit" className="btn-primary w-full">
+                {editingId ? "Save changes" : "Add call"}
+              </button>
+            </form>
+          )}
+
+          {sorted.length === 0 && !showForm && (
+            <p className="py-2 text-sm text-muted">No calls logged yet — tap “+ Call” to start.</p>
+          )}
+
+          <div className="space-y-2">
+            {visible.map((c) => (
+              <article key={c.id} className="group rounded-lg border border-line bg-bg/50 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">📞 {c.person}</span>
+                  <span className="text-xs text-muted">
+                    {prettyDate(c.date)} · {prettyClock(c.time)}
+                  </span>
+                </div>
+                {c.notes && <p className="mt-1 text-sm">{c.notes}</p>}
+                <div className="mt-1.5 flex gap-3 opacity-0 transition group-hover:opacity-100">
+                  <button
+                    onClick={() => startEdit(c)}
+                    className="text-xs text-muted hover:text-ink"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => uid && deleteItem(uid, "calls", c.id)}
+                    className="text-xs text-muted hover:text-coral"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
-          <input
-            className="input"
-            placeholder="Notes (optional)"
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          />
-          <button type="submit" className="btn-primary w-full">
-            {editingId ? "Save changes" : "Add call"}
-          </button>
-        </form>
-      )}
-
-      {sorted.length === 0 && !showForm && (
-        <p className="py-2 text-sm text-muted">No calls logged yet — tap “+ Call” to start.</p>
-      )}
-
-      <div className="space-y-2">
-        {visible.map((c) => (
-          <article key={c.id} className="group rounded-lg border border-line bg-bg/50 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold">📞 {c.person}</span>
-              <span className="text-xs text-muted">
-                {prettyDate(c.date)} · {prettyClock(c.time)}
-              </span>
-            </div>
-            {c.notes && <p className="mt-1 text-sm">{c.notes}</p>}
-            <div className="mt-1.5 flex gap-3 opacity-0 transition group-hover:opacity-100">
-              <button onClick={() => startEdit(c)} className="text-xs text-muted hover:text-ink">
-                Edit
-              </button>
-              <button
-                onClick={() => uid && deleteItem(uid, "calls", c.id)}
-                className="text-xs text-muted hover:text-coral"
-              >
-                Delete
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
-      {sorted.length > 5 && (
-        <button
-          onClick={() => setShowAll((s) => !s)}
-          className="mt-2 w-full text-center text-xs font-semibold text-indigo"
-        >
-          {showAll ? "Show less" : `Show all ${sorted.length}`}
-        </button>
+          {sorted.length > 5 && (
+            <button
+              onClick={() => setShowAll((s) => !s)}
+              className="mt-2 w-full text-center text-xs font-semibold text-indigo"
+            >
+              {showAll ? "Show less" : `Show all ${sorted.length}`}
+            </button>
+          )}
+        </>
       )}
     </section>
   );
