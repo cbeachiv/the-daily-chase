@@ -168,16 +168,24 @@ export interface AboutProfile {
   reviewsSeen: number; // how many reflections have shaped this profile
 }
 
-export type GoalPeriod = "week" | "month";
+export type GoalPeriod = "week" | "month" | "year";
+
+// A dated note logged under a goal, e.g. "Spoke to Mitch about a group retreat".
+export interface GoalProgress {
+  id: string;
+  date: string; // YYYY-MM-DD the progress happened
+  text: string;
+}
 
 export interface Goal {
   id: string;
   period: GoalPeriod;
-  periodStart: string; // YYYY-MM-DD (Monday for weeks, 1st for months)
+  periodStart: string; // YYYY-MM-DD (Monday for weeks, 1st for months, Jan 1 for years)
   title: string;
   description?: string;
   done: boolean;
   aiGenerated: boolean;
+  progress?: GoalProgress[];
   createdAt: string;
 }
 

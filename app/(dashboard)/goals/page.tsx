@@ -13,6 +13,11 @@ export default function GoalsPage() {
       </header>
 
       <div className="space-y-1">
+        <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">Yearly</p>
+        <GoalSection period="year" />
+      </div>
+
+      <div className="space-y-1">
         <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted">Weekly</p>
         <GoalSection period="week" />
       </div>

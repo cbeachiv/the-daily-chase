@@ -33,6 +33,16 @@ export function addMonths(monthStart: string, n: number): string {
   return todayStr(new Date(y, m - 1 + n, 1));
 }
 
+// January 1 of the year containing `dateStr`.
+export function startOfYear(dateStr: string = todayStr()): string {
+  return dateStr.slice(0, 4) + "-01-01";
+}
+
+// January 1 of the year `n` years away from `yearStart` (negative = earlier).
+export function addYears(yearStart: string, n: number): string {
+  return `${Number(yearStart.slice(0, 4)) + n}-01-01`;
+}
+
 // Saturday that closes the Monday-based week containing `dateStr`.
 export function weekEndingSaturday(dateStr: string = todayStr()): string {
   return addDays(startOfWeek(dateStr), 5);

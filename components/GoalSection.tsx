@@ -3,8 +3,25 @@
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import { startOfWeek, startOfMonth, addDays, addMonths, prettyDate, prettyMonth } from "@/lib/dates";
-import type { Goal, GoalPeriod } from "@/lib/types";
+import {
+  startOfWeek,
+  startOfMonth,
+  startOfYear,
+  addDays,
+  addMonths,
+  addYears,
+  prettyDate,
+  prettyMonth,
+  shortDate,
+  todayStr,
+} from "@/lib/dates";
+import type { Goal, GoalPeriod, GoalProgress } from "@/lib/types";
+
+const PERIOD_ADJ: Record<GoalPeriod, string> = {
+  week: "weekly",
+  month: "monthly",
+  year: "yearly",
+};
 
 export default function GoalSection({ period }: { period: GoalPeriod }) {
   const { data: allGoals, uid } = useCollection<Goal>("goals");
@@ -16,10 +33,15 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const currentStart = period === "week" ? startOfWeek() : startOfMonth();
+  const currentStart =
+    period === "week" ? startOfWeek() : period === "month" ? startOfMonth() : startOfYear();
   const periodStart = useMemo(
     () =>
-      period === "week" ? addDays(currentStart, offset * 7) : addMonths(currentStart, offset),
+      period === "week"
+        ? addDays(currentStart, offset * 7)
+        : period === "month"
+          ? addMonths(currentStart, offset)
+          : addYears(currentStart, offset),
     [period, currentStart, offset]
   );
   const isCurrent = offset === 0;
@@ -47,7 +69,12 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
   );
 
   const done = goals.filter((g) => g.done).length;
-  const dateLabel = period === "week" ? `Week of ${prettyDate(periodStart)}` : prettyMonth(periodStart);
+  const dateLabel =
+    period === "week"
+      ? `Week of ${prettyDate(periodStart)}`
+      : period === "month"
+        ? prettyMonth(periodStart)
+        : `By end of ${periodStart.slice(0, 4)}`;
 
   async function add(t: string, aiGenerated = false) {
     const text = t.trim();
@@ -69,8 +96,15 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
       const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/ai/suggest", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ period, aims, existing: goals.map((g) => g.title) }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          period,
+          aims,
+          existing: goals.map((g) => g.title),
+        }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
@@ -103,11 +137,8 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
             ›
           </button>
           {!isCurrent && (
-            <button
-              onClick={() => setOffset(0)}
-              className="ml-1 text-xs font-semibold text-indigo"
-            >
-              {period === "week" ? "This week" : "This month"}
+            <button onClick={() => setOffset(0)} className="ml-1 text-xs font-semibold text-indigo">
+              {period === "week" ? "This week" : period === "month" ? "This month" : "This year"}
             </button>
           )}
         </div>
@@ -120,35 +151,38 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
 
       <ul className="mb-3 space-y-1.5">
         {goals.map((g) => (
-          <li key={g.id} className="group flex items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-bg">
-            <button
-              onClick={() => uid && updateItem(uid, "goals", g.id, { done: !g.done })}
-              aria-label="Toggle goal"
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 text-[11px] ${
-                g.done ? "border-teal bg-teal text-white" : "border-line"
-              }`}
-            >
-              {g.done ? "✓" : ""}
-            </button>
-            <span className={`flex-1 text-sm ${g.done ? "text-muted line-through" : ""}`}>
-              {g.title}
-            </span>
-            {carriedIds.has(g.id) && (
-              <span
-                className="shrink-0 text-[10px] text-muted"
-                title={`Carried over from ${prettyDate(g.periodStart)}`}
+          <li key={g.id} className="rounded-lg px-1 py-1.5 hover:bg-bg">
+            <div className="group flex items-center gap-3">
+              <button
+                onClick={() => uid && updateItem(uid, "goals", g.id, { done: !g.done })}
+                aria-label="Toggle goal"
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 text-[11px] ${
+                  g.done ? "border-teal bg-teal text-white" : "border-line"
+                }`}
               >
-                ↩ carried over
+                {g.done ? "✓" : ""}
+              </button>
+              <span className={`flex-1 text-sm ${g.done ? "text-muted line-through" : ""}`}>
+                {g.title}
               </span>
-            )}
-            {g.aiGenerated && <span className="shrink-0 text-[10px] text-indigo">✦ AI</span>}
-            <button
-              onClick={() => uid && deleteItem(uid, "goals", g.id)}
-              className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"
-              aria-label="Delete goal"
-            >
-              ✕
-            </button>
+              {carriedIds.has(g.id) && (
+                <span
+                  className="shrink-0 text-[10px] text-muted"
+                  title={`Carried over from ${prettyDate(g.periodStart)}`}
+                >
+                  ↩ carried over
+                </span>
+              )}
+              {g.aiGenerated && <span className="shrink-0 text-[10px] text-indigo">✦ AI</span>}
+              <button
+                onClick={() => uid && deleteItem(uid, "goals", g.id)}
+                className="shrink-0 text-muted opacity-0 transition group-hover:opacity-100 hover:text-coral"
+                aria-label="Delete goal"
+              >
+                ✕
+              </button>
+            </div>
+            {uid && <ProgressLog uid={uid} goal={g} />}
           </li>
         ))}
         {goals.length === 0 && <li className="px-1 text-sm text-muted">No goals set yet.</li>}
@@ -166,7 +200,7 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
           >
             <input
               className="input"
-              placeholder={`Add a ${period === "week" ? "weekly" : "monthly"} goal…`}
+              placeholder={`Add a ${PERIOD_ADJ[period]} goal…`}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -219,5 +253,87 @@ export default function GoalSection({ period }: { period: GoalPeriod }) {
         </p>
       )}
     </section>
+  );
+}
+
+// Dated progress notes under a goal. Stored as an array on the goal doc since a
+// goal only ever collects a few dozen of these.
+function ProgressLog({ uid, goal }: { uid: string; goal: Goal }) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(todayStr());
+  const [text, setText] = useState("");
+  const entries = useMemo(
+    () => [...(goal.progress ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
+    [goal.progress]
+  );
+
+  function save(next: GoalProgress[]) {
+    return updateItem(uid, "goals", goal.id, { progress: next });
+  }
+
+  async function add() {
+    const t = text.trim();
+    if (!t || !date) return;
+    await save([...(goal.progress ?? []), { id: crypto.randomUUID(), date, text: t }]);
+    setText("");
+    setDate(todayStr());
+  }
+
+  return (
+    <div className="ml-8 mt-1">
+      {entries.length > 0 && (
+        <ul className="space-y-0.5">
+          {entries.map((p) => (
+            <li key={p.id} className="group/p flex items-baseline gap-2 text-xs">
+              <span className="w-14 shrink-0 tabular-nums text-muted">{shortDate(p.date)}</span>
+              <span className="flex-1 text-ink">{p.text}</span>
+              <button
+                onClick={() => save((goal.progress ?? []).filter((x) => x.id !== p.id))}
+                className="shrink-0 text-muted opacity-0 transition group-hover/p:opacity-100 hover:text-coral"
+                aria-label="Delete progress entry"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {open ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            add();
+          }}
+          className="mt-1.5 flex flex-wrap gap-2"
+        >
+          <input
+            type="date"
+            className="input w-auto py-1 text-xs"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <input
+            autoFocus
+            className="input min-w-0 flex-1 py-1 text-xs"
+            placeholder="What happened?"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <button type="submit" className="btn-primary shrink-0 py-1 text-xs">
+            Log
+          </button>
+          <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted">
+            Done
+          </button>
+        </form>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="mt-0.5 text-[11px] font-semibold text-indigo"
+        >
+          + Log progress{entries.length > 0 ? ` (${entries.length})` : ""}
+        </button>
+      )}
+    </div>
   );
 }
