@@ -9,7 +9,8 @@ let URL = "https://www.3720centerstreet.com/api/laundry/report";
 let SECRET = "PASTE_LAUNDRY_SECRET_HERE"; // same value as LAUNDRY_SECRET in Vercel
 
 let ON_WATTS = 8;          // above this = running   (washer 8, dryer 15)
-let OFF_WATTS = 3;         // below this = idle      (both machines idle < 3 W)
+let OFF_WATTS = 1.7;       // below this = idle      (washer 1.7, dryer 3)
+                           // washer sits ~2.2 W paused mid-load, ~1.4 W when done
 let ON_DEBOUNCE_MS = 5000;     // power must stay up this long before "running"
 let OFF_DEBOUNCE_MS = 60000;   // power must stay down this long before "idle"
 let POST_STOP_MS = 150000;     // extra "still idle" report so the site can text "done"

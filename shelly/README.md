@@ -68,11 +68,15 @@ have sent.
    - If **Scripts** is greyed out, disable Matter (and Zigbee) on the device;
      scripting is gated behind that on some Shelly models.
 4. Sanity-check the power graph over a cycle: idle < 3 W; washer running > 50 W;
-   dryer (gas) running > 100 W.
+   dryer (gas) running > 100 W. The washer has three low levels: about 0.7 W
+   fully off, 1.3 to 1.4 W just after a load finishes, and 2.0 to 2.3 W while
+   paused mid-load (the ~9 min quiet stretch early in a load, plus short pauses
+   between phases). `OFF_WATTS` has to sit between the last two.
 5. Scripts → **Add script** → paste `shelly/laundry-report.js`. Edit the top:
    - `MACHINE = "washer"` or `"dryer"`
    - `SECRET` = the `LAUNDRY_SECRET` value
    - `ON_WATTS`: 8 for the washer, 15 for the dryer
+   - `OFF_WATTS`: 1.7 for the washer, 3 for the dryer
    Save, **Start**, and enable **Run on startup**. The script console should
    print `laundry: washer idle 0.8W sent` within a few seconds.
 6. Test: start a short cycle (or plug a lamp in and switch it on). The site
@@ -93,9 +97,13 @@ Every start/stop is logged to the `laundryEvents` collection (machine, kind,
 watts, at), along with `power_off` / `power_restored` events and their cause.
 Plugs answer local RPC at `http://<ip>/rpc/Switch.GetStatus?id=0`; the `source`
 field says what last changed the relay, and `Sys.GetStatus` gives `uptime` and
-`reset_reason` (1 = lost power). If a machine flaps mid-cycle, raise the plug's
-`OFF_DEBOUNCE_MS` or the server's `graceMs`; if a brief jostle shows as a run,
-raise `ON_WATTS`.
+`reset_reason` (1 = lost power). `node scripts/laundry-events.mjs --days 3`
+(from the main checkout) prints the log with the watts at each stop and the gap
+to the next start. If a machine flaps mid-cycle, look at those stop watts first:
+if the pauses read just under `OFF_WATTS` and real ends read lower, lower
+`OFF_WATTS` between them (that is how the washer got 1.7 W on 2026-09-23). Only
+then raise the plug's `OFF_DEBOUNCE_MS` or the server's `graceMs`. If a brief
+jostle shows as a run, raise `ON_WATTS`.
 
 Maintenance over the LAN (plugs are `192.168.1.151` washer / `.152` dryer):
 - Script update: `Script.Stop {id:1}`, `Script.PutCode` with a ~40-byte first
