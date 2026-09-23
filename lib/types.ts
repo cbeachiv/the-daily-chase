@@ -170,6 +170,13 @@ export interface AboutProfile {
 
 export type GoalPeriod = "week" | "month" | "year";
 
+// A dated note logged under a goal, e.g. "Spoke to Mitch about a group retreat".
+export interface GoalProgress {
+  id: string;
+  date: string; // YYYY-MM-DD the progress happened
+  text: string;
+}
+
 export interface Goal {
   id: string;
   period: GoalPeriod;
@@ -178,6 +185,7 @@ export interface Goal {
   description?: string;
   done: boolean;
   aiGenerated: boolean;
+  progress?: GoalProgress[];
   createdAt: string;
 }
 
