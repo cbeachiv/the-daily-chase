@@ -31,6 +31,14 @@
     {
       "path": "/api/cron/plaid-sync",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/laundry-weekly",
+      "schedule": "0 13 * * 0"
+    },
+    {
+      "path": "/api/cron/laundry-weekly",
+      "schedule": "0 14 * * 0"
     }
   ]
 }
