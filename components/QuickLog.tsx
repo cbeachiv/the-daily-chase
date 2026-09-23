@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
+import { auth } from "@/lib/firebase/client";
 import type { DinnerPlanLog, FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
 import { todayStr } from "@/lib/dates";
 
@@ -15,6 +16,34 @@ export default function QuickLog() {
 
   const [open, setOpen] = useState<"weight" | "calories" | null>(null);
   const [val, setVal] = useState("");
+  const [strava, setStrava] = useState<"unknown" | "connected" | "disconnected">("unknown");
+
+  // Pull recent Strava runs into Exercise each time Today opens.
+  useEffect(() => {
+    if (!uid) return;
+    (async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch("/api/strava/sync", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) setStrava((await res.json()).connected ? "connected" : "disconnected");
+      } catch {
+        /* offline or Strava down: manual tile still works */
+      }
+    })();
+  }, [uid]);
+
+  async function connectStrava() {
+    const token = await auth.currentUser?.getIdToken();
+    const res = await fetch("/api/strava/connect", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) window.location.href = (await res.json()).url;
+    else alert("Could not start Strava. Check STRAVA_CLIENT_ID / STRAVA_CLIENT_SECRET.");
+  }
 
   const todayWorkout = useMemo(() => workouts.find((w) => w.date === today), [workouts, today]);
   const todayWakeup = useMemo(() => wakeups.find((w) => w.date === today), [wakeups, today]);
@@ -133,6 +162,12 @@ export default function QuickLog() {
           </span>
         </button>
       </div>
+
+      {strava === "disconnected" && (
+        <button onClick={connectStrava} className="mt-2 text-xs font-semibold text-coral">
+          Connect Strava to auto-log runs →
+        </button>
+      )}
 
       {open && (
         <form
