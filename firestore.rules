@@ -14,6 +14,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // stravaAuth holds Strava OAuth tokens. Server-only, like plaidItems.
+    match /stravaAuth/{uid} {
+      allow read, write: if false;
+    }
+
     // Laundry status for 3720centerstreet.com is written by the Shelly plug
     // webhook and read via /api/laundry/status — both server-side.
     match /laundry/{doc} {
