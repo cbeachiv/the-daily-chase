@@ -122,3 +122,17 @@ The plug reports `running:false` after 60 s of low power, then reports again
 the grace window, the run lasted ≥ `minRunMs`, and no text has gone out for this
 run — so it sends one text per cycle, about 2–3 minutes after the machine stops.
 The 5-minute heartbeat is the backstop if that report is lost.
+
+## Weekly email
+
+Every Sunday at 9 AM Eastern, `app/api/cron/laundry-weekly` emails "The Laundry
+Report" (last 7 days: loads, run times, busiest slots, quietest windows for the
+coming week, washer-to-dryer waits, records, trends) to `LAUNDRY_EMAIL_TO`
+(defaults to Chase and Sarah). It sends from `LAUNDRY_FROM`, or `laundry@` on
+the domain in `ADVISOR_FROM`. Stats come from `lib/laundryStats.ts`, which
+rebuilds loads from `laundryEvents` and merges the pre-2026-09-23 washer pauses.
+
+- Preview with real data, no send (from the main checkout):
+  `npx tsx scripts/preview-laundry-email.ts --today 2026-09-27`
+- Test send to one address:
+  `curl -H "Authorization: Bearer $CRON_SECRET" "https://thedailychase.com/api/cron/laundry-weekly?to=you@example.com"`
