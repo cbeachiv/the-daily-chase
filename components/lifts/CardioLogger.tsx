@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCollection, addItem } from "@/lib/data";
 import { nowStamp, todayISO } from "@/lib/lifts";
 import {
@@ -17,12 +17,26 @@ import {
 
 const KINDS: CardioKind[] = ["outdoor", "treadmill", "pickleball", "tennis", "other"];
 
+const isKind = (v: string | null): v is CardioKind => KINDS.includes(v as CardioKind);
+
+/**
+ * Optional search params let other pages open the logger prefilled:
+ *   ?kind=treadmill&date=2026-09-08&back=/race
+ * `back` is where Save/Cancel return to (default /lifts).
+ */
 export default function CardioLogger() {
   const router = useRouter();
+  const params = useSearchParams();
   const { uid } = useCollection<CardioLog>("cardio");
 
-  const [kind, setKind] = useState<CardioKind>("outdoor");
-  const [date, setDate] = useState(todayISO());
+  const paramKind = params.get("kind");
+  const paramDate = params.get("date");
+  const back = params.get("back")?.startsWith("/") ? params.get("back")! : "/lifts";
+
+  const [kind, setKind] = useState<CardioKind>(isKind(paramKind) ? paramKind : "outdoor");
+  const [date, setDate] = useState(
+    paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate) ? paramDate : todayISO()
+  );
   const [time, setTime] = useState(""); // duration, "MM:SS" or minutes
   const [incline, setIncline] = useState(""); // %
   const [speed, setSpeed] = useState(""); // mph
@@ -73,7 +87,7 @@ export default function CardioLogger() {
     setSaving(true);
     try {
       await addItem(uid, "cardio", payload);
-      router.push("/lifts");
+      router.push(back);
     } catch (e) {
       setSaving(false);
       setError("Could not save. Try again.");
@@ -173,7 +187,7 @@ export default function CardioLogger() {
         {error && <p className="text-sm text-coral">{error}</p>}
 
         <div className="flex gap-3 pt-1">
-          <button onClick={() => router.push("/lifts")} className="btn-ghost flex-1">Cancel</button>
+          <button onClick={() => router.push(back)} className="btn-ghost flex-1">Cancel</button>
           <button onClick={save} disabled={saving || !uid} className="btn-primary flex-[2] disabled:opacity-50">
             {saving ? "Saving…" : "Save cardio"}
           </button>

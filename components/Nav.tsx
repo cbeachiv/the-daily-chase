@@ -20,6 +20,8 @@ const PRIMARY: Tab[] = [
 ];
 
 const OTHER: Tab[] = [
+  // Finish flag — the Thanksgiving 5K training block.
+  { href: "/race", label: "5K", icon: "M5 21V4M5 4h12l-2 4 2 4H5" },
   { href: "/annie", label: "Annie", icon: "M12 21s-6.7-4.4-9.3-8.1C.9 10.3 2 6.5 5.2 6c2-.3 3.6.8 4.3 2 .7-1.2 2.3-2.3 4.3-2 3.2.5 4.3 4.3 2.5 6.9C18.7 16.6 12 21 12 21z" },
   { href: "/weekly-review", label: "Weekly", icon: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" },
   { href: "/travel", label: "Travel", icon: "M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" },

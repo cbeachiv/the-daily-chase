@@ -490,3 +490,15 @@ export interface FinanceSnapshot {
   createdAt: string;
   updatedAt?: string;
 }
+
+// users/{uid}/trainingSessions — manual completion override for a planned run in
+// the Thanksgiving 5K block (lib/trainingPlan.ts). Doc id = the session's date
+// (YYYY-MM-DD). A session also counts as done when an outdoor/treadmill cardio
+// log exists that day, so this doc is only needed for runs logged elsewhere.
+export interface TrainingSessionLog {
+  id: string; // = date "YYYY-MM-DD"
+  done: boolean;
+  actualSec?: number; // finish time for time trials / the race
+  notes?: string;
+  updatedAt: string;
+}

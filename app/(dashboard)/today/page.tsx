@@ -7,6 +7,7 @@ import { useCollection } from "@/lib/data";
 import type { Goal, DailyReview } from "@/lib/types";
 import TaskList from "@/components/TaskList";
 import QuickLog from "@/components/QuickLog";
+import RaceCard from "@/components/RaceCard";
 import QuoteOfDay from "@/components/QuoteOfDay";
 import CallsSection from "@/components/CallsSection";
 import { prettyDateLong, startOfMonth, startOfWeek, todayStr } from "@/lib/dates";
@@ -43,6 +44,7 @@ export default function TodayPage() {
 
       <QuoteOfDay />
       <QuickLog />
+      <RaceCard />
       <TaskList />
       <CallsSection />
 
