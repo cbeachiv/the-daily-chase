@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   onSnapshot,
   query,
@@ -49,9 +50,16 @@ export function useCollection<T>(
   return { data, loading, uid };
 }
 
+// Firestore rejects the whole write if any top-level field is `undefined`, which
+// forms produce for blank optional inputs. Drop them on create/merge, and turn
+// them into field deletes on update so clearing an input clears the stored value.
+function withoutUndefined(data: Record<string, unknown>) {
+  return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+}
+
 export async function addItem(uid: string, name: string, data: Record<string, unknown>) {
   const ref = doc(colRef(uid, name));
-  await setDoc(ref, { ...data, createdAt: new Date().toISOString() });
+  await setDoc(ref, { ...withoutUndefined(data), createdAt: new Date().toISOString() });
   return ref.id;
 }
 
@@ -61,7 +69,7 @@ export async function setItem(
   id: string,
   data: Record<string, unknown>
 ) {
-  await setDoc(doc(db, "users", uid, name, id), data, { merge: true });
+  await setDoc(doc(db, "users", uid, name, id), withoutUndefined(data), { merge: true });
 }
 
 export async function updateItem(
@@ -70,7 +78,10 @@ export async function updateItem(
   id: string,
   data: Record<string, unknown>
 ) {
-  await updateDoc(doc(db, "users", uid, name, id), data);
+  const patch = Object.fromEntries(
+    Object.entries(data).map(([k, v]) => [k, v === undefined ? deleteField() : v])
+  );
+  await updateDoc(doc(db, "users", uid, name, id), patch);
 }
 
 export async function deleteItem(uid: string, name: string, id: string) {

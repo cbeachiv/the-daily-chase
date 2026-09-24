@@ -534,14 +534,22 @@ export default function InteriorsPage() {
 
   async function saveNew(data: Omit<DesignClient, "id" | "createdAt" | "sortOrder">) {
     if (!uid) return;
-    await addItem(uid, "designClients", { ...data, sortOrder: clients.length });
-    setAdding(false);
+    try {
+      await addItem(uid, "designClients", { ...data, sortOrder: clients.length });
+      setAdding(false);
+    } catch (err) {
+      alert("Couldn't add client: " + (err instanceof Error ? err.message : String(err)));
+    }
   }
 
   async function saveEdit(id: string, data: Omit<DesignClient, "id" | "createdAt" | "sortOrder">) {
     if (!uid) return;
-    await updateItem(uid, "designClients", id, { ...data });
-    setEditingId(null);
+    try {
+      await updateItem(uid, "designClients", id, { ...data });
+      setEditingId(null);
+    } catch (err) {
+      alert("Couldn't save client: " + (err instanceof Error ? err.message : String(err)));
+    }
   }
 
   const editing = editingId ? clients.find((c) => c.id === editingId) : undefined;
