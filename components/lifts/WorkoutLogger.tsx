@@ -12,11 +12,12 @@ import {
   type LoggedSessionDoc,
 } from "@/lib/lifts";
 import { getTemplate } from "@/lib/workoutTemplates";
+import { topOfRange } from "@/lib/cutPlan";
 import { useWorkouts } from "@/lib/useWorkouts";
 import type { Workout } from "@/lib/types";
 
 interface DraftSet { weight: string; reps: string; done: boolean }
-interface DraftExercise { name: string; bodyweight: boolean; targetReps: string; sets: DraftSet[] }
+interface DraftExercise { name: string; bodyweight: boolean; targetReps: string; rest?: string; sets: DraftSet[] }
 interface Draft {
   workoutKey: string;
   name: string;
@@ -80,7 +81,7 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
           done: false,
         };
       });
-      return { name: te.name, bodyweight: te.bodyweight, targetReps: te.targetReps, sets };
+      return { name: te.name, bodyweight: te.bodyweight, targetReps: te.targetReps, rest: te.rest, sets };
     });
 
     setDraft({
@@ -213,17 +214,32 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
       <div className="space-y-4">
         {draft.exercises.map((ex, ei) => {
           const prev = lastExercise(sessionsDesc, ex.name);
+          // Double progression: every set last time reached the top of the range.
+          const top = topOfRange(ex.targetReps);
+          const prevSets = prev?.ex.sets ?? [];
+          const goUp =
+            !ex.bodyweight && top !== null && prevSets.length > 0 && prevSets.every((s) => s.reps >= top);
+          const hint = [ex.targetReps && `${ex.targetReps} reps`, ex.rest && `rest ${ex.rest}`]
+            .filter(Boolean)
+            .join(" · ");
           return (
             <div key={ei} className="card p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="truncate font-bold text-ink">{ex.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate font-bold text-ink">{ex.name}</h3>
+                    {goUp && (
+                      <span
+                        className="rounded-full bg-teal/15 px-2 py-0.5 text-[11px] font-semibold text-teal"
+                        title={`Every set hit ${top} last time. Go up one pin or plate.`}
+                      >
+                        ↑ Add weight
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted">
-                    {prev
-                      ? `Last: ${formatBestSet(prev.ex)} · ${prev.date}`
-                      : ex.targetReps
-                        ? `Target ${ex.targetReps} reps`
-                        : "No history yet"}
+                    {prev ? `Last: ${formatBestSet(prev.ex)} · ${prev.date}` : "No history yet"}
+                    {hint && ` · ${hint}`}
                   </p>
                 </div>
                 <button

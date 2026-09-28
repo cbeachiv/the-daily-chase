@@ -218,7 +218,16 @@ export interface FoodEntry {
   id: string;
   date: string; // YYYY-MM-DD
   calories: number;
+  proteinG?: number; // grams, when logged alongside calories
   label?: string;
+  createdAt: string;
+}
+
+// Weekly waist measurement at the navel, one per day it's taken.
+export interface WaistLog {
+  id: string;
+  date: string; // YYYY-MM-DD
+  waistIn: number;
   createdAt: string;
 }
 

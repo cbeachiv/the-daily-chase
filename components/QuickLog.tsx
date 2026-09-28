@@ -16,6 +16,7 @@ export default function QuickLog() {
 
   const [open, setOpen] = useState<"weight" | "calories" | null>(null);
   const [val, setVal] = useState("");
+  const [protein, setProtein] = useState("");
   const [strava, setStrava] = useState<"unknown" | "connected" | "disconnected">("unknown");
 
   // Pull recent Strava runs into Exercise each time Today opens.
@@ -56,6 +57,10 @@ export default function QuickLog() {
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
     [foods, today]
   );
+  const todayProtein = useMemo(
+    () => foods.filter((f) => f.date === today).reduce((s, f) => s + (f.proteinG ?? 0), 0),
+    [foods, today]
+  );
 
   // Yes/no per day: did Chase follow his dinner plan? One doc per day, like wakeups.
   async function toggleDinnerPlan() {
@@ -79,19 +84,24 @@ export default function QuickLog() {
   async function saveValue() {
     if (!uid) return;
     const n = parseFloat(val);
-    if (Number.isNaN(n) || n <= 0) {
+    const p = parseFloat(protein);
+    const close = () => {
       setOpen(null);
       setVal("");
-      return;
-    }
+      setProtein("");
+    };
     if (open === "weight") {
+      if (Number.isNaN(n) || n <= 0) return close();
       if (todayWeight) await updateItem(uid, "weightLogs", todayWeight.id, { weightLbs: n });
       else await addItem(uid, "weightLogs", { date: today, weightLbs: n });
     } else if (open === "calories") {
-      await addItem(uid, "foodEntries", { date: today, calories: Math.round(n), label: "" });
+      // Calories, protein, or both; protein-only entries count 0 calories.
+      const cal = Number.isNaN(n) || n <= 0 ? 0 : Math.round(n);
+      const pro = Number.isNaN(p) || p <= 0 ? undefined : Math.round(p);
+      if (cal === 0 && pro === undefined) return close();
+      await addItem(uid, "foodEntries", { date: today, calories: cal, proteinG: pro, label: "" });
     }
-    setOpen(null);
-    setVal("");
+    close();
   }
 
   const tile = "card flex flex-col items-center justify-center gap-1 px-2 py-4 text-center transition active:scale-[0.98]";
@@ -153,6 +163,7 @@ export default function QuickLog() {
           onClick={() => {
             setOpen(open === "calories" ? null : "calories");
             setVal("");
+            setProtein("");
           }}
           className={`${tile} ${open === "calories" ? "border-coral" : ""}`}
         >
@@ -160,6 +171,7 @@ export default function QuickLog() {
           <span className="text-xs font-semibold">
             {todayCalories > 0 ? `${todayCalories.toLocaleString()} cal` : "Calories"}
           </span>
+          {todayProtein > 0 && <span className="text-[11px] text-muted">{todayProtein} g protein</span>}
         </button>
       </div>
 
@@ -187,6 +199,17 @@ export default function QuickLog() {
             value={val}
             onChange={(e) => setVal(e.target.value)}
           />
+          {open === "calories" && (
+            <input
+              type="number"
+              inputMode="decimal"
+              step="any"
+              className="input w-32 shrink-0"
+              placeholder="Protein g"
+              value={protein}
+              onChange={(e) => setProtein(e.target.value)}
+            />
+          )}
           <button type="submit" className="btn-primary shrink-0">
             {open === "weight" ? "Save" : "Add"}
           </button>
