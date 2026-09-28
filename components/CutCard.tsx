@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCollection } from "@/lib/data";
 import type { FoodEntry, StepLog, WeightLog } from "@/lib/types";
 import { STEP_LOGS } from "@/lib/steps";
+import StepsForm from "@/components/StepsForm";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import { todayStr } from "@/lib/dates";
 import {
@@ -25,7 +26,7 @@ export default function CutCard() {
   const { data: weights } = useCollection<WeightLog>("weightLogs");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const { data: lifts } = useCollection<LoggedSessionDoc>("liftSessions");
-  const { data: stepLogs } = useCollection<StepLog>(STEP_LOGS);
+  const { data: stepLogs, uid } = useCollection<StepLog>(STEP_LOGS);
 
   const week = weekIndex(today);
   if (week < 1 || week > CUT.weeks) return null;
@@ -81,6 +82,10 @@ export default function CutCard() {
           </p>
           <p className="text-[11px] text-muted">week avg · target {target.toFixed(1)}</p>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <StepsForm uid={uid} stepLogs={stepLogs} />
       </div>
     </section>
   );
