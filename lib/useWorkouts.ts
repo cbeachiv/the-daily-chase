@@ -4,13 +4,19 @@
 // the user's saved customizations in Firestore (users/{uid}/workoutConfig/main).
 // Retiring an exercise moves it from a workout into the "retired" bucket; un-retiring
 // moves it back into a chosen workout. Every change persists the full config doc.
+//
+// The config doc id is versioned per program. Starting a new program (the fall
+// 2026 machine cut) points at a fresh doc so the old lists don't override the new
+// defaults; everything from the previous doc lands in Retired, and the previous
+// doc is left untouched as a backup.
 
 import { useMemo } from "react";
 import { useCollection, setItem } from "@/lib/data";
 import { TEMPLATES, RETIRED_DEFAULTS, getTemplate, type TemplateExercise } from "@/lib/workoutTemplates";
 
 const CONFIG_COL = "workoutConfig";
-const CONFIG_ID = "main";
+const CONFIG_ID = "fall-2026";
+const PREVIOUS_CONFIG_ID = "main";
 
 export interface WorkoutConfig {
   templates: Record<string, TemplateExercise[]>; // keyed by workout key: "a" | "b" | "c"
@@ -34,10 +40,26 @@ export function workoutName(key: string): string {
 export function useWorkouts() {
   const { data, loading, uid } = useCollection<StoredConfig>(CONFIG_COL);
   const stored = data.find((d) => d.id === CONFIG_ID);
+  const previous = data.find((d) => d.id === PREVIOUS_CONFIG_ID);
 
   const config: WorkoutConfig = useMemo(() => {
     const base = defaults();
-    if (!stored) return base;
+    if (!stored) {
+      // First run of this program: retire everything from the previous config
+      // that isn't in the new lists (deduped by name). Saved on the first edit.
+      const inNew = new Set(Object.values(base.templates).flat().map((e) => e.name));
+      const seen = new Set<string>();
+      const retired = [
+        ...base.retired,
+        ...Object.values(previous?.templates ?? {}).flat(),
+        ...(previous?.retired ?? []),
+      ].filter((e) => {
+        if (inNew.has(e.name) || seen.has(e.name)) return false;
+        seen.add(e.name);
+        return true;
+      });
+      return { templates: base.templates, retired };
+    }
     const templates = { ...base.templates, ...(stored.templates ?? {}) };
     const retired = stored.retired ?? base.retired;
     // A stored workout list fully replaces its code default, which would hide
@@ -51,7 +73,7 @@ export function useWorkouts() {
       if (missing.length) templates[t.key] = [...(templates[t.key] ?? []), ...missing];
     }
     return { templates, retired };
-  }, [stored]);
+  }, [stored, previous]);
 
   const persist = async (next: WorkoutConfig) => {
     if (!uid) return;

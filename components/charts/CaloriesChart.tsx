@@ -20,7 +20,8 @@ export default function CaloriesChart({
   granularity: "day" | "week";
   aspect?: number; // higher = shorter chart (compact mode)
 }) {
-  const inRange = entries.filter((e) => !startDate || e.date >= startDate);
+  // Protein-only entries carry 0 calories; leave them out so they don't drag averages down.
+  const inRange = entries.filter((e) => (!startDate || e.date >= startDate) && e.calories > 0);
   const compact = aspect > 2.5;
 
   // Group either by day (daily total) or by week (average daily calories).

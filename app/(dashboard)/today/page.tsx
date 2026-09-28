@@ -9,6 +9,7 @@ import TaskList from "@/components/TaskList";
 import QuickLog from "@/components/QuickLog";
 import QuoteOfDay from "@/components/QuoteOfDay";
 import CallsSection from "@/components/CallsSection";
+import CutCard from "@/components/CutCard";
 import { prettyDateLong, startOfMonth, startOfWeek, todayStr } from "@/lib/dates";
 
 export default function TodayPage() {
@@ -43,6 +44,7 @@ export default function TodayPage() {
 
       <QuoteOfDay />
       <QuickLog />
+      <CutCard />
       <TaskList />
       <CallsSection />
 
