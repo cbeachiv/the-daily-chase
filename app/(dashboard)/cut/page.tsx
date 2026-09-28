@@ -8,6 +8,7 @@ import { STEP_LOGS, fmtSteps } from "@/lib/steps";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import type { CardioLog } from "@/lib/cardio";
 import WeightChart from "@/components/charts/WeightChart";
+import StepsForm from "@/components/StepsForm";
 import { addDays, prettyDate, todayStr } from "@/lib/dates";
 import {
   BLOCKS,
@@ -150,6 +151,9 @@ export default function CutPage() {
             {CUT.proteinG} g protein
           </span>
         </div>
+        <div className="mb-3">
+          <StepsForm uid={uid} stepLogs={stepLogs} />
+        </div>
         <ul className="divide-y divide-line">
           {days.map((d) => {
             const isToday = d.date === today;
@@ -259,8 +263,8 @@ export default function CutPage() {
             as last fall.
           </Rule>
           <Rule title="Move">
-            {DAILY_STEPS.toLocaleString()}+ steps every day, lift days and rest days included. Steps sync from Apple
-            Health through the Log Steps Shortcut.
+            {DAILY_STEPS.toLocaleString()}+ steps every day, lift days and rest days included. Copy the total from the
+            Health app into the steps box each evening (or the next morning as Yesterday).
           </Rule>
           <Rule title="Adjust">
             Ignore weeks 1-2 (water). Two weeks in a row losing under 0.5 lb: cut 150 cal or add 2,000 steps. Losing
