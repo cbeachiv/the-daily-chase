@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCollection, addItem, updateItem } from "@/lib/data";
-import type { FoodEntry, WaistLog, WeightLog, Workout } from "@/lib/types";
+import type { FoodEntry, StepLog, WaistLog, WeightLog, Workout } from "@/lib/types";
+import { STEP_LOGS, fmtSteps } from "@/lib/steps";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import type { CardioLog } from "@/lib/cardio";
 import WeightChart from "@/components/charts/WeightChart";
@@ -37,6 +38,7 @@ export default function CutPage() {
   const { data: cardio } = useCollection<CardioLog>("cardio");
   const { data: workouts } = useCollection<Workout>("workouts");
   const { data: waists } = useCollection<WaistLog>("waistLogs");
+  const { data: stepLogs } = useCollection<StepLog>(STEP_LOGS);
   const [waistInput, setWaistInput] = useState("");
 
   const n = weekIndex(today);
@@ -49,8 +51,8 @@ export default function CutPage() {
   );
 
   const rows = useMemo(
-    () => weeklyRows(weights, foods, lifts, cardio, waists, today),
-    [weights, foods, lifts, cardio, waists, today],
+    () => weeklyRows(weights, foods, lifts, cardio, waists, stepLogs, today),
+    [weights, foods, lifts, cardio, waists, stepLogs, today],
   );
 
   const thisWeekAvg = weekAvgWeight(weights, weekStart(week));
@@ -58,6 +60,7 @@ export default function CutPage() {
   const todayFoods = foods.filter((f) => f.date === today);
   const todayKcal = todayFoods.reduce((s, f) => s + (f.calories || 0), 0);
   const todayProtein = todayFoods.reduce((s, f) => s + (f.proteinG ?? 0), 0);
+  const todaySteps = stepLogs.find((s) => s.date === today)?.steps ?? null;
   const todayWaist = waists.find((w) => w.date === today);
   const lastWaist = [...waists].sort((a, b) => b.date.localeCompare(a.date))[0];
 
@@ -74,7 +77,8 @@ export default function CutPage() {
     const lifted = lifts.some((l) => l.date === date);
     const moved = cardio.some((c) => c.date === date) || workouts.some((w) => w.date === date);
     const done = d.kind === "lift" ? lifted : d.kind === "rest" ? false : moved || lifted;
-    return { ...d, date, done };
+    const steps = stepLogs.find((s) => s.date === date)?.steps ?? null;
+    return { ...d, date, done, steps };
   });
 
   async function saveWaist(e: React.FormEvent) {
@@ -99,7 +103,7 @@ export default function CutPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat
           label="This week avg"
           value={thisWeekAvg !== null ? `${thisWeekAvg.toFixed(1)}` : "—"}
@@ -121,6 +125,12 @@ export default function CutPage() {
           value={`${todayKcal.toLocaleString()} cal`}
           sub={`${todayProtein} / ${CUT.proteinG} g protein`}
           tone={todayKcal > kcalTarget(week) ? "bad" : undefined}
+        />
+        <Stat
+          label="Steps today"
+          value={todaySteps === null ? "—" : todaySteps.toLocaleString()}
+          sub={`goal ${DAILY_STEPS.toLocaleString()}+`}
+          tone={todaySteps !== null && todaySteps >= DAILY_STEPS ? "good" : undefined}
         />
       </section>
 
@@ -162,6 +172,14 @@ export default function CutPage() {
                   </p>
                   <p className="text-xs text-muted">{d.detail}</p>
                 </div>
+                {d.steps !== null && (
+                  <span
+                    className={`shrink-0 text-xs font-semibold ${d.steps >= DAILY_STEPS ? "text-teal" : "text-muted"}`}
+                    title={`${d.steps.toLocaleString()} steps`}
+                  >
+                    {fmtSteps(d.steps)} steps
+                  </span>
+                )}
                 {d.workoutKey && !d.done && (isToday || d.date < today) && (
                   <Link href={`/lifts/new/${d.workoutKey}`} className="shrink-0 text-xs font-semibold text-indigo">
                     Start →
@@ -240,6 +258,10 @@ export default function CutPage() {
             {CUT.kcal.toLocaleString()} cal and {CUT.proteinG} g protein every day. Protein first. Log every day, same
             as last fall.
           </Rule>
+          <Rule title="Move">
+            {DAILY_STEPS.toLocaleString()}+ steps every day, lift days and rest days included. Steps sync from Apple
+            Health through the Log Steps Shortcut.
+          </Rule>
           <Rule title="Adjust">
             Ignore weeks 1-2 (water). Two weeks in a row losing under 0.5 lb: cut 150 cal or add 2,000 steps. Losing
             over 2 lb in a week: add 150 cal.
@@ -298,6 +320,7 @@ function WeekItem({ r }: { r: WeekRow }) {
         {[
           r.avgKcal !== null ? `${r.avgKcal.toLocaleString()} cal/day` : "no calories",
           r.avgProtein !== null ? `${r.avgProtein} g protein` : null,
+          r.avgSteps !== null ? `${r.avgSteps.toLocaleString()} steps/day` : null,
           `${r.lifts} lift${r.lifts === 1 ? "" : "s"}`,
           `${r.cardio} cardio`,
           r.waist !== null ? `waist ${r.waist} in` : null,

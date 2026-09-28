@@ -3,7 +3,8 @@
 // To run another cut, change the constants below.
 
 import { addDays, startOfWeek, todayStr } from "@/lib/dates";
-import type { FoodEntry, WaistLog, WeightLog } from "@/lib/types";
+import type { FoodEntry, StepLog, WaistLog, WeightLog } from "@/lib/types";
+import { weekAvgSteps } from "@/lib/steps";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import type { CardioLog } from "@/lib/cardio";
 
@@ -153,6 +154,7 @@ export interface WeekRow {
   change: number | null; // vs the previous week's average (negative = lost)
   avgKcal: number | null;
   avgProtein: number | null;
+  avgSteps: number | null;
   lifts: number;
   cardio: number;
   waist: number | null;
@@ -181,6 +183,7 @@ export function weeklyRows(
   lifts: LoggedSessionDoc[],
   cardio: CardioLog[],
   waists: WaistLog[],
+  steps: StepLog[],
   today: string = todayStr(),
 ): WeekRow[] {
   const current = Math.min(weekIndex(today), CUT.weeks);
@@ -222,6 +225,7 @@ export function weeklyRows(
       change,
       avgKcal: avgKcal === null ? null : Math.round(avgKcal),
       avgProtein: avgProtein === null ? null : Math.round(avgProtein),
+      avgSteps: weekAvgSteps(steps, start),
       lifts: new Set(inWeek(lifts).map((l) => l.date)).size,
       cardio: new Set(inWeek(cardio).map((c) => c.date)).size,
       waist: weekWaists[0]?.waistIn ?? null,
