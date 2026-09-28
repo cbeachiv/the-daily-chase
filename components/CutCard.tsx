@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useCollection } from "@/lib/data";
-import type { FoodEntry, WeightLog } from "@/lib/types";
+import type { FoodEntry, StepLog, WeightLog } from "@/lib/types";
+import { STEP_LOGS } from "@/lib/steps";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import { todayStr } from "@/lib/dates";
 import {
   CUT,
+  DAILY_STEPS,
   isLighterWeek,
   kcalTarget,
   planDayFor,
@@ -23,6 +25,7 @@ export default function CutCard() {
   const { data: weights } = useCollection<WeightLog>("weightLogs");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const { data: lifts } = useCollection<LoggedSessionDoc>("liftSessions");
+  const { data: stepLogs } = useCollection<StepLog>(STEP_LOGS);
 
   const week = weekIndex(today);
   if (week < 1 || week > CUT.weeks) return null;
@@ -32,6 +35,7 @@ export default function CutCard() {
   const todayFoods = foods.filter((f) => f.date === today);
   const kcal = todayFoods.reduce((s, f) => s + (f.calories || 0), 0);
   const protein = todayFoods.reduce((s, f) => s + (f.proteinG ?? 0), 0);
+  const steps = stepLogs.find((s) => s.date === today)?.steps ?? 0;
   const avg = weekAvgWeight(weights, weekStart(week));
   const target = targetWeightFor(week);
   const kcalGoal = kcalTarget(week);
@@ -67,9 +71,10 @@ export default function CutCard() {
           ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+      <div className="mt-4 grid grid-cols-2 gap-x-2 gap-y-4 text-center sm:grid-cols-4">
         <Meter label="Calories" value={kcal} goal={kcalGoal} unit="" overIsBad />
         <Meter label="Protein" value={protein} goal={CUT.proteinG} unit=" g" />
+        <Meter label="Steps" value={steps} goal={DAILY_STEPS} unit="" />
         <div>
           <p className={`text-lg font-extrabold ${avg === null ? "text-muted" : avg <= target ? "text-teal" : "text-coral"}`}>
             {avg === null ? "—" : avg.toFixed(1)}

@@ -214,6 +214,17 @@ export interface WeightLog {
   createdAt: string;
 }
 
+// One doc per day: users/{uid}/stepLogs/s_YYYY-MM-DD. Deterministic id so the
+// iOS "Log Steps" Shortcut can re-POST the same day idempotently.
+export interface StepLog {
+  id: string; // "s_2026-09-28"
+  date: string; // YYYY-MM-DD
+  steps: number; // whole steps for the day (Apple Health total)
+  source: "shortcut" | "manual";
+  updatedAt: string; // ISO, last write
+  createdAt: string; // ISO, first write (preserved on overwrite)
+}
+
 export interface FoodEntry {
   id: string;
   date: string; // YYYY-MM-DD
