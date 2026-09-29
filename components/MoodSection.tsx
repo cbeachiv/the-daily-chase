@@ -3,7 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem, setItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import type { CoffeeLog, DinnerPlanLog, MoodLog, Workout } from "@/lib/types";
+import type {
+  CoffeeLog,
+  DinnerPlanLog,
+  FoodEntry,
+  MoodLog,
+  StepLog,
+  WeightLog,
+  Workout,
+} from "@/lib/types";
+import { MAX_STEPS_PER_DAY, STEP_LOGS, stepLogId } from "@/lib/steps";
 import { addDays, prettyDate, prettyTime, sleepHours, todayStr } from "@/lib/dates";
 import MoodChart from "@/components/charts/MoodChart";
 
@@ -67,6 +76,25 @@ export default function MoodSection({
   // Dinner plan is a shared per-day yes/no toggle (same source the Quick Log uses).
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const dinnerPlanOnDate = dinnerPlans.some((d) => d.date === logDate);
+
+  // Food & body for the day being logged: calories/protein (foodEntries),
+  // weight (weightLogs) and steps (stepLogs). Each field is null until edited,
+  // so only what you actually typed gets written.
+  const { data: foods } = useCollection<FoodEntry>("foodEntries");
+  const { data: weights } = useCollection<WeightLog>("weightLogs");
+  const { data: stepLogs } = useCollection<StepLog>(STEP_LOGS);
+  const dayFoods = useMemo(() => foods.filter((f) => f.date === logDate), [foods, logDate]);
+  const dayCalories = dayFoods.reduce((s, f) => s + (f.calories || 0), 0);
+  const dayProtein = dayFoods.reduce((s, f) => s + (f.proteinG ?? 0), 0);
+  const dayWeight = weights.find((w) => w.date === logDate);
+  const daySteps = stepLogs.find((s) => s.date === logDate);
+  const EMPTY_BODY = { calories: null, protein: null, weight: null, steps: null } as Record<
+    "calories" | "protein" | "weight" | "steps",
+    string | null
+  >;
+  const [body, setBody] = useState(EMPTY_BODY);
+  const [bodySaved, setBodySaved] = useState(false);
+  const bodyDirty = Object.values(body).some((v) => v !== null);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -197,6 +225,8 @@ export default function MoodSection({
       return;
     }
     setLogDate(target);
+    setBody(EMPTY_BODY);
+    setBodySaved(false);
     setForm(EMPTY_FORM);
     setEditingId(null);
     setAiQuestion("");
@@ -250,6 +280,8 @@ export default function MoodSection({
 
   function startEdit(l: MoodLog) {
     setLogDate(l.date);
+    setBody(EMPTY_BODY);
+    setBodySaved(false);
     setForm({
       mood: l.mood,
       energy: l.energy,
@@ -268,6 +300,8 @@ export default function MoodSection({
   }
 
   function closeForm() {
+    setBody(EMPTY_BODY);
+    setBodySaved(false);
     setForm(EMPTY_FORM);
     setAiQuestion("");
     setEditingId(null);
@@ -275,9 +309,51 @@ export default function MoodSection({
     setShowForm(false);
   }
 
+  const num = (v: string | null) => {
+    if (v === null || v.trim() === "") return null;
+    const n = Number(v.replace(/[,\s]/g, ""));
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+
+  // Write only the food & body fields that were edited. Calories/protein
+  // replace the day's entries with a single day total, so re-saving never
+  // double counts; weight and steps are one doc per day.
+  async function saveBody() {
+    if (!uid || !bodyDirty) return;
+    const now = new Date().toISOString();
+    const cal = num(body.calories);
+    const pro = num(body.protein);
+    if (body.calories !== null || body.protein !== null) {
+      const calories = Math.round(cal ?? (body.calories === null ? dayCalories : 0));
+      const proteinG = pro !== null ? Math.round(pro) : body.protein === null && dayProtein > 0 ? dayProtein : undefined;
+      for (const f of dayFoods) await deleteItem(uid, "foodEntries", f.id);
+      if (calories > 0 || proteinG !== undefined) {
+        await addItem(uid, "foodEntries", { date: logDate, calories, proteinG, label: "Day total" });
+      }
+    }
+    const w = num(body.weight);
+    if (w !== null && w > 0) {
+      if (dayWeight) await updateItem(uid, "weightLogs", dayWeight.id, { weightLbs: w });
+      else await addItem(uid, "weightLogs", { date: logDate, weightLbs: w });
+    }
+    const st = num(body.steps);
+    if (st !== null && st <= MAX_STEPS_PER_DAY) {
+      await setItem(uid, STEP_LOGS, stepLogId(logDate), {
+        date: logDate,
+        steps: Math.round(st),
+        source: "manual",
+        updatedAt: now,
+        ...(daySteps ? {} : { createdAt: now }),
+      });
+    }
+    setBody(EMPTY_BODY);
+    setBodySaved(true);
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!uid) return;
+    await saveBody();
     const editable = {
       mood: form.mood,
       energy: form.energy,
@@ -415,6 +491,46 @@ export default function MoodSection({
                   ? "New entry"
                   : `New entry for ${prettyDate(logDate)}`}
             </span>
+          </div>
+
+          {/* Food & body for this day. Blank fields are left alone. */}
+          <div className="rounded-lg border border-line bg-card p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted">🍽️ Food & body</span>
+              <button
+                type="button"
+                onClick={saveBody}
+                disabled={!bodyDirty || !uid}
+                className="text-xs font-semibold text-indigo disabled:text-muted disabled:opacity-60"
+              >
+                {bodySaved && !bodyDirty ? "Saved ✓" : "Save just these"}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <BodyField
+                label="Calories"
+                value={body.calories ?? (dayCalories ? String(dayCalories) : "")}
+                onChange={(v) => setBody({ ...body, calories: v })}
+              />
+              <BodyField
+                label="Protein (g)"
+                value={body.protein ?? (dayProtein ? String(dayProtein) : "")}
+                onChange={(v) => setBody({ ...body, protein: v })}
+              />
+              <BodyField
+                label="Weight (lb)"
+                value={body.weight ?? (dayWeight ? String(dayWeight.weightLbs) : "")}
+                onChange={(v) => setBody({ ...body, weight: v })}
+              />
+              <BodyField
+                label="Steps"
+                value={body.steps ?? (daySteps ? String(daySteps.steps) : "")}
+                onChange={(v) => setBody({ ...body, steps: v })}
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted">
+              Day totals. Saving calories or protein replaces that day&apos;s entries with one total.
+            </p>
           </div>
 
           <Slider
@@ -695,6 +811,30 @@ export default function MoodSection({
       </>
       )}
     </section>
+  );
+}
+
+function BodyField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="text-[11px] font-semibold text-muted">
+      {label}
+      <input
+        type="text"
+        inputMode="decimal"
+        className="input mt-1 py-1.5"
+        placeholder="—"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
   );
 }
 
