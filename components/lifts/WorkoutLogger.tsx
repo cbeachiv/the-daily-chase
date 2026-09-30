@@ -138,16 +138,29 @@ export default function WorkoutLogger({ workoutKey }: { workoutKey: string }) {
   };
 
   const completedSets = draft.exercises.reduce(
-    (n, e) => n + e.sets.filter((s) => parseFloat(s.reps) > 0).length, 0,
+    (n, e) => n + e.sets.filter((s) => s.done && parseFloat(s.reps) > 0).length, 0,
   );
 
   const finish = async () => {
     if (!uid) return;
+    // Sets are prefilled from last time, so a filled-in set isn't proof it was
+    // done. Save the sets checked off with ✓; only if nothing is checked (you
+    // don't use the checkboxes) fall back to every set with reps. Always
+    // confirm, since the pinned Finish button is easy to hit mid-workout.
+    const filled = draft.exercises.flatMap((ex) => ex.sets).filter((s) => parseFloat(s.reps) > 0);
+    const checked = filled.filter((s) => s.done);
+    const useChecked = checked.length > 0;
+    const message = useChecked
+      ? `Finish ${draft.name.trim() || "workout"}?\n\n${checked.length} of ${filled.length} sets checked off. Unchecked sets won't be saved.`
+      : `Finish ${draft.name.trim() || "workout"}?\n\nNo sets are checked off, so all ${filled.length} filled-in sets will be saved, including ones prefilled from last time.`;
+    if (!confirm(message)) return;
+
     const exercises = draft.exercises
       .map((ex) => ({
         name: ex.name.trim(),
         isBodyweight: ex.bodyweight,
         sets: ex.sets
+          .filter((s) => !useChecked || s.done)
           .map((s) => ({ weight: parseFloat(s.weight) || 0, reps: parseFloat(s.reps) || 0 }))
           .filter((s) => s.reps > 0),
       }))
