@@ -1,16 +1,28 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { FinanceSnapshot, FinanceTransaction } from "@/lib/types";
+import { setItem } from "@/lib/data";
+import { todayStr } from "@/lib/dates";
 import { aggregateMonth, feedCoverage, fmtUSD, monthLabel, DEFAULT_HUGGA } from "@/lib/finance";
 
 // A spreadsheet-style month-over-month grid (newest month first), mirroring the
 // budget Google Sheet: income, savings balance + monthly change, investments,
 // rent/spend, and a computed net-worth row. Numbers come from transactions when a
 // month has them, else from that month's stored snapshot totals.
+//
+// Balance cells (Savings, Bitcoin, IRA, Hugga) are click-to-edit for every month
+// and save to that month's snapshot; Savings Amount / Savings % / Net Worth
+// recompute from them. Income / Rent / Total Spend are editable only for months
+// the transaction feed doesn't cover (in feed months they're computed: Rent is the
+// Rent category, Spend is everything else, i.e. the card spend).
+
+// Snapshot fields the table can write.
+type EditField = "income" | "savings" | "bitcoin" | "ira" | "hugga" | "rent" | "spend";
 
 interface Col {
   month: string;
+  fromTxns: boolean; // income/rent/spend computed from the feed (read-only)
   income?: number;
   totalSpend?: number;
   rent?: number;
@@ -30,16 +42,23 @@ const sum = (xs: (number | undefined)[]) => {
 };
 
 export default function FinanceTable({
+  uid,
   snapshots,
   txns,
 }: {
+  uid: string | null;
   snapshots: FinanceSnapshot[];
   txns: FinanceTransaction[];
 }) {
+  const [editing, setEditing] = useState<{ month: string; field: EditField } | null>(null);
+  const [draft, setDraft] = useState("");
+  const cancelled = useRef(false); // Escape: skip the save the unmount blur would trigger
+
   const cols = useMemo<Col[]>(() => {
     const months = new Set<string>();
     snapshots.forEach((s) => months.add(s.month));
     txns.forEach((t) => months.add(t.month));
+    months.add(todayStr().slice(0, 7)); // always a column to type this month into
     const asc = Array.from(months).sort();
 
     const cov = feedCoverage(txns);
@@ -52,13 +71,15 @@ export default function FinanceTable({
       const agg = fullyCovered && mTxns.length ? aggregateMonth(mTxns) : null;
       const income = agg ? agg.income : snap?.income;
       const totalSpend = agg ? agg.spend : snap?.spend;
-      const rent = snap?.rent;
+      // Feed months: rent is the Rent category, and the rest is card spend.
+      const rent = agg ? agg.byCategory.find((c) => c.category === "Rent")?.amount ?? 0 : snap?.rent;
       const cardSpend = totalSpend != null && rent != null ? totalSpend - rent : undefined;
       // Hugga is a fixed $5,000 holding: default it for any month that has a
       // snapshot but no explicit value. Months with no snapshot stay blank.
       const hugga = snap ? snap.hugga ?? DEFAULT_HUGGA : undefined;
       return {
         month,
+        fromTxns: !!agg,
         income,
         totalSpend,
         rent,
@@ -84,8 +105,28 @@ export default function FinanceTable({
     return built.reverse(); // newest first, like the sheet
   }, [snapshots, txns]);
 
-  if (cols.length === 0) {
-    return <p className="card p-6 text-center text-sm text-muted">No monthly data yet.</p>;
+  function startEdit(c: Col, field: EditField) {
+    const current = field === "spend" ? c.totalSpend : c[field];
+    cancelled.current = false;
+    setEditing({ month: c.month, field });
+    setDraft(current != null ? String(Math.round(current * 100) / 100) : "");
+  }
+
+  async function commitEdit() {
+    if (!editing || !uid || cancelled.current) return setEditing(null);
+    const { month, field } = editing;
+    setEditing(null);
+    const n = parseFloat(draft.replace(/[$,\s]/g, ""));
+    const snap = snapshots.find((s) => s.month === month);
+    const value = Number.isFinite(n) ? n : null; // blank clears the cell
+    if ((snap?.[field] ?? null) === value) return;
+    const now = new Date().toISOString();
+    await setItem(uid, "financeSnapshots", month, {
+      month,
+      [field]: value,
+      updatedAt: now,
+      ...(snap ? {} : { createdAt: now }),
+    });
   }
 
   const money = (n?: number) => (n == null ? "" : fmtUSD(n));
@@ -98,19 +139,23 @@ export default function FinanceTable({
     tint?: string; // row background tint
     bold?: boolean;
     signed?: (c: Col) => number | undefined; // drives red/green for signed rows
+    edit?: EditField; // snapshot field this row writes
+    editable?: (c: Col) => boolean; // default: always, when `edit` is set
   };
 
+  const preFeed = (c: Col) => !c.fromTxns;
+
   const rows: Row[] = [
-    { label: "Income", get: (c) => money(c.income), tint: "bg-teal/5" },
-    { label: "Savings", get: (c) => money(c.savings), tint: "bg-teal/5" },
+    { label: "Income", get: (c) => money(c.income), tint: "bg-teal/5", edit: "income", editable: preFeed },
+    { label: "Savings", get: (c) => money(c.savings), tint: "bg-teal/5", edit: "savings" },
     { label: "Savings Amount", get: (c) => signedMoney(c.savingsAmount), tint: "bg-teal/5", signed: (c) => c.savingsAmount },
     { label: "Savings %", get: (c) => pct(c.savingsPct), tint: "bg-teal/5", signed: (c) => c.savingsPct },
-    { label: "Bitcoin", get: (c) => money(c.bitcoin) },
-    { label: "IRA", get: (c) => money(c.ira) },
-    { label: "Hugga", get: (c) => money(c.hugga) },
-    { label: "Rent", get: (c) => money(c.rent), tint: "bg-amber/5" },
+    { label: "Bitcoin", get: (c) => money(c.bitcoin), edit: "bitcoin" },
+    { label: "IRA", get: (c) => money(c.ira), edit: "ira" },
+    { label: "Hugga", get: (c) => money(c.hugga), edit: "hugga" },
+    { label: "Rent", get: (c) => money(c.rent), tint: "bg-amber/5", edit: "rent", editable: preFeed },
     { label: "Spend", get: (c) => money(c.cardSpend), tint: "bg-amber/5" },
-    { label: "Total Spend", get: (c) => money(c.totalSpend), tint: "bg-amber/5" },
+    { label: "Total Spend", get: (c) => money(c.totalSpend), tint: "bg-amber/5", edit: "spend", editable: preFeed },
     { label: "Net Worth", get: (c) => money(c.netWorth), bold: true },
   ];
 
@@ -149,14 +194,39 @@ export default function FinanceTable({
                 const signedVal = row.signed?.(c);
                 const color =
                   signedVal == null ? "" : signedVal < 0 ? "text-coral" : "text-teal";
+                const canEdit = !!uid && !!row.edit && (row.editable?.(c) ?? true);
+                const isEditing = editing?.month === c.month && editing.field === row.edit;
                 return (
                   <td
                     key={c.month}
+                    onClick={canEdit && !isEditing ? () => startEdit(c, row.edit!) : undefined}
+                    title={canEdit ? "Click to edit" : undefined}
                     className={`whitespace-nowrap border-b border-line px-3 py-2 tabular-nums ${
                       row.bold ? "font-bold text-ink" : color || "text-ink"
-                    }`}
+                    } ${canEdit && !isEditing ? "cursor-text hover:bg-ink/5" : ""}`}
                   >
-                    {row.get(c)}
+                    {isEditing ? (
+                      <input
+                        autoFocus
+                        inputMode="decimal"
+                        className="w-28 rounded border border-line bg-card px-1.5 py-0.5 text-right tabular-nums outline-none focus:border-teal"
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        onBlur={commitEdit}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.currentTarget.blur();
+                          if (e.key === "Escape") {
+                            cancelled.current = true;
+                            setEditing(null);
+                          }
+                        }}
+                      />
+                    ) : canEdit && row.get(c) === "" ? (
+                      <span className="text-muted/40">+</span>
+                    ) : (
+                      row.get(c)
+                    )}
                   </td>
                 );
               })}

@@ -206,7 +206,7 @@ export default function FinancePage() {
         </div>
       </header>
 
-      {view === "table" && <FinanceTable snapshots={snapshots} txns={txns} />}
+      {view === "table" && <FinanceTable uid={uid} snapshots={snapshots} txns={txns} />}
 
       {view === "dashboard" && (
         <>
