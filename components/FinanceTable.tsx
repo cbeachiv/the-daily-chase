@@ -11,6 +11,8 @@ import { aggregateMonth, feedCoverage, fmtUSD, monthLabel, DEFAULT_HUGGA } from 
 // rent/spend, and a computed net-worth row. Numbers come from transactions when a
 // month has them, else from that month's stored snapshot totals.
 //
+// Savings is filled in daily from the Plaid-connected savings account (see
+// syncSavingsBalance), but can still be overridden by hand.
 // Balance cells (Savings, Bitcoin, IRA, Hugga) are click-to-edit for every month
 // and save to that month's snapshot; Savings Amount / Savings % / Net Worth
 // recompute from them. Income / Rent / Total Spend are editable only for months

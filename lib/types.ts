@@ -500,7 +500,8 @@ export interface FinanceSnapshot {
   month: string; // "YYYY-MM"
   bitcoin?: number;
   ira?: number;
-  savings?: number; // liquid savings balance (month-end)
+  savings?: number; // liquid savings balance (month-end); auto-filled from Plaid savings accounts
+  savingsSyncedAt?: string; // when Plaid last wrote `savings`
   hugga?: number; // Hugga investment balance
   rent?: number; // rent paid that month (part of total spend)
   cashChecking?: number;
