@@ -150,6 +150,62 @@ export async function reconcileTransfers(uid: string, sinceDays = 75): Promise<n
   return hits.length;
 }
 
+// ── Savings balance → monthly snapshot ──────────────────────────────────────
+// The Finance table's "Savings" row is the balance of the savings account(s)
+// connected through Plaid (Capital One 360 Performance Savings). Each sync writes
+// the current balance into the snapshot for the month that yesterday (Eastern)
+// belongs to, so the 4 AM run on the 1st records the closing balance of the month
+// that just ended, and the rest of the month keeps the current month up to date.
+// Bitcoin / IRA / Hugga stay manual.
+
+// "YYYY-MM" of yesterday in America/New_York.
+function balanceMonth(now = new Date()): string {
+  const y = new Date(now.getTime() - 86_400_000);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit" })
+      .formatToParts(y)
+      .map((p) => [p.type, p.value])
+  );
+  return `${parts.year}-${parts.month}`;
+}
+
+// Best-effort: never fails the transaction sync. Returns the balance written, or
+// null when no savings account was found / Plaid errored.
+export async function syncSavingsBalance(uid: string): Promise<number | null> {
+  const db = adminDb();
+  const snap = await db.collection("plaidItems").where("uid", "==", uid).get();
+  let total = 0;
+  let found = false;
+  for (const d of snap.docs) {
+    const item = d.data() as Omit<ItemDoc, "id">;
+    try {
+      const resp = await plaidClient().accountsGet({ access_token: item.accessToken });
+      for (const a of resp.data.accounts) {
+        if (a.type !== "depository" || a.subtype !== "savings") continue;
+        const bal = a.balances.available ?? a.balances.current;
+        if (bal == null) continue;
+        total += bal;
+        found = true;
+      }
+    } catch (err) {
+      console.warn(`Plaid balance fetch skipped for item ${d.id}:`, errorCode(err) || err);
+      return null; // a partial total would understate savings; keep the last good value
+    }
+  }
+  if (!found) return null;
+
+  const month = balanceMonth();
+  const ref = db.doc(`users/${uid}/financeSnapshots/${month}`);
+  const now = new Date().toISOString();
+  const existing = await ref.get();
+  const savings = Math.round(total * 100) / 100;
+  await ref.set(
+    { month, savings, savingsSyncedAt: now, updatedAt: now, ...(existing.exists ? {} : { createdAt: now }) },
+    { merge: true }
+  );
+  return savings;
+}
+
 export async function syncByItemId(itemId: string): Promise<void> {
   const snap = await adminDb().doc(`plaidItems/${itemId}`).get();
   if (!snap.exists) return;
@@ -208,6 +264,7 @@ export async function refreshAndSyncForUid(
   }
 
   await reconcileTransfers(uid);
+  await syncSavingsBalance(uid);
   return { items: itemIds.length, added, modified, removed };
 }
 
@@ -219,6 +276,9 @@ export async function syncAllItems(): Promise<{ items: number }> {
     await syncItem({ id: d.id, ...data });
     uids.add(data.uid);
   }
-  for (const uid of uids) await reconcileTransfers(uid);
+  for (const uid of uids) {
+    await reconcileTransfers(uid);
+    await syncSavingsBalance(uid);
+  }
   return { items: snap.size };
 }
