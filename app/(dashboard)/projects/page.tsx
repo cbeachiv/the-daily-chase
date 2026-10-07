@@ -21,13 +21,18 @@ export default function ProjectsPage() {
   const [targetDate, setTargetDate] = useState("");
   const [newCat, setNewCat] = useState<TaskCategory>("hugga");
   const [showForm, setShowForm] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  const { hugga, personal, archived } = useMemo(() => {
-    const active = projects.filter((p) => p.status !== "archived");
+  const { hugga, personal, completed, archived } = useMemo(() => {
+    const active = projects.filter((p) => p.status === "active" || !p.status);
     return {
       hugga: active.filter((p) => p.category === "hugga"),
       personal: active.filter((p) => p.category === "personal"),
+      // Most recently finished first.
+      completed: projects
+        .filter((p) => p.status === "completed")
+        .sort((a, b) => (b.completedDate ?? "").localeCompare(a.completedDate ?? "")),
       archived: projects.filter((p) => p.status === "archived"),
     };
   }, [projects]);
@@ -142,9 +147,11 @@ export default function ProjectsPage() {
         </form>
       )}
 
-      {hugga.length === 0 && personal.length === 0 && archived.length === 0 && !showForm && (
+      {hugga.length === 0 && personal.length === 0 && !showForm && (
         <p className="card p-6 text-center text-sm text-muted">
-          No projects yet. Add your first one above. ✦
+          {completed.length || archived.length
+            ? "Clean slate. Nothing active right now. ✦"
+            : "No projects yet. Add your first one above. ✦"}
         </p>
       )}
 
@@ -177,6 +184,20 @@ export default function ProjectsPage() {
               onMoveDown={i < personal.length - 1 ? () => move(personal, i, 1) : undefined}
             />
           ))}
+        </section>
+      )}
+
+      {completed.length > 0 && (
+        <section className="space-y-3 border-t border-line pt-4">
+          <button
+            onClick={() => setShowCompleted((s) => !s)}
+            className="flex w-full items-center justify-between text-xs font-semibold text-muted hover:text-ink"
+          >
+            <span>Completed ({completed.length})</span>
+            <span className="text-[10px]">{showCompleted ? "▲ hide" : "▼ show"}</span>
+          </button>
+          {showCompleted &&
+            completed.map((p) => <ProjectCard key={p.id} project={p} tasks={tasks} uid={uid} />)}
         </section>
       )}
 

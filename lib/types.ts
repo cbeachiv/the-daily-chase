@@ -32,7 +32,8 @@ export interface TrackedProject {
   name: string;
   description?: string;
   category: TaskCategory; // "hugga" | "personal" — same vocab as to-dos
-  status: "active" | "archived"; // archived = finished/parked, hidden by default
+  status: "active" | "completed" | "archived"; // completed = shipped (has completedDate); archived = parked/abandoned
+  completedDate?: string; // YYYY-MM-DD — when it was finished; set when status becomes "completed"
   milestones: Milestone[];
   link?: string; // optional URL (repo, site, doc)
   startDate?: string; // YYYY-MM-DD — when work actually began; falls back to createdAt's date

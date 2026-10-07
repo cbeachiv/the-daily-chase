@@ -100,7 +100,7 @@ export default function TaskList() {
   const { data: allProjects } = useCollection<TrackedProject>("trackedProjects");
   // Only active projects are offered for linking.
   const projects = useMemo(
-    () => allProjects.filter((p) => p.status !== "archived"),
+    () => allProjects.filter((p) => p.status === "active" || !p.status),
     [allProjects]
   );
   const [title, setTitle] = useState("");

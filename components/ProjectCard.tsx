@@ -6,14 +6,26 @@ import type { Milestone, Task, TrackedProject } from "@/lib/types";
 import { CAT_CHIP, CAT_LABEL } from "@/lib/categories";
 import { prettyDate, todayStr } from "@/lib/dates";
 
-function daysUntil(dateStr: string): string {
-  const d = Math.round(
-    (new Date(dateStr + "T00:00:00").getTime() - new Date(todayStr() + "T00:00:00").getTime()) /
-      86_400_000
+function daysBetween(from: string, to: string): number {
+  return Math.round(
+    (new Date(to + "T00:00:00").getTime() - new Date(from + "T00:00:00").getTime()) / 86_400_000
   );
+}
+
+function daysUntil(dateStr: string): string {
+  const d = daysBetween(todayStr(), dateStr);
   if (d < 0) return `${-d}d overdue`;
   if (d === 0) return "due today";
   return `in ${d}d`;
+}
+
+// "took 13 days", with a rough week/month gloss once it gets long.
+function tookLabel(days: number): string {
+  if (days <= 0) return "done same day";
+  if (days === 1) return "took 1 day";
+  if (days < 21) return `took ${days} days`;
+  if (days < 60) return `took ${days} days (~${Math.round(days / 7)} wks)`;
+  return `took ${days} days (~${Math.round(days / 30)} mo)`;
 }
 
 // One tracked project: milestone checklist with a progress bar, plus a rollup of
@@ -40,10 +52,18 @@ export default function ProjectCard({
   const [editLink, setEditLink] = useState(project.link ?? "");
   const [editStart, setEditStart] = useState(project.startDate ?? project.createdAt.slice(0, 10));
   const [editTarget, setEditTarget] = useState(project.targetDate ?? "");
+  const [editCompleted, setEditCompleted] = useState(project.completedDate ?? "");
+  const [completing, setCompleting] = useState(false);
+  const [completeDate, setCompleteDate] = useState(todayStr());
+
+  const isActive = project.status === "active" || !project.status;
+  const isCompleted = project.status === "completed";
+  const startDate = project.startDate ?? project.createdAt.slice(0, 10);
 
   const milestones = project.milestones ?? [];
   const doneCount = milestones.filter((m) => m.done).length;
   const pct = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
+  const allMilestonesDone = milestones.length > 0 && doneCount === milestones.length;
 
   const linked = useMemo(
     () => tasks.filter((t) => t.projectId === project.id),
@@ -91,15 +111,35 @@ export default function ProjectCard({
       link: editLink.trim(),
       startDate: editStart || project.createdAt.slice(0, 10),
       targetDate: editTarget || "",
+      ...(isCompleted ? { completedDate: editCompleted || todayStr() } : {}),
     });
     setEditing(false);
   }
 
-  function toggleArchive() {
+  function complete(e: React.FormEvent) {
+    e.preventDefault();
     if (!uid) return;
     updateItem(uid, "trackedProjects", project.id, {
-      status: project.status === "archived" ? "active" : "archived",
+      status: "completed",
+      completedDate: completeDate || todayStr(),
     });
+    setEditCompleted(completeDate || todayStr());
+    setCompleting(false);
+  }
+
+  // Back to active from either completed or archived. completedDate is cleared
+  // so a reopened project doesn't carry a stale finish date.
+  function reopen() {
+    if (!uid) return;
+    updateItem(uid, "trackedProjects", project.id, {
+      status: "active",
+      completedDate: "",
+    });
+  }
+
+  function archive() {
+    if (!uid) return;
+    updateItem(uid, "trackedProjects", project.id, { status: "archived" });
   }
 
   function remove() {
@@ -142,6 +182,17 @@ export default function ProjectCard({
               onChange={(e) => setEditTarget(e.target.value)}
             />
           </label>
+          {isCompleted && (
+            <label className="flex-1 text-xs font-semibold text-muted">
+              Finished
+              <input
+                type="date"
+                className="input mt-1"
+                value={editCompleted}
+                onChange={(e) => setEditCompleted(e.target.value)}
+              />
+            </label>
+          )}
         </div>
         <input
           className="input"
@@ -153,11 +204,7 @@ export default function ProjectCard({
           <button type="submit" className="btn-primary flex-1">
             Save changes
           </button>
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="btn-ghost flex-1"
-          >
+          <button type="button" onClick={() => setEditing(false)} className="btn-ghost flex-1">
             Cancel
           </button>
         </div>
@@ -213,13 +260,27 @@ export default function ProjectCard({
               </button>
             </div>
           )}
-          <div className="flex gap-3 opacity-0 transition group-hover:opacity-100">
+          <div className="flex gap-3">
+            {isActive ? (
+              <button
+                onClick={() => setCompleting((c) => !c)}
+                className="text-xs font-semibold text-teal hover:text-ink"
+              >
+                Complete
+              </button>
+            ) : (
+              <button onClick={reopen} className="text-xs text-muted hover:text-ink">
+                {isCompleted ? "Reopen" : "Unarchive"}
+              </button>
+            )}
             <button onClick={() => setEditing(true)} className="text-xs text-muted hover:text-ink">
               Edit
             </button>
-            <button onClick={toggleArchive} className="text-xs text-muted hover:text-ink">
-              {project.status === "archived" ? "Unarchive" : "Archive"}
-            </button>
+            {isActive && (
+              <button onClick={archive} className="text-xs text-muted hover:text-ink">
+                Archive
+              </button>
+            )}
             <button onClick={remove} className="text-xs text-muted hover:text-coral">
               Delete
             </button>
@@ -229,28 +290,83 @@ export default function ProjectCard({
 
       {/* Created + target dates */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-        <span>Started {prettyDate(project.startDate ?? project.createdAt.slice(0, 10))}</span>
-        {project.targetDate && (
+        <span>Started {prettyDate(startDate)}</span>
+        {isCompleted && project.completedDate ? (
           <span className="flex items-center gap-1.5">
-            <span>· Target {prettyDate(project.targetDate)}</span>
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                daysUntil(project.targetDate).includes("overdue")
-                  ? "bg-coral/15 text-coral"
-                  : "bg-amber/15 text-amber"
-              }`}
-            >
-              {daysUntil(project.targetDate)}
+            <span>· Finished {prettyDate(project.completedDate)}</span>
+            <span className="rounded-full bg-teal/15 px-1.5 py-0.5 text-[10px] font-semibold text-teal">
+              {tookLabel(daysBetween(startDate, project.completedDate))}
             </span>
+            {project.targetDate && (
+              <span className="text-[10px] text-muted/70">
+                {daysBetween(project.targetDate, project.completedDate) <= 0
+                  ? "on time"
+                  : `${daysBetween(project.targetDate, project.completedDate)}d past target`}
+              </span>
+            )}
           </span>
+        ) : (
+          isActive &&
+          project.targetDate && (
+            <span className="flex items-center gap-1.5">
+              <span>· Target {prettyDate(project.targetDate)}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                  daysUntil(project.targetDate).includes("overdue")
+                    ? "bg-coral/15 text-coral"
+                    : "bg-amber/15 text-amber"
+                }`}
+              >
+                {daysUntil(project.targetDate)}
+              </span>
+            </span>
+          )
         )}
       </div>
+
+      {completing && (
+        <form
+          onSubmit={complete}
+          className="mt-3 flex flex-wrap items-end gap-2 rounded-lg bg-teal/10 p-2.5"
+        >
+          <label className="text-xs font-semibold text-muted">
+            Finished on
+            <input
+              type="date"
+              className="input mt-1 py-1.5 text-sm"
+              value={completeDate}
+              onChange={(e) => setCompleteDate(e.target.value)}
+            />
+          </label>
+          <button type="submit" className="btn-primary px-3 py-1.5 text-sm">
+            Mark complete
+          </button>
+          <button
+            type="button"
+            onClick={() => setCompleting(false)}
+            className="btn-ghost px-3 py-1.5 text-sm"
+          >
+            Cancel
+          </button>
+        </form>
+      )}
+
+      {isActive && allMilestonesDone && !completing && (
+        <button
+          onClick={() => setCompleting(true)}
+          className="mt-3 w-full rounded-lg bg-teal/10 px-3 py-2 text-left text-xs font-semibold text-teal transition hover:bg-teal/20"
+        >
+          All milestones done. Mark this project complete? →
+        </button>
+      )}
 
       {/* Progress bar */}
       <div className="mt-3">
         <div className="mb-1 flex items-center justify-between text-xs text-muted">
           <span className="font-semibold">
-            {milestones.length ? `${doneCount}/${milestones.length} milestones` : "No milestones yet"}
+            {milestones.length
+              ? `${doneCount}/${milestones.length} milestones`
+              : "No milestones yet"}
           </span>
           {milestones.length > 0 && <span className="tabular-nums">{pct}%</span>}
         </div>
@@ -265,7 +381,10 @@ export default function ProjectCard({
       {/* Milestone checklist */}
       <ul className="mt-3 space-y-1">
         {milestones.map((m) => (
-          <li key={m.id} className="group/m flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-bg">
+          <li
+            key={m.id}
+            className="group/m flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-bg"
+          >
             <button
               onClick={() => toggleMilestone(m.id)}
               aria-label={m.done ? "Mark milestone incomplete" : "Complete milestone"}
@@ -289,17 +408,19 @@ export default function ProjectCard({
         ))}
       </ul>
 
-      <form onSubmit={addMilestone} className="mt-2 flex gap-2">
-        <input
-          className="input py-1.5 text-sm"
-          placeholder="Add a milestone…"
-          value={newMilestone}
-          onChange={(e) => setNewMilestone(e.target.value)}
-        />
-        <button type="submit" className="btn-ghost shrink-0 px-3 py-1.5 text-sm">
-          Add
-        </button>
-      </form>
+      {isActive && (
+        <form onSubmit={addMilestone} className="mt-2 flex gap-2">
+          <input
+            className="input py-1.5 text-sm"
+            placeholder="Add a milestone…"
+            value={newMilestone}
+            onChange={(e) => setNewMilestone(e.target.value)}
+          />
+          <button type="submit" className="btn-ghost shrink-0 px-3 py-1.5 text-sm">
+            Add
+          </button>
+        </form>
+      )}
 
       {/* To-do rollup */}
       {linked.length > 0 && (
@@ -316,20 +437,29 @@ export default function ProjectCard({
           {showTodos && (
             <ul className="mt-2 space-y-1">
               {[...openTodos, ...doneTodos].map((task) => (
-                <li key={task.id} className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-bg">
+                <li
+                  key={task.id}
+                  className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-bg"
+                >
                   <button
                     onClick={() => toggleTodo(task)}
                     aria-label={task.completedAt ? "Mark incomplete" : "Complete task"}
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 text-[9px] transition ${
-                      task.completedAt ? "border-teal bg-teal text-white" : "border-line hover:border-indigo"
+                      task.completedAt
+                        ? "border-teal bg-teal text-white"
+                        : "border-line hover:border-indigo"
                     }`}
                   >
                     {task.completedAt ? "✓" : ""}
                   </button>
-                  <span className={`flex-1 text-sm ${task.completedAt ? "text-muted line-through" : ""}`}>
+                  <span
+                    className={`flex-1 text-sm ${task.completedAt ? "text-muted line-through" : ""}`}
+                  >
                     {task.title}
                   </span>
-                  <span className="shrink-0 text-[10px] text-muted/60">{prettyDate(task.dueDate)}</span>
+                  <span className="shrink-0 text-[10px] text-muted/60">
+                    {prettyDate(task.dueDate)}
+                  </span>
                 </li>
               ))}
             </ul>
