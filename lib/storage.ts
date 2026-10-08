@@ -140,3 +140,29 @@ export async function deleteDesignFile(path: string): Promise<void> {
     // Non-fatal — the doc is gone regardless of whether the file lingered.
   }
 }
+
+/**
+ * Upload a Home Inspiration photo under users/{uid}/inspiration/, downscaled
+ * to JPEG like Annie's photos. Returns the download URL and storage path.
+ */
+export async function uploadInspirationImage(
+  uid: string,
+  file: Blob & { name?: string },
+): Promise<{ url: string; path: string }> {
+  const out = await downscale(file as File);
+  const contentType = out === file ? file.type || "image/jpeg" : "image/jpeg";
+  const ext = out === file ? nameExt(file.name ?? "") || "jpg" : "jpg";
+  const path = `users/${uid}/inspiration/${uuid()}-${baseName(file.name ?? "photo")}.${ext}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, out, { contentType });
+  return { url: await getDownloadURL(storageRef), path };
+}
+
+/** Best-effort delete of an uploaded inspiration photo. */
+export async function deleteInspirationImage(path: string): Promise<void> {
+  try {
+    await deleteObject(ref(storage, path));
+  } catch {
+    // Non-fatal — the pin is gone regardless.
+  }
+}
