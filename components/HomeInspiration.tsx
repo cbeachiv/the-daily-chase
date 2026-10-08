@@ -15,27 +15,92 @@ function hostOf(url: string): string {
   }
 }
 
-// Full-screen viewer: a photo, or the YouTube video playing inline.
-function Lightbox({ pin, onClose }: { pin: Pin; onClose: () => void }) {
+// Full-screen viewer: a photo, or the YouTube video playing inline. Arrow
+// buttons, ←/→ keys, and swiping step through the rest of the board.
+function Lightbox({
+  pins,
+  index,
+  onIndex,
+  onClose,
+}: {
+  pins: Pin[];
+  index: number;
+  onIndex: (i: number) => void;
+  onClose: () => void;
+}) {
+  const pin = pins[index];
+  const count = pins.length;
+  const go = useCallback(
+    (step: number) => count > 1 && onIndex((index + step + count) % count),
+    [index, count, onIndex],
+  );
+  const touchX = useRef<number | null>(null);
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, go]);
+
+  if (!pin) return null;
+  const arrow =
+    "absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/30";
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-4"
+      onClick={onClose}
+      onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        if (touchX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        touchX.current = null;
+        if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+      }}
+    >
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-lg text-white hover:bg-white/25"
+        className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-lg text-white hover:bg-white/25"
         aria-label="Close"
       >
         ✕
       </button>
-      <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+      {count > 1 && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              go(-1);
+            }}
+            className={`${arrow} left-2 sm:left-4`}
+            aria-label="Previous"
+          >
+            ‹
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              go(1);
+            }}
+            className={`${arrow} right-2 sm:right-4`}
+            aria-label="Next"
+          >
+            ›
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/60">
+            {index + 1} / {count}
+          </div>
+        </>
+      )}
+      <div className="w-full max-w-5xl px-10 sm:px-14" onClick={(e) => e.stopPropagation()}>
         {pin.kind === "youtube" && pin.youtubeId ? (
           <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
             <iframe
+              key={pin.id}
               src={`https://www.youtube-nocookie.com/embed/${pin.youtubeId}?autoplay=1&rel=0`}
               title={pin.title ?? "YouTube video"}
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
@@ -46,9 +111,10 @@ function Lightbox({ pin, onClose }: { pin: Pin; onClose: () => void }) {
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            key={pin.id}
             src={pin.url}
             alt={pin.note ?? pin.title ?? ""}
-            className="mx-auto max-h-[85vh] max-w-full rounded-lg object-contain"
+            className="mx-auto max-h-[80vh] max-w-full rounded-lg object-contain"
           />
         )}
         {(pin.title || pin.note) && (
@@ -201,7 +267,7 @@ export default function HomeInspiration() {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("");
   const [dragging, setDragging] = useState(false);
-  const [viewing, setViewing] = useState<Pin | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
   const [editing, setEditing] = useState<Pin | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -215,6 +281,8 @@ export default function HomeInspiration() {
   );
   const allRooms = useMemo(() => Array.from(new Set([...ROOMS, ...usedRooms])), [usedRooms]);
   const visible = filter ? sorted.filter((p) => p.room === filter) : sorted;
+  // Photos and videos open in the viewer; plain links open their site instead.
+  const viewable = useMemo(() => visible.filter((p) => p.kind !== "link"), [visible]);
 
   // New pins land in whatever room you're looking at.
   const room = filter || undefined;
@@ -419,7 +487,7 @@ export default function HomeInspiration() {
       ) : (
         <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">
           {visible.map((p) => (
-            <PinCard key={p.id} pin={p} onOpen={() => setViewing(p)} onEdit={() => setEditing(p)} />
+            <PinCard key={p.id} pin={p} onOpen={() => setViewing(viewable.indexOf(p))} onEdit={() => setEditing(p)} />
           ))}
         </div>
       )}
@@ -432,7 +500,9 @@ export default function HomeInspiration() {
         </div>
       )}
 
-      {viewing && <Lightbox pin={viewing} onClose={() => setViewing(null)} />}
+      {viewing !== null && (
+        <Lightbox pins={viewable} index={viewing} onIndex={setViewing} onClose={() => setViewing(null)} />
+      )}
       {editing && (
         <EditPin
           pin={editing}
