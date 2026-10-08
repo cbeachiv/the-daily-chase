@@ -512,3 +512,22 @@ export interface FinanceSnapshot {
   createdAt: string;
   updatedAt?: string;
 }
+
+// users/{uid}/homeInspiration — a mood board of things we like for the house.
+// One doc per pin: an uploaded photo, a YouTube video, an image URL, or any
+// other web page (shown with its og:image preview when it has one).
+export type InspirationKind = "image" | "youtube" | "link";
+
+export interface HomeInspiration {
+  id: string;
+  kind: InspirationKind;
+  url: string; // the image to show (kind "image") or the page/video link
+  imageUrl?: string; // preview image for links (og:image); YouTube uses its thumbnail
+  path?: string; // storage path for uploaded photos, kept so the file can be deleted
+  youtubeId?: string;
+  title?: string;
+  note?: string;
+  room?: string; // optional tag, e.g. "Kitchen"
+  source?: "web" | "shortcut";
+  createdAt: string;
+}

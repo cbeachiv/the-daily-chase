@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { cert, getApps, initializeApp, type App, type ServiceAccount } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 // Server-only Firebase Admin SDK (cron route, token verification, seed script).
 let app: App | undefined;
@@ -45,4 +46,8 @@ export function adminDb() {
 
 export function adminAuth() {
   return getAuth(adminApp());
+}
+
+export function adminBucket() {
+  return getStorage(adminApp()).bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
 }
