@@ -3,7 +3,7 @@
 // so it renders in Gmail and Apple Mail alike. Colors follow the dashboard.
 
 import { CUT, DAILY_STEPS } from "@/lib/cutPlan";
-import { MIN_LOGGED_DAYS, MIN_WEIGH_INS, type CutWeek, type DayLine, type LiftLine, type Status } from "@/lib/cutWeekly";
+import { MIN_LOGGED_DAYS, type CutWeek, type DayLine, type LiftLine, type Status } from "@/lib/cutWeekly";
 
 export interface CutEmailData {
   week: CutWeek;
@@ -37,7 +37,7 @@ const STATUS: Record<Status, { label: string; color: string; bg: string }> = {
   ahead: { label: "Ahead of plan", color: TEAL, bg: "#e6f6f4" },
   "on-track": { label: "On track", color: INDIGO, bg: "#eef0fe" },
   behind: { label: "Behind plan", color: CORAL, bg: "#fdeeed" },
-  unknown: { label: "Not enough weigh-ins", color: MUTED, bg: "#f1f5f9" },
+  unknown: { label: "No weigh-ins", color: MUTED, bg: "#f1f5f9" },
 };
 
 function section(title: string, body: string): string {
@@ -55,16 +55,16 @@ function bigStat(label: string, value: string, sub: string, color = INK): string
   </td>`;
 }
 
-function check(ok: boolean | null): string {
-  if (ok === null) return `<span style="color:${FAINT}">&ndash;</span>`;
-  return ok
-    ? `<span style="display:inline-block;width:20px;height:20px;line-height:20px;border-radius:10px;background:${TEAL};color:#fff;font:700 12px ${FONT};text-align:center">&#10003;</span>`
-    : `<span style="display:inline-block;width:20px;height:20px;line-height:20px;border-radius:10px;background:${CORAL};color:#fff;font:700 12px ${FONT};text-align:center">&times;</span>`;
+// Text pill instead of a ✓ glyph: dingbat checkmarks render off-center in
+// Gmail and Apple Mail, plain caps text lines up everywhere.
+function badge(ok: boolean | null): string {
+  const [label, fg, bg] = ok === null ? ["N/A", FAINT, "#f1f5f9"] : ok ? ["HIT", TEAL, "#e6f6f4"] : ["MISS", CORAL, "#fdeeed"];
+  return `<table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="46" style="background:${bg};border-radius:6px;padding:4px 0;font:800 10px ${FONT};letter-spacing:1px;color:${fg}">${label}</td></tr></table>`;
 }
 
 function scoreRow(name: string, result: string, detail: string, ok: boolean | null): string {
   return `<tr>
-    <td width="26" valign="top" style="padding:7px 8px 7px 0">${check(ok)}</td>
+    <td width="58" valign="top" style="padding:7px 10px 7px 0">${badge(ok)}</td>
     <td valign="top" style="font:700 13px ${FONT};color:${INK};padding:8px 8px 8px 0;white-space:nowrap">${name}</td>
     <td valign="top" align="right" style="font:400 13px/1.4 ${FONT};color:${INK};padding:8px 0">${result}
       <div style="font:400 11px ${FONT};color:${FAINT}">${detail}</div></td>
@@ -91,16 +91,20 @@ function scorecard(w: CutWeek): string {
   const kcalOk = r.avgKcal === null || w.caloriesDaysLogged < MIN_LOGGED_DAYS ? null : r.avgKcal <= w.kcalGoal + 50;
   const proteinOk = r.avgProtein === null || proteinDays < MIN_LOGGED_DAYS ? null : r.avgProtein >= CUT.proteinG - 5;
   const stepsOk = r.avgSteps === null || w.stepsDaysLogged < MIN_LOGGED_DAYS ? null : r.avgSteps >= DAILY_STEPS;
-  const weightOk = r.avgWeight === null || r.weighIns < MIN_WEIGH_INS ? null : r.avgWeight <= r.target + 0.5;
+  const weightOk = w.basisWeight === null || w.basisTarget === null ? null : w.basisWeight <= w.basisTarget + 0.5;
+  const weightNote =
+    w.basis === null
+      ? "no weigh-ins logged"
+      : [
+          `target ${lb(w.basisTarget!)}`,
+          `${r.weighIns}/7 weigh-ins`,
+          w.basis === "average" && w.sundayWeight !== null ? `Sunday ${w.sundayWeight.toFixed(1)}` : null,
+          w.basis === "average" && r.change !== null ? `${signed(r.change)} vs last week` : null,
+        ]
+          .filter(Boolean)
+          .join(" &middot; ");
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-    ${scoreRow(
-      "Weight",
-      r.avgWeight === null ? "No weigh-ins" : `${lb(r.avgWeight)} avg`,
-      `target ${lb(r.target)} &middot; ${r.weighIns}/7 weigh-ins${
-        r.weighIns < MIN_WEIGH_INS ? ` (need ${MIN_WEIGH_INS}+ to grade)` : r.change !== null ? ` &middot; ${signed(r.change)} vs last week` : ""
-      }`,
-      weightOk,
-    )}
+    ${scoreRow("Weight", w.basisWeight === null ? "No weigh-ins" : `${lb(w.basisWeight)} <span style="color:${MUTED}">${w.basisLabel}</span>`, weightNote, weightOk)}
     ${scoreRow(
       "Calories",
       r.avgKcal === null ? "Not logged" : `${n0(r.avgKcal)}/day`,
@@ -131,7 +135,7 @@ function track(w: CutWeek): string {
     items.push({
       label: "Vs. glide path",
       value: w.vsTarget <= 0 ? `${Math.abs(w.vsTarget).toFixed(1)} lb ahead` : `${w.vsTarget.toFixed(1)} lb behind`,
-      note: `weekly avg ${lb(w.row.avgWeight!)} vs target ${lb(w.row.target)}`,
+      note: `${w.basisLabel} ${lb(w.basisWeight!)} vs target ${lb(w.basisTarget!)}`,
     });
   }
   if (w.lostSoFar !== null) items.push({ label: "Lost so far", value: `${w.lostSoFar.toFixed(1)} lb`, note: `from ${CUT.startWeight} on ${md(CUT_START)}` });
@@ -151,11 +155,11 @@ function track(w: CutWeek): string {
     flag = `<p style="font:700 13px/1.5 ${FONT};color:${AMBER};margin:10px 0 0">Plan rule: lost more than 2 lb this week. Add 150 cal a day to protect strength.</p>`;
   if (w.n <= 2)
     flag += `<p style="font:400 12px/1.5 ${FONT};color:${FAINT};margin:8px 0 0">Weeks 1 and 2 are mostly water weight, so don't read too much into the pace yet.</p>`;
-  const thin =
-    w.row.weighIns < MIN_WEIGH_INS
-      ? `<p style="font:400 13px/1.5 ${FONT};color:${MUTED};margin:0">Only ${w.row.weighIns} weigh-in${w.row.weighIns === 1 ? "" : "s"} last week, so there's no reliable average to compare with the glide path. Weigh in every morning this week (aim for at least ${MIN_WEIGH_INS}).</p>`
+  const basisNote =
+    w.basis === "day"
+      ? `<p style="font:400 12px/1.5 ${FONT};color:${FAINT};margin:8px 0 0">Graded on the ${w.basisLabel} since there were only ${w.row.weighIns} weigh-in${w.row.weighIns === 1 ? "" : "s"}. With 3+ the weekly average is used, which smooths out water swings.</p>`
       : "";
-  return (thin || (items.length ? kv(items) : "")) + flag;
+  return (items.length ? kv(items) : `<p style="font:400 13px ${FONT};color:${MUTED};margin:0">No weigh-ins last week. Step on the scale Sunday morning at least.</p>`) + basisNote + flag;
 }
 
 function arrow(l: LiftLine): string {
@@ -276,7 +280,7 @@ const CUT_START = CUT.start;
 
 export function buildEmailHtml({ week: w, intro, appUrl }: CutEmailData): string {
   const st = STATUS[w.status];
-  const avg = w.row.avgWeight;
+  const avg = w.basisWeight;
   return `<!doctype html><html><body style="margin:0;padding:0;background:${PAGE}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAGE}"><tr><td align="center" style="padding:20px 10px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
@@ -290,10 +294,10 @@ export function buildEmailHtml({ week: w, intro, appUrl }: CutEmailData): string
   <tr><td style="padding:14px 24px 0">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="6"><tr>
       ${bigStat(
-        "Weekly avg",
+        w.basis === "day" ? w.basisLabel : "Weekly avg",
         avg === null ? "&ndash;" : avg.toFixed(1),
-        w.row.weighIns < MIN_WEIGH_INS ? `${w.row.weighIns} weigh-in${w.row.weighIns === 1 ? "" : "s"} only` : `target ${w.row.target.toFixed(1)}`,
-        avg === null || w.row.weighIns < MIN_WEIGH_INS ? MUTED : avg <= w.row.target + 0.5 ? TEAL : CORAL,
+        w.basisTarget === null ? "no weigh-ins" : `target ${w.basisTarget.toFixed(1)}`,
+        avg === null || w.basisTarget === null ? MUTED : avg <= w.basisTarget + 0.5 ? TEAL : CORAL,
       )}
       ${bigStat("Lost so far", w.lostSoFar === null ? "&ndash;" : `${w.lostSoFar.toFixed(1)}`, `lb since ${md(CUT_START)}`)}
       ${bigStat("To go", w.toGo === null ? "&ndash;" : w.toGo.toFixed(1), `lb to ${CUT.goalWeight}`)}
