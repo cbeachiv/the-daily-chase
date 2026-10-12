@@ -18,6 +18,7 @@ import {
   isMaintenanceWeek,
   kcalTarget,
   targetWeightFor,
+  targetWeightOn,
   topOfRange,
   weekStart,
   weeklyRows,
@@ -77,8 +78,15 @@ export interface CutWeek {
   cardioDone: number;
   // goal tracking
   status: Status;
-  vsTarget: number | null; // weekly avg minus glide-path target (negative = ahead)
-  lostSoFar: number | null; // start weight minus this week's avg
+  // What the week is graded on: the weekly average with 3+ weigh-ins,
+  // otherwise the Sunday (or latest) weigh-in against that day's target.
+  basis: "average" | "day" | null;
+  basisWeight: number | null;
+  basisTarget: number | null;
+  basisLabel: string; // "weekly avg" | "Sun weigh-in"
+  sundayWeight: number | null;
+  vsTarget: number | null; // basis weight minus its glide-path target (negative = ahead)
+  lostSoFar: number | null; // start weight minus the basis weight
   toGo: number | null;
   ratePerWeek: number | null; // average lb lost per week since the start
   projectedEnd: number | null; // at the current rate, weekly avg in week 12
@@ -104,8 +112,9 @@ export interface CutWeek {
 }
 
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-// Below these, a weekly average is too noisy to call on-track/behind or to
-// grade calories and protein; the email says "log more" instead.
+// With fewer weigh-ins than this the weekly average is noisy, so the week is
+// graded on the Sunday (or latest) weigh-in instead. Fewer logged days than
+// MIN_LOGGED_DAYS and calories/protein/steps show as ungraded.
 export const MIN_WEIGH_INS = 3;
 export const MIN_LOGGED_DAYS = 4;
 const round1 = (x: number) => Math.round(x * 10) / 10;
@@ -147,10 +156,25 @@ export function buildCutWeek(input: CutWeeklyInput, n: number): CutWeek {
   const stepDays = days.filter((d) => d.steps !== null);
 
   // --- goal tracking ----------------------------------------------------------
-  const target = targetWeightFor(n);
-  const enoughWeighIns = (row?.weighIns ?? 0) >= MIN_WEIGH_INS;
-  const avg = enoughWeighIns ? (row?.avgWeight ?? null) : null;
-  const vsTarget = avg === null ? null : round1(avg - target);
+  const weighedDays = days.filter((d) => d.weight !== null);
+  const latest = weighedDays[weighedDays.length - 1] ?? null; // Sunday when logged
+  const sundayWeight = days[6].weight;
+  let basis: CutWeek["basis"] = null;
+  let avg: number | null = null; // the basis weight
+  let basisTarget: number | null = null;
+  let basisLabel = "weekly avg";
+  if ((row?.weighIns ?? 0) >= MIN_WEIGH_INS && row?.avgWeight != null) {
+    basis = "average";
+    avg = row.avgWeight;
+    basisTarget = targetWeightFor(n);
+  } else if (latest) {
+    basis = "day";
+    avg = latest.weight;
+    basisTarget = targetWeightOn(latest.date) ?? targetWeightFor(n);
+    const fullDay: Record<string, string> = { Sun: "Sunday", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday" };
+    basisLabel = `${fullDay[latest.label]} weigh-in`;
+  }
+  const vsTarget = avg === null || basisTarget === null ? null : round1(avg - basisTarget);
   const status: Status = vsTarget === null ? "unknown" : vsTarget <= -0.5 ? "ahead" : vsTarget <= 0.5 ? "on-track" : "behind";
   const lostSoFar = avg === null ? null : round1(CUT.startWeight - avg);
   const ratePerWeek = lostSoFar === null ? null : round1(lostSoFar / n);
@@ -266,6 +290,11 @@ export function buildCutWeek(input: CutWeeklyInput, n: number): CutWeek {
     liftsDone: row?.lifts ?? 0,
     cardioDone: row?.cardio ?? 0,
     status,
+    basis,
+    basisWeight: avg,
+    basisTarget,
+    basisLabel,
+    sundayWeight,
     vsTarget,
     lostSoFar,
     toGo,

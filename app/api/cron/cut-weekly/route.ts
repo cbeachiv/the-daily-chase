@@ -32,12 +32,10 @@ function easternHour(now = new Date()): number {
 }
 
 function fallbackIntro(w: CutWeek): string {
-  const avg = w.row.avgWeight;
-  if (w.status === "unknown")
-    return `Week ${w.n} is in the books, but with only ${w.row.weighIns} weigh-in${w.row.weighIns === 1 ? "" : "s"} the scale trend is a guess. This week's focus: step on the scale every morning. Here's the rest.`;
+  const avg = w.basisWeight;
   if (avg === null) return `Week ${w.n} is in the books. No weigh-ins logged, so the scale trend is a mystery this time. Here's the rest.`;
   const verdict = w.status === "ahead" ? "ahead of the glide path" : w.status === "on-track" ? "right on the glide path" : "a bit behind the glide path";
-  return `Week ${w.n} done: your weekly average was ${avg.toFixed(1)} lb, ${verdict}. Here's how the numbers stacked up.`;
+  return `Week ${w.n} done: your ${w.basisLabel} was ${avg.toFixed(1)} lb, ${verdict}. Here's how the numbers stacked up.`;
 }
 
 async function writeIntro(w: CutWeek): Promise<string> {
@@ -45,11 +43,15 @@ async function writeIntro(w: CutWeek): Promise<string> {
     week: w.n,
     weeksTotal: CUT.weeks,
     status: w.status,
+    gradedOn: w.basisLabel,
+    gradedWeight: w.basisWeight,
+    gradedTarget: w.basisTarget,
+    sundayWeighIn: w.sundayWeight,
     weeklyAvgWeight: w.row.avgWeight,
     weighInsLogged: w.row.weighIns,
     proteinDaysLogged: w.days.filter((d) => d.protein !== null).length,
     calorieDaysLogged: w.caloriesDaysLogged,
-    glidePathTarget: w.row.target,
+    weeklyAvgTarget: w.row.target,
     changeVsLastWeek: w.row.change,
     lostSinceStart: w.lostSoFar,
     projectedDec20: w.projectedEnd,
@@ -72,7 +74,7 @@ async function writeIntro(w: CutWeek): Promise<string> {
   const prompt = [
     "You write the opening of 'The Cut Weekly', a Monday-morning email to Chase about last week of his 12-week fat-loss cut (goal: lose fat, get stronger, 175 to 163 lb by Dec 20).",
     "Write 2 to 3 short sentences like a good coach: direct, encouraging, honest. Lead with the most important thing (on track or not), name one real win, and give one specific focus for this week.",
-    "Use only the numbers below and never invent any. Null means not logged. With fewer than 3 weigh-ins the weekly average is unreliable and status is 'unknown': don't call him ahead or behind, make consistent weigh-ins the focus. Treat averages from fewer than 4 logged days as partial. Weeks 1 and 2 are mostly water weight.",
+    "Use only the numbers below and never invent any. Null means not logged. The week is graded on 'gradedOn': the weekly average with 3+ weigh-ins, otherwise the Sunday (or latest) weigh-in vs that day's glide-path target. The Sunday weigh-in matters most to Chase, so treat it as a real result; you may briefly suggest a couple more weigh-ins, but don't make that the headline. Treat averages from fewer than 4 logged days as partial. Weeks 1 and 2 are mostly water weight.",
     "Plain text only. No em dashes, no markdown, no greeting, no sign-off.",
     "",
     JSON.stringify(facts, null, 2),
@@ -125,12 +127,9 @@ export async function GET(req: Request) {
   const week = buildCutWeek({ weights, foods, lifts, cardio, waists, steps, moods, templates }, n);
   const intro = await writeIntro(week);
 
-  const avg = week.row.avgWeight;
+  const avg = week.basisWeight;
   const statusWord = { ahead: "ahead of plan", "on-track": "on track", behind: "behind plan", unknown: "recap" }[week.status];
-  const subject =
-    week.status === "unknown"
-      ? `Cut Week ${n}: recap (weigh in more this week)`
-      : `Cut Week ${n}: ${avg !== null ? `${avg.toFixed(1)} lb avg, ` : ""}${statusWord}`;
+  const subject = `Cut Week ${n}: ${avg !== null ? `${avg.toFixed(1)} lb ${week.basis === "day" ? week.basisLabel.replace(" weigh-in", "") : "avg"}, ` : ""}${statusWord}`;
   const html = buildEmailHtml({ week, intro, appUrl: APP_BASE_URL });
   if (preview) return new NextResponse(html, { headers: { "content-type": "text/html; charset=utf-8", "x-subject": subject } });
 
