@@ -39,6 +39,14 @@
     {
       "path": "/api/cron/laundry-weekly",
       "schedule": "0 14 * * 0"
+    },
+    {
+      "path": "/api/cron/cut-weekly",
+      "schedule": "0 11 * * 1"
+    },
+    {
+      "path": "/api/cron/cut-weekly",
+      "schedule": "0 12 * * 1"
     }
   ]
 }
