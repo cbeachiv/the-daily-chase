@@ -28,10 +28,10 @@ const A: WorkoutTemplate = {
   exercises: [
     { name: "Leg Press", sets: 3, targetReps: "6-10", bodyweight: false, rest: MAIN },
     { name: "Chest Press (Machine)", sets: 3, targetReps: "6-10", bodyweight: false, rest: MAIN },
-    { name: "Seated Row (Cable)", sets: 3, targetReps: "8-12", bodyweight: false, rest: MAIN },
-    { name: "Seated Leg Curl (Machine)", sets: 3, targetReps: "10-15", bodyweight: false, rest: ACC },
+    { name: "Hammer Strength Row", sets: 3, targetReps: "8-12", bodyweight: false, rest: MAIN },
+    { name: "Prone Leg Curl", sets: 3, targetReps: "10-15", bodyweight: false, rest: ACC },
     { name: "Lateral Raise (Machine)", sets: 3, targetReps: "12-15", bodyweight: false, rest: ACC },
-    { name: "Cable Crunch", sets: 3, targetReps: "10-15", bodyweight: false, rest: ACC },
+    { name: "Life Fitness Ab Machine", sets: 3, targetReps: "10-15", bodyweight: false, rest: ACC },
   ],
 };
 
