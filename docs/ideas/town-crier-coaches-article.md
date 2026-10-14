@@ -33,3 +33,5 @@
 - Kim Beach writes the Crier's Resident Spotlight (possibly Chase's mom?).
 - Stadium: Tom Crosby Field at Kusel Stadium. Pub: Southerby's (Mariemont Inn).
 - **Interview plan (decided):** together at Kusel Stadium (team bench, before a non-game-day practice, photos); one-on-ones back to back at Southerby's.
+- **Availability:** Chase is out of town Sun Oct 18 – Thu Oct 22; wants to interview Fri Oct 23 (backup: week of Oct 26).
+- **Suzy version of brief:** docs/ideas/Town-Crier-Research-Brief-for-Suzy.pdf (Mom-specific notes removed).
