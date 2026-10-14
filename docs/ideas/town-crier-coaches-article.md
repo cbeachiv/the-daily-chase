@@ -2,7 +2,7 @@
 
 ## Basics
 - Publication: The Town Crier (Chase's first time writing for it)
-- Subjects: Eric Vonnegs and Jeff Heimbaugh (spellings to confirm), Marymount High School men's soccer coaches
+- Subjects: Eric Vanags and Jeff Hinebaugh (spellings confirmed by Chase), Marymount High School men's soccer coaches
 - Hook: their last season as coaches
 - How it came about: Chase's mom asked if Chase wanted to write it
 - Chase has never done an interview like this before
