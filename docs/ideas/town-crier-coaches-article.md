@@ -23,3 +23,12 @@
   - interview locations
   - what makes a great Town Crier article (length, structure, what to write about)
 - **Brief (Claude Doc):** https://claude.ai/code/artifact/cbb48a85-9800-4418-91d1-ee1b83727433
+
+## Research findings (Oct 14)
+- Sources spell the head coach **Erik** Vanags (confirm with Chase/Erik). Head coach since 2012; social studies teacher; 2020 D-III state champs (23-0); 2020 OSSCA Coach of the Year.
+- Jeff Hinebaugh: varsity assistant since 2005; litigation partner at Dinsmore & Shohl; Mariemont School Foundation trustee.
+- No public announcement of retirement found; confirm it's OK to print.
+- "Susie Weidman" is likely **Suzy Weinland**, Town Crier editor (mariemonttowncrier@gmail.com).
+- Nov 1 deadline = December 2026 issue. Typical profile: 600–850 words; aim 700–900 with 2–3 photos.
+- Kim Beach writes the Crier's Resident Spotlight (possibly Chase's mom?).
+- Stadium: Tom Crosby Field at Kusel Stadium. Pub: Southerby's (Mariemont Inn).
