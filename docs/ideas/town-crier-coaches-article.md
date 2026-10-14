@@ -11,4 +11,15 @@
 - **Connection to coaches:** Family/friend tie (knows them personally, didn't play for them)
 - **Tenure:** Unknown, find out in the interview
 - **Style:** Tribute/profile, a warm look back at their careers and impact
-- **Specs:** Deadline known (date TBD below); length unknown, ask mom/editor
+- **Specs:** Deadline known (Nov 1, 2026); length unknown, ask mom/editor
+- **Deadline:** November 1, 2026
+- **Personal connection (correction):** Chase was Eric's student, a freshman during Eric's first year teaching at Mariemont. Grew up in Mariemont and knows Jeff from the community.
+- **Town:** Mariemont, Ohio (dictated as "Marymount"). Publication is the Mariemont Town Crier (all articles online).
+- **Eric:** coach and teacher at Mariemont High School. **Jeff:** coach, involved in Mariemont more broadly.
+- **Interview location ideas:** the stadium (dictated "Kuzel Stadium") and soccer field, the practice facility, 50 West, Southerby's pub in the Mariemont Inn
+- **Deliverable requested:** a research brief to send to Mom and Susie Weidman covering:
+  - research on both coaches (Eric as coach + teacher, Jeff's community involvement)
+  - interview questions
+  - interview locations
+  - what makes a great Town Crier article (length, structure, what to write about)
+- **Brief (Claude Doc):** https://claude.ai/code/artifact/cbb48a85-9800-4418-91d1-ee1b83727433
