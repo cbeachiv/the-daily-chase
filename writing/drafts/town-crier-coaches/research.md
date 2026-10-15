@@ -32,13 +32,28 @@ Each claim, where it came from, and whether it is verified. Status: **Verified**
   - Start year conflict: the [MHS Blueprint](https://mhsblueprint.com/?p=22723) says head coach since 2012, while a [2020 Mariemont athletics article](https://mariemontsports.com/news/2020/10/7/boys-soccer-mariemont-features-unbeaten-squads-seeking-titles.aspx) says he had been head coach for "the last 10" years, which points to 2010 or 2011.
   - If the record counts only boys varsity wins as head coach, the official number should come from the school, not MaxPreps.
 
+## The Ross game was Erik's 200th win (Suzy call, Oct 15)
+
+- **Source of claim:** Lisa Vanags, relayed by Suzy Weinland.
+- **Status:** **Partly verified.** If the Ross game was win 200, Erik had 198 wins before the 2026 season. MaxPreps credits him with 194 from 2012 to 2025, leaving **4 wins unaccounted for**. Possible explanations:
+  - Seasons MaxPreps is missing (2010 and 2011 show as blank).
+  - Games MaxPreps never recorded.
+  - A count that includes his years at Milford or as an assistant. The [staff bio](https://mhswarriors.com/main/staff/id/18362/seasonid/35115/staffid/25833) mentions a 38-18-10 record with teams he sent up to varsity.
+- **Ask Erik or the athletic director:** is 200 his Mariemont head-coach total, and when did it start?
+
+## Erik has half of the program's total wins
+
+- **Source of claim:** Lisa Vanags, relayed by Suzy.
+- **Status:** **Unverified.** It implies about 400 program wins since 1976. Needs the program's all-time record from the athletic department.
+
 ## Program started in 1976
 
-- **Source of claim:** Chase, Oct 2026.
+- **Source of claim:** Lisa Vanags, relayed by Suzy and Chase, Oct 2026.
 - **Status:** **Unverified.** No source found for Mariemont's first boys soccer season. 1976 is the year the OHSAA began sponsoring the state soccer tournament ([Wikipedia](https://en.wikipedia.org/wiki/List_of_OHSAA_soccer_champions)), so it is plausible but not confirmed.
 
 ## To confirm
 
-- Mariemont athletic director: Erik's official career win total, the previous record holder and his total, and the program's first season.
+- Mariemont athletic director: Erik's official career win total, the previous record holder and his total, the program's all-time win total, and the program's first season.
+- Nerl (per Suzy): his own record, plus a quote. He may be the previous record holder.
 - Erik himself during the interview: the exact head coach start year, and how the Ross game felt.
 - Other sources: @MMontMSoccer posts from Aug 20, 2026, Mariemont yearbooks, the athletics hall of fame.
