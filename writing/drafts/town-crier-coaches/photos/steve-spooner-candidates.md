@@ -1,10 +1,10 @@
 # Steve Spooner's photos: coach candidates
 
-Source: Steve Spooner's [Mariemont soccer galleries](https://mariemontstuff.smugmug.com/Sports/Soccer) (mariemontstuff.smugmug.com). All 4,289 boys soccer photos from 2022 to 2026 were scanned on Oct 16, 2026. The galleries have no captions, so **Chase confirms who is who**. Photos are watermarked and rights belong to Steve.
+Source: Steve Spooner's [Mariemont soccer galleries](https://mariemontstuff.smugmug.com/Sports/Soccer) (mariemontstuff.smugmug.com). All 4,289 boys soccer photos from 2022 to 2026 were scanned on Oct 16, 2026. The galleries have no captions, so Chase confirmed who is who. Photo request email to Steve drafted Oct 16 (Gmail draft, recipient address still needed). Photos are watermarked and rights belong to Steve.
 
 Review sheet: `steve-spooner-coach-candidates.jpg` (kept local).
 
-## Person A: bald, beard, Mariemont shirt (likely head coach)
+## Erik Vanags (confirmed by Chase, Oct 16)
 
 He leads team talks and stands with every senior's family on senior night.
 
@@ -20,7 +20,7 @@ He leads team talks and stands with every senior's family on senior night.
 
 Also on 2025 senior night (Dayton Christian, Sep 22) with each family: #1268 to #1288.
 
-## Person B: gray hair, big smile, cap and quarter-zip (possible Jeff)
+## Jeff Hinebaugh (confirmed by Chase, Oct 16)
 
 | # | Game | Link |
 |---|---|---|
@@ -33,9 +33,9 @@ Also on 2025 senior night (Dayton Christian, Sep 22) with each family: #1268 to 
 
 | # | Game | Link |
 |---|---|---|
-| 1260 | 2025 vs Dayton Christian, four coaches posing (B far right, A in navy) | [photo](https://mariemontstuff.smugmug.com/Sports/Soccer/Mariemont-High-School-Boys-Soccer-2025/i-h3dVGJp) |
-| 1290 | 2025 vs Dayton Christian (A at the edge) | [photo](https://mariemontstuff.smugmug.com/Sports/Soccer/Mariemont-High-School-Boys-Soccer-2025/i-rGCwCSQ) |
-| 2747 | 2024 vs Wheelersburg (A on the right) | [photo](https://mariemontstuff.smugmug.com/Sports/Soccer/MHS-BSoccer-2024/i-BNz4WBQ) |
+| 1260 | 2025 vs Dayton Christian, four coaches posing (Jeff far right, Erik in navy) | [photo](https://mariemontstuff.smugmug.com/Sports/Soccer/Mariemont-High-School-Boys-Soccer-2025/i-h3dVGJp) |
+| 1290 | 2025 vs Dayton Christian (Erik at the edge) | [photo](https://mariemontstuff.smugmug.com/Sports/Soccer/Mariemont-High-School-Boys-Soccer-2025/i-rGCwCSQ) |
+| 2747 | 2024 vs Wheelersburg (Erik on the right) | [photo](https://mariemontstuff.smugmug.com/Sports/Soccer/MHS-BSoccer-2024/i-BNz4WBQ) |
 
 ## Gaps
 
