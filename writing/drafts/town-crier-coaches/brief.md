@@ -1,4 +1,4 @@
-# Brief: Erik Vanags, 200 wins and the winningest coach in Mariemont soccer history
+# Brief: Erik Vanags and Jeff Hinebaugh, 200 wins and a final season together
 
 - **Publication:** Mariemont Town Crier, December 2026 issue
 - **Editor:** Suzy Weinland (mariemonttowncrier@gmail.com). Call notes: `editor-call-2026-10-15.md`
@@ -8,9 +8,10 @@
 
 ## Focus (Suzy, Oct 15)
 
-1. **The milestone:** Erik's 200th win (Aug 20, 2026, 6-0 at Ross) makes him the winningest coach in Mariemont soccer history. He has about half of the program's wins since it started in 1976.
-2. **What he has meant to the community,** in the words of students, parents, and leaders.
-3. **What's next for Erik** as he steps away from coaching. Suzy's wording options: "passing the baton," "passing the torch," "moving into other endeavors."
+1. **The milestone:** Erik's 200th win (Aug 20, 2026, 6-0 at Ross) makes him the winningest coach in Mariemont soccer history. He has about half of the program's wins since it started in 1976, and 207 going into the 2026 tournament (Lisa). That puts him past lacrosse coach Steve Peterson (203) and close to football coach Tom Crosby (215), whose name is on the field.
+2. **Erik and Jeff together:** 20 years as a pair, and both are stepping away after this season (Lisa, Oct 16). Erik won't agree to a story without Jeff, because he shares every win with him. Together: 4 league titles, 11 district titles, 1 regional title, and the 2020 state title (all to verify).
+3. **What they have meant to the community,** in the words of students, parents, and leaders.
+4. **What's next for Erik and Jeff** as they step away from coaching. Suzy's wording options: "passing the baton," "passing the torch," "moving into other endeavors."
 
 Leave out his classroom teaching. This piece is about soccer.
 
@@ -24,9 +25,9 @@ He was Erik's student as a freshman in Erik's first year teaching at Mariemont. 
 
 ## People to talk to
 
-- **Erik:** the main interview. He's modest and wouldn't raise the milestone himself, so give the record as the reason for the story and ask him to talk about the players.
-- **Jeff Hinebaugh:** his longtime assistant (since 2005) and the best witness to Erik's coaching. Is Jeff a co-subject or a source? See open questions.
-- **Lisa Vanags:** she brought the story to Suzy. Ask about an awards dinner or recognition event.
+- **Erik:** the main interview. He's modest and wouldn't raise the milestone himself, so give the record as the reason for the story and ask him to talk about the players. Cell 513-238-8679. In town the week of Oct 26. He knows the program's all-time win total.
+- **Jeff Hinebaugh:** co-subject. His longtime assistant (since 2005), also retiring this year.
+- **Lisa Vanags:** she brought the story to Suzy and replied Oct 16 (see `research.md`). Reach out to Erik directly and **don't mention it was her idea.** She can send photos of the plaques in their study.
 - **Nerl:** quote plus "ask about his record." Who is Nerl? Possibly a former Mariemont coach who held the record before Erik.
 - **Students, parents, leaders:** 3 to 5 short quotes. Ideas: a player from the 2020 state title team, a current captain, a longtime team parent, the athletic director.
 
@@ -38,11 +39,10 @@ He was Erik's student as a freshman in Erik's first year teaching at Mariemont. 
 
 ## Open questions
 
-- Is this still a story about both coaches, or about Erik with Jeff as a source? Suzy's focus is Erik.
 - Who is Nerl, and what is his record?
 - Is it Erik's 200th win as Mariemont head coach, or across his whole career (he also coached at Milford)? See `research.md`.
 - Is Erik's departure public, and how does he want it described?
-- What do Erik and Jeff already know about the article? Suzy offered to stop by Erik's house. Should she reach out first, or should Chase?
+- Is any recognition planned? Ask the athletic director (the player awards ceremony is usually in November).
 
 ## Authorship
 

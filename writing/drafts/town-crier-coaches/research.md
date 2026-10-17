@@ -41,6 +41,23 @@ Each claim, where it came from, and whether it is verified. Status: **Verified**
   - A count that includes his years at Milford or as an assistant. The [staff bio](https://mhswarriors.com/main/staff/id/18362/seasonid/35115/staffid/25833) mentions a 38-18-10 record with teams he sent up to varsity.
 - **Ask Erik or the athletic director:** is 200 his Mariemont head-coach total, and when did it start?
 
+## Lisa Vanags's email (Oct 16, 2026)
+
+Source: Lisa's reply to Chase, cc Suzy. Her words, to be checked with Erik.
+
+- **207 wins going into the tournament.** **Partly verified.** If Ross (the 2nd win of 2026) was #200, then 2026's 8 wins through Oct 10 plus a win over Finneytown on Oct 15 gives exactly 207. Check the Finneytown result. This also suggests 200 counts Mariemont wins only; the 4-win gap with MaxPreps is likely the missing 2010 to 2011 seasons.
+- **Erik has coached since Milford High School in 1997.** Lisa has been at almost every game for 30 years. **Consistent** with his staff bio (10 years at Milford, his alma mater, then Mariemont from 2007).
+- **Other Mariemont coaching win totals:**
+  - Tom Crosby, football (the stadium field is named for him): 215 career wins. **Unverified.**
+  - Steve Peterson, boys lacrosse: 203 wins. **Matches** the 2026 Doc Kusel Hall of Fame flyer, which says Peterson led the program and compiled 203 wins.
+  - So at 207, Erik has passed Peterson and is 8 wins behind Crosby.
+- **Jeff Hinebaugh is also retiring from coaching this year.** Erik and Jeff have coached together for 20 years (Jeff since 2005). **Consistent** with Jeff's Dinsmore bio.
+- **Together they've won** 4 league titles, 11 district titles, 1 regional title, and the program's first and only state title (2020). **Unverified, and 11 districts needs checking.** A 2020 athletics article quoted Erik as saying the program had "won a district title," but that may have counted only boys titles under his tenure, or before later runs (for example the 2025 district championship).
+- **Coach of the Year for the State of Ohio twice.** **Verified:** OSSCA Division II (2015) and Division III (2020).
+- **Recognition:** no event planned that Lisa knows of. The athletic awards ceremony for players is usually in November; the athletic director may do something.
+- **Program wins since 1976:** Lisa doesn't know the total, but Erik does.
+- **Photos:** Lisa offered photos of the plaques on the wall of their study.
+
 ## Erik has half of the program's total wins
 
 - **Source of claim:** Lisa Vanags, relayed by Suzy.
