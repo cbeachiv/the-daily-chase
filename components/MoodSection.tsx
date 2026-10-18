@@ -6,6 +6,7 @@ import { auth } from "@/lib/firebase/client";
 import type {
   CoffeeLog,
   DinnerPlanLog,
+  DrinkLog,
   FoodEntry,
   MoodLog,
   StepLog,
@@ -13,16 +14,16 @@ import type {
   Workout,
 } from "@/lib/types";
 import { MAX_STEPS_PER_DAY, STEP_LOGS, stepLogId } from "@/lib/steps";
+import { DRINK_LOGS, drinkLogId, drinksByDate } from "@/lib/drinks";
 import { addDays, prettyDate, prettyTime, sleepHours, todayStr } from "@/lib/dates";
 import MoodChart from "@/components/charts/MoodChart";
 
+// Mood and energy start unset: a check-in is only saved once you pick a mood,
+// so nothing gets recorded as a "5" just because you opened the form.
 const EMPTY_FORM = {
-  mood: 5,
-  energy: 5,
-  caffeineCups: 0, // only edited directly on old logs; new logs snapshot from coffeeLogs
-  alcoholDrinks: 0,
-  exercised: false,
-  dinnerPlan: false,
+  mood: null as number | null,
+  energy: null as number | null,
+  caffeineCups: 0, // snapshot from coffeeLogs at save time
   bedtime: "",
   wakeTime: "",
   aiAnswer: "",
@@ -76,6 +77,11 @@ export default function MoodSection({
   // Dinner plan is a shared per-day yes/no toggle (same source the Quick Log uses).
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const dinnerPlanOnDate = dinnerPlans.some((d) => d.date === logDate);
+  // Drinks are their own per-day record (the day they were had), saved the
+  // moment you tap a number — independent of the mood check-in.
+  const { data: drinkLogs } = useCollection<DrinkLog>(DRINK_LOGS);
+  const drinksOn = useMemo(() => drinksByDate(drinkLogs, logs), [drinkLogs, logs]);
+  const drinksOnDate: number | undefined = drinksOn[logDate];
 
   // Food & body for the day being logged: calories/protein (foodEntries),
   // weight (weightLogs) and steps (stepLogs). Each field is null until edited,
@@ -94,6 +100,14 @@ export default function MoodSection({
   >;
   const [body, setBody] = useState(EMPTY_BODY);
   const [bodySaved, setBodySaved] = useState(false);
+  // Brief "Saved" tick next to whichever instant-save row was just written.
+  const [savedFlash, setSavedFlash] = useState<string | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  function flashSaved(key: string) {
+    setSavedFlash(key);
+    clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setSavedFlash(null), 1600);
+  }
   const bodyDirty = Object.values(body).some((v) => v !== null);
 
   const [form, setForm] = useState(EMPTY_FORM);
@@ -131,6 +145,7 @@ export default function MoodSection({
     f: typeof EMPTY_FORM,
     exercised: boolean,
     dinnerPlan: boolean,
+    drinks: { today?: number; dayBefore?: number },
     times?: string[]
   ) {
     const parts: string[] = [];
@@ -139,7 +154,9 @@ export default function MoodSection({
       parts.push(
         `${cups} coffee${cups > 1 ? "s" : ""}${times?.length ? ` (at ${times.join(", ")})` : ""}`
       );
-    if (f.alcoholDrinks) parts.push(`${f.alcoholDrinks} drink${f.alcoholDrinks > 1 ? "s" : ""}`);
+    const plural = (n: number) => `${n} drink${n === 1 ? "" : "s"}`;
+    if (drinks.today) parts.push(`${plural(drinks.today)} so far today`);
+    if (drinks.dayBefore) parts.push(`${plural(drinks.dayBefore)} the day before`);
     if (exercised) parts.push("exercised");
     if (dinnerPlan) parts.push("followed dinner plan");
     if (f.bedtime && f.wakeTime) {
@@ -150,9 +167,8 @@ export default function MoodSection({
   }
 
   async function fetchQuestion(
-    mood: number,
-    energy: number,
     f: typeof EMPTY_FORM,
+    date: string,
     exercised: boolean,
     dinnerPlan: boolean,
     times?: string[]
@@ -176,7 +192,8 @@ export default function MoodSection({
           mood: l.mood,
           energy: l.energy,
           coffees: l.caffeineCups,
-          drinks: l.alcoholDrinks,
+          drinksThatDay: drinksOn[l.date],
+          drinksDayBefore: drinksOn[addDays(l.date, -1)],
           exercised: l.exercised,
           dinnerPlan: l.dinnerPlan,
           bedtime: l.bedtime,
@@ -190,9 +207,15 @@ export default function MoodSection({
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           localTime,
-          mood,
-          energy,
-          context: contextSummary(f, exercised, dinnerPlan, times),
+          mood: f.mood,
+          energy: f.energy,
+          context: contextSummary(
+            f,
+            exercised,
+            dinnerPlan,
+            { today: drinksOn[date], dayBefore: drinksOn[addDays(date, -1)] },
+            times
+          ),
           history,
         }),
       });
@@ -234,9 +257,8 @@ export default function MoodSection({
     // The smart question is about "right now", so only ask it for today.
     if (target === today) {
       fetchQuestion(
-        EMPTY_FORM.mood,
-        EMPTY_FORM.energy,
         EMPTY_FORM,
+        target,
         workouts.some((w) => w.date === target),
         dinnerPlans.some((d) => d.date === target),
         coffees
@@ -265,17 +287,34 @@ export default function MoodSection({
     else await addItem(uid, "workouts", { date: logDate, type: "Exercise" });
   }
 
-  // Toggle the shared dinner-plan flag for the day being logged (same source
-  // the Quick Log uses).
-  async function toggleDinnerPlan() {
+  // "7+" opens a box asking for the exact count; null = closed.
+  const [manyDrinks, setManyDrinks] = useState<string | null>(null);
+  useEffect(() => setManyDrinks(null), [logDate, showForm]);
+  async function commitManyDrinks() {
+    const n = Math.round(Number(manyDrinks));
+    if (!(n >= 7 && n <= 40)) return;
+    setManyDrinks(null);
+    if (drinksOnDate !== n) await setDrinksOnDate(n);
+  }
+
+  // Drinks for the day being logged, written on tap. Tapping the current value
+  // again clears the day back to "not logged".
+  async function setDrinksOnDate(n: number) {
     if (!uid) return;
-    const existing = dinnerPlans.find((d) => d.date === logDate);
-    if (existing) await deleteItem(uid, "dinnerPlanLogs", existing.id);
-    else
-      await addItem(uid, "dinnerPlanLogs", {
+    const id = drinkLogId(logDate);
+    const existing = drinkLogs.find((d) => d.id === id);
+    if (existing && existing.drinks === n) {
+      await deleteItem(uid, DRINK_LOGS, id);
+    } else {
+      const now = new Date().toISOString();
+      await setItem(uid, DRINK_LOGS, id, {
         date: logDate,
-        loggedAt: new Date().toISOString(),
+        drinks: n,
+        updatedAt: now,
+        createdAt: existing?.createdAt ?? now,
       });
+    }
+    flashSaved("drinks");
   }
 
   function startEdit(l: MoodLog) {
@@ -283,12 +322,9 @@ export default function MoodSection({
     setBody(EMPTY_BODY);
     setBodySaved(false);
     setForm({
-      mood: l.mood,
-      energy: l.energy,
+      mood: l.mood ?? null,
+      energy: l.energy ?? null,
       caffeineCups: l.caffeineCups ?? 0,
-      alcoholDrinks: l.alcoholDrinks ?? 0,
-      exercised: !!l.exercised,
-      dinnerPlan: !!l.dinnerPlan,
       bedtime: l.bedtime ?? "",
       wakeTime: l.wakeTime ?? "",
       aiAnswer: l.aiAnswer ?? "",
@@ -348,23 +384,26 @@ export default function MoodSection({
     }
     setBody(EMPTY_BODY);
     setBodySaved(true);
+    flashSaved("body");
   }
+
+  // A check-in needs a mood. Drinks, exercise, dinner plan and food & body
+  // all save on their own, so they never create a mood entry.
+  const canSave = form.mood != null;
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!uid) return;
+    if (!uid || !canSave) return;
     await saveBody();
     const editable = {
-      mood: form.mood,
-      energy: form.energy,
-      // New logs snapshot how many coffees were logged up to this moment;
-      // edits keep whatever the log was saved with.
-      caffeineCups: editingId ? form.caffeineCups : dateCoffees.length,
-      alcoholDrinks: form.alcoholDrinks,
-      // New logs snapshot that day's shared exercise status; edits keep their own.
-      exercised: editingId ? form.exercised : exercisedOnDate,
-      // Same for the shared dinner-plan flag.
-      dinnerPlan: editingId ? form.dinnerPlan : dinnerPlanOnDate,
+      mood: form.mood ?? undefined,
+      energy: form.energy ?? undefined,
+      // Snapshot the day's coffees as of now (old logs without coffee taps
+      // keep the count they were saved with).
+      caffeineCups: dateCoffees.length || form.caffeineCups,
+      // Snapshot the day's shared exercise / dinner-plan status.
+      exercised: exercisedOnDate,
+      dinnerPlan: dinnerPlanOnDate,
       bedtime: form.bedtime,
       wakeTime: form.wakeTime,
       aiQuestion,
@@ -405,7 +444,7 @@ export default function MoodSection({
       const res = await fetch("/api/ai/mood-insights", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ logs: payload, coffeeTimes: coffeePayload }),
+        body: JSON.stringify({ logs: payload, coffeeTimes: coffeePayload, drinks: drinksOn }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
@@ -434,9 +473,11 @@ export default function MoodSection({
               <span className="rounded-full bg-indigo/10 px-2 py-0.5 text-indigo">
                 {latest.mood}
               </span>
-              <span className="rounded-full bg-amber/10 px-2 py-0.5 text-amber">
-                ⚡{latest.energy}
-              </span>
+              {latest.energy != null && (
+                <span className="rounded-full bg-amber/10 px-2 py-0.5 text-amber">
+                  ⚡{latest.energy}
+                </span>
+              )}
             </span>
           )}
           <button
@@ -456,241 +497,283 @@ export default function MoodSection({
       </div>
 
       {showForm && (
-        <form onSubmit={save} className="mb-4 space-y-4 rounded-lg border border-line bg-bg/50 p-4">
-          {/* Which day this entry is for — pick any past day to backfill or fix it. */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-muted">Logging for</span>
-            <input
-              type="date"
-              className="input w-auto py-1 text-sm"
-              value={logDate}
-              max={today}
-              onChange={(e) => e.target.value && openLog(e.target.value)}
-            />
-            <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
-              {[
-                { label: "Today", date: today },
-                { label: "Yesterday", date: addDays(today, -1) },
-              ].map((o) => (
-                <button
-                  key={o.label}
-                  type="button"
-                  onClick={() => openLog(o.date)}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                    logDate === o.date ? "bg-card text-ink shadow-card" : "text-muted hover:text-ink"
-                  }`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-            <span className="text-xs text-muted">
-              {editingId
-                ? `Editing ${prettyDate(logDate)}`
-                : isToday
-                  ? "New entry"
-                  : `New entry for ${prettyDate(logDate)}`}
-            </span>
-          </div>
-
-          {/* Food & body for this day. Blank fields are left alone. */}
-          <div className="rounded-lg border border-line bg-card p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">🍽️ Food & body</span>
+        <form onSubmit={save} className="mb-4 space-y-3">
+          {/* Day picker: step through days, or tap the date to jump. */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={saveBody}
-                disabled={!bodyDirty || !uid}
-                className="text-xs font-semibold text-indigo disabled:text-muted disabled:opacity-60"
+                onClick={() => openLog(addDays(logDate, -1))}
+                className="grid h-8 w-8 place-items-center rounded-full text-lg text-muted transition hover:bg-line/60 hover:text-ink"
+                title="Previous day"
               >
-                {bodySaved && !bodyDirty ? "Saved ✓" : "Save just these"}
+                ‹
               </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <BodyField
-                label="Calories"
-                value={body.calories ?? (dayCalories ? String(dayCalories) : "")}
-                onChange={(v) => setBody({ ...body, calories: v })}
-              />
-              <BodyField
-                label="Protein (g)"
-                value={body.protein ?? (dayProtein ? String(dayProtein) : "")}
-                onChange={(v) => setBody({ ...body, protein: v })}
-              />
-              <BodyField
-                label="Weight (lb)"
-                value={body.weight ?? (dayWeight ? String(dayWeight.weightLbs) : "")}
-                onChange={(v) => setBody({ ...body, weight: v })}
-              />
-              <BodyField
-                label="Steps"
-                value={body.steps ?? (daySteps ? String(daySteps.steps) : "")}
-                onChange={(v) => setBody({ ...body, steps: v })}
-              />
-            </div>
-            <p className="mt-1.5 text-[11px] text-muted">
-              Day totals. Saving calories or protein replaces that day&apos;s entries with one total.
-            </p>
-          </div>
-
-          <Slider
-            label="Mood"
-            value={form.mood}
-            color="#6366f1"
-            onChange={(v) => setForm({ ...form, mood: v })}
-          />
-          <Slider
-            label="Energy"
-            value={form.energy}
-            color="#f59e0b"
-            onChange={(v) => setForm({ ...form, energy: v })}
-          />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {editingId ? (
-              <PillGroup
-                label="☕ Coffees"
-                value={form.caffeineCups}
-                onChange={(v) => setForm({ ...form, caffeineCups: v })}
-              />
-            ) : dateCoffees.length > 0 ? (
-              <div>
-                <p className="mb-1 text-xs font-semibold text-muted">
-                  {isToday ? "☕ Coffees so far" : "☕ Coffees that day"}
-                </p>
-                <p className="text-sm">
-                  <span className="font-semibold">{dateCoffees.length}</span>{" "}
-                  <span className="text-muted">· {coffeeTimes.join(" · ")}</span>
-                </p>
-              </div>
-            ) : (
-              <div />
-            )}
-            <PillGroup
-              label={isToday ? "🍷 Drinks Yesterday" : "🍷 Drinks the day before"}
-              value={form.alcoholDrinks}
-              onChange={(v) => setForm({ ...form, alcoholDrinks: v })}
-              opts={DRINK_PILL_OPTS}
-            />
-          </div>
-
-          <div>
-            <div className="flex flex-wrap gap-2">
+              <label className="relative cursor-pointer rounded-lg px-1.5 py-0.5 transition hover:bg-line/60">
+                <span className="block text-base font-bold leading-tight">
+                  {isToday ? "Today" : logDate === addDays(today, -1) ? "Yesterday" : prettyDate(logDate)}
+                </span>
+                <span className="block text-[11px] leading-tight text-muted">
+                  {isToday || logDate === addDays(today, -1) ? prettyDate(logDate) : "Tap to pick a day"}
+                </span>
+                <input
+                  type="date"
+                  aria-label="Pick a day"
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                  value={logDate}
+                  max={today}
+                  onClick={(e) => e.currentTarget.showPicker?.()}
+                  onChange={(e) => e.target.value && openLog(e.target.value)}
+                />
+              </label>
               <button
                 type="button"
-                onClick={() =>
-                  editingId
-                    ? setForm({ ...form, exercised: !form.exercised })
-                    : toggleWorkoutOnDate()
-                }
-                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                  (editingId ? form.exercised : exercisedOnDate)
-                    ? "bg-teal/15 text-teal"
-                    : "bg-bg text-muted hover:text-ink"
-                }`}
+                onClick={() => openLog(addDays(logDate, 1))}
+                disabled={isToday}
+                className="grid h-8 w-8 place-items-center rounded-full text-lg text-muted transition hover:bg-line/60 hover:text-ink disabled:opacity-30 disabled:hover:bg-transparent"
+                title="Next day"
               >
-                {(editingId ? form.exercised : exercisedOnDate) ? "✓ " : "○ "}🏃{" "}
-                {isToday ? "Exercised today" : "Exercised"}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  editingId
-                    ? setForm({ ...form, dinnerPlan: !form.dinnerPlan })
-                    : toggleDinnerPlan()
-                }
-                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-                  (editingId ? form.dinnerPlan : dinnerPlanOnDate)
-                    ? "bg-teal/15 text-teal"
-                    : "bg-bg text-muted hover:text-ink"
-                }`}
-              >
-                {(editingId ? form.dinnerPlan : dinnerPlanOnDate) ? "✓ " : "○ "}🫐🥭 Followed dinner plan
+                ›
               </button>
             </div>
-            {!editingId && (
-              <p className="mt-1 text-xs text-muted">Synced with your logs above.</p>
+            {!isToday && (
+              <button
+                type="button"
+                onClick={() => openLog(today)}
+                className="rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted transition hover:text-ink"
+              >
+                Jump to today
+              </button>
             )}
           </div>
 
-          <div>
-            <p className="mb-1 text-xs font-semibold text-muted">
-              {isToday ? "🛏 Sleep last night" : "🛏 Sleep the night before"}
-            </p>
-            <div className="flex flex-wrap items-end gap-3">
-              <label className="text-xs font-semibold text-muted">
-                Went to bed
-                <input
-                  type="time"
-                  className="input mt-1"
-                  value={form.bedtime}
-                  onChange={(e) => setForm({ ...form, bedtime: e.target.value })}
-                />
-              </label>
-              <label className="text-xs font-semibold text-muted">
-                Woke up
-                <input
-                  type="time"
-                  className="input mt-1"
-                  value={form.wakeTime}
-                  onChange={(e) => setForm({ ...form, wakeTime: e.target.value })}
-                />
-              </label>
-              {formSleep !== null && (
-                <span className="pb-2 text-sm font-medium text-teal">{formSleep}h</span>
+          {/* ---- The day: everything here saves the moment you change it ---- */}
+          <div className="rounded-xl border border-line bg-card p-4">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-sm font-bold">Habits &amp; body</h3>
+              <span className="text-[11px] text-muted">Saves as you go</span>
+            </div>
+
+            <div className="space-y-4">
+              <Row
+                icon="🍷"
+                label="Drinks"
+                hint={
+                  drinksOnDate === undefined
+                    ? "Not logged"
+                    : `${drinksOnDate} ${isToday ? "today" : "that day"}`
+                }
+                saved={savedFlash === "drinks"}
+              >
+                <div className="grid grid-cols-8 gap-1 sm:flex sm:gap-1.5">
+                  {DRINK_OPTS.map((n) => (
+                    <DrinkChip
+                      key={n}
+                      on={drinksOnDate === n}
+                      onClick={() => {
+                        setManyDrinks(null);
+                        setDrinksOnDate(n);
+                      }}
+                    >
+                      {n}
+                    </DrinkChip>
+                  ))}
+                  {/* More than 6: ask for the exact number. */}
+                  <DrinkChip
+                    on={drinksOnDate !== undefined && drinksOnDate > 6}
+                    onClick={() =>
+                      setManyDrinks(
+                        manyDrinks !== null
+                          ? null
+                          : drinksOnDate !== undefined && drinksOnDate > 6
+                            ? String(drinksOnDate)
+                            : ""
+                      )
+                    }
+                  >
+                    {drinksOnDate !== undefined && drinksOnDate > 6 ? drinksOnDate : "7+"}
+                  </DrinkChip>
+                </div>
+                {manyDrinks !== null && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-sm text-muted">How many exactly?</span>
+                    <input
+                      autoFocus
+                      type="number"
+                      inputMode="numeric"
+                      min={7}
+                      max={40}
+                      className="input w-20 py-1.5 text-center"
+                      value={manyDrinks}
+                      onChange={(e) => setManyDrinks(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          commitManyDrinks();
+                        }
+                        if (e.key === "Escape") setManyDrinks(null);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={commitManyDrinks}
+                      disabled={!(Number(manyDrinks) >= 7)}
+                      className="btn-primary px-3 py-1.5 text-xs disabled:opacity-40"
+                    >
+                      Save
+                    </button>
+                  </div>
+                )}
+              </Row>
+
+              <Toggle on={exercisedOnDate} onClick={toggleWorkoutOnDate}>
+                🏃 {isToday ? "Exercised today" : "Exercised"}
+              </Toggle>
+
+              <Row icon="🍽️" label="Food & body" saved={savedFlash === "body"}>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <BodyField
+                    label="Calories"
+                    value={body.calories ?? (dayCalories ? String(dayCalories) : "")}
+                    onChange={(v) => setBody({ ...body, calories: v })}
+                    onCommit={saveBody}
+                  />
+                  <BodyField
+                    label="Protein"
+                    unit="g"
+                    value={body.protein ?? (dayProtein ? String(dayProtein) : "")}
+                    onChange={(v) => setBody({ ...body, protein: v })}
+                    onCommit={saveBody}
+                  />
+                  <BodyField
+                    label="Weight"
+                    unit="lb"
+                    value={body.weight ?? (dayWeight ? String(dayWeight.weightLbs) : "")}
+                    onChange={(v) => setBody({ ...body, weight: v })}
+                    onCommit={saveBody}
+                  />
+                  <BodyField
+                    label="Steps"
+                    value={body.steps ?? (daySteps ? String(daySteps.steps) : "")}
+                    onChange={(v) => setBody({ ...body, steps: v })}
+                    onCommit={saveBody}
+                  />
+                </div>
+                <p className="mt-1.5 text-[11px] text-muted">
+                  Day totals. Calories or protein here replace that day&apos;s food entries.
+                </p>
+              </Row>
+            </div>
+          </div>
+
+          {/* ---- Check-in: only saved when you tap the button ---- */}
+          <div className="rounded-xl border border-line bg-card p-4">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-sm font-bold">
+                {isToday ? "How are you feeling?" : "How were you feeling?"}
+              </h3>
+              {editingId && (
+                <span className="text-[11px] text-muted">
+                  Editing {prettyTime(logs.find((l) => l.id === editingId)?.loggedAt ?? "")} check-in
+                </span>
               )}
             </div>
-          </div>
 
-          {/* AI follow-up — the question is about "right now", so skip it when
-              backfilling a past day (existing logs keep whatever they were asked). */}
-          {(isToday || !!editingId) && (
-          <div className="rounded-lg border border-line bg-card p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-indigo">✦ Smart question</span>
-              <button
-                type="button"
-                onClick={() =>
-                  fetchQuestion(
-                    form.mood,
-                    form.energy,
-                    form,
-                    editingId ? form.exercised : exercisedOnDate,
-                    editingId ? form.dinnerPlan : dinnerPlanOnDate,
-                    editingId ? undefined : coffeeTimes
-                  )
-                }
-                className="text-xs text-muted hover:text-ink"
-                disabled={aiLoading}
+            <div className="space-y-4">
+              <Scale
+                label="Mood"
+                value={form.mood}
+                tone="indigo"
+                onChange={(v) => setForm({ ...form, mood: v })}
+              />
+              <Scale
+                label="Energy"
+                value={form.energy}
+                tone="amber"
+                onChange={(v) => setForm({ ...form, energy: v })}
+              />
+
+              <Row
+                icon="🛏"
+                label={isToday ? "Sleep last night" : "Sleep the night before"}
+                hint={formSleep !== null ? `${formSleep}h` : undefined}
               >
-                {aiLoading ? "…" : "↻ new"}
-              </button>
-            </div>
-            <p className="mt-1 text-sm">
-              {aiLoading ? "Thinking…" : aiQuestion || "No question — answer anything below."}
-            </p>
-            <input
-              className="input mt-2"
-              placeholder="Your answer (optional)"
-              value={form.aiAnswer}
-              onChange={(e) => setForm({ ...form, aiAnswer: e.target.value })}
-            />
-          </div>
-          )}
+                <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+                  <label className="text-[11px] font-semibold text-muted">
+                    Bed
+                    <input
+                      type="time"
+                      className="input mt-1 py-1.5"
+                      value={form.bedtime}
+                      onChange={(e) => setForm({ ...form, bedtime: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-[11px] font-semibold text-muted">
+                    Up
+                    <input
+                      type="time"
+                      className="input mt-1 py-1.5"
+                      value={form.wakeTime}
+                      onChange={(e) => setForm({ ...form, wakeTime: e.target.value })}
+                    />
+                  </label>
+                </div>
+              </Row>
 
-          <input
-            className="input"
-            placeholder="Notes (optional)"
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          />
-          <button type="submit" className="btn-primary w-full">
-            {editingId
-              ? "Save changes"
-              : isToday
-                ? "Save log"
-                : `Save log for ${prettyDate(logDate)}`}
-          </button>
+              {/* AI follow-up — the question is about "right now", so skip it when
+                  backfilling a past day (existing logs keep whatever they were asked). */}
+              {(isToday || !!editingId) && (aiLoading || aiQuestion) && (
+                <div className="rounded-lg bg-indigo/5 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm">
+                      <span className="mr-1 text-indigo">✦</span>
+                      {aiLoading ? <span className="text-muted">Thinking of a question…</span> : aiQuestion}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        fetchQuestion(form, logDate, exercisedOnDate, dinnerPlanOnDate, coffeeTimes)
+                      }
+                      className="shrink-0 text-xs text-muted hover:text-ink"
+                      disabled={aiLoading}
+                      title="Ask a different question"
+                    >
+                      ↻
+                    </button>
+                  </div>
+                  <input
+                    className="input mt-2 bg-card"
+                    placeholder="Your answer (optional)"
+                    value={form.aiAnswer}
+                    onChange={(e) => setForm({ ...form, aiAnswer: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <textarea
+                className="input min-h-[2.75rem] resize-y"
+                rows={1}
+                placeholder="Anything else? (optional)"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              />
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={!canSave}
+                  className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {editingId ? "Save changes" : "Save check-in"}
+                </button>
+                {!canSave && (
+                  <p className="mt-1.5 text-center text-[11px] text-muted">
+                    Pick a mood to save a check-in. Drinks and the rest above are already saved.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </form>
       )}
 
@@ -769,7 +852,7 @@ export default function MoodSection({
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
                   {!!l.caffeineCups && <span>☕ {l.caffeineCups}</span>}
-                  {!!l.alcoholDrinks && <span>🍷 {l.alcoholDrinks}</span>}
+                  {!!drinksOn[l.date] && <span>🍷 {drinksOn[l.date]}</span>}
                   {l.exercised && <span>🏃 exercised</span>}
                   {l.dinnerPlan && <span>🫐🥭 dinner plan</span>}
                   {slept !== null && <span>🛏 {slept}h</span>}
@@ -814,26 +897,109 @@ export default function MoodSection({
   );
 }
 
+function Row({
+  icon,
+  label,
+  hint,
+  saved,
+  children,
+}: {
+  icon: string;
+  label: string;
+  hint?: string;
+  saved?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+        <span className="text-xs font-semibold text-muted">
+          <span className="mr-1">{icon}</span>
+          {label}
+        </span>
+        <span className="text-[11px] font-medium">
+          {saved ? (
+            <span className="text-teal">Saved ✓</span>
+          ) : (
+            hint && <span className="text-muted">{hint}</span>
+          )}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Toggle({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition active:scale-95 ${
+        on
+          ? "border-teal/40 bg-teal/10 text-teal"
+          : "border-line bg-bg text-muted hover:text-ink"
+      }`}
+    >
+      <span
+        className={`grid h-4 w-4 place-items-center rounded-full border text-[10px] leading-none ${
+          on ? "border-teal bg-teal text-white" : "border-muted/40"
+        }`}
+      >
+        {on ? "✓" : ""}
+      </span>
+      {children}
+    </button>
+  );
+}
+
 function BodyField({
   label,
+  unit,
   value,
   onChange,
+  onCommit,
 }: {
   label: string;
+  unit?: string;
   value: string;
   onChange: (v: string) => void;
+  onCommit: () => void;
 }) {
   return (
     <label className="text-[11px] font-semibold text-muted">
       {label}
-      <input
-        type="text"
-        inputMode="decimal"
-        className="input mt-1 py-1.5"
-        placeholder="—"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <span className="relative mt-1 block">
+        <input
+          type="text"
+          inputMode="decimal"
+          className={`input py-1.5 ${unit ? "pr-7" : ""}`}
+          placeholder="—"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onCommit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
+          }}
+        />
+        {unit && (
+          <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-xs font-normal text-muted">
+            {unit}
+          </span>
+        )}
+      </span>
     </label>
   );
 }
@@ -856,85 +1022,83 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-function Slider({
+const SCALE_TONES = {
+  indigo: { on: "border-indigo bg-indigo text-white", text: "text-indigo", hover: "hover:border-indigo/50" },
+  amber: { on: "border-amber bg-amber text-white", text: "text-amber", hover: "hover:border-amber/50" },
+};
+
+// 1–10 tap scale with no default: shows "—" until you pick, and tapping the
+// picked number again clears it.
+function Scale({
   label,
   value,
-  color,
+  tone,
   onChange,
 }: {
   label: string;
-  value: number;
-  color: string;
-  onChange: (v: number) => void;
+  value: number | null;
+  tone: keyof typeof SCALE_TONES;
+  onChange: (v: number | null) => void;
 }) {
+  const t = SCALE_TONES[tone];
   return (
     <div>
-      <div className="mb-1 flex items-baseline justify-between">
+      <div className="mb-1.5 flex items-baseline justify-between">
         <span className="text-sm font-semibold">{label}</span>
-        <span className="text-sm font-bold" style={{ color }}>
-          {value}/10
+        <span className={`text-sm font-bold ${value == null ? "text-muted/60" : t.text}`}>
+          {value == null ? "—" : `${value}/10`}
         </span>
       </div>
-      <input
-        type="range"
-        min={1}
-        max={10}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full"
-        style={{ accentColor: color }}
-      />
-    </div>
-  );
-}
-
-const DEFAULT_PILL_OPTS = [
-  { v: 0, t: "0" },
-  { v: 1, t: "1" },
-  { v: 2, t: "2" },
-  { v: 3, t: "3+" },
-];
-
-// 0–6 with a 6+ cap — drinks can run higher than the default 3+ scale.
-const DRINK_PILL_OPTS = [
-  { v: 0, t: "0" },
-  { v: 1, t: "1" },
-  { v: 2, t: "2" },
-  { v: 3, t: "3" },
-  { v: 4, t: "4" },
-  { v: 5, t: "5" },
-  { v: 6, t: "6+" },
-];
-
-function PillGroup({
-  label,
-  value,
-  onChange,
-  opts = DEFAULT_PILL_OPTS,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  opts?: { v: number; t: string }[];
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-xs font-semibold text-muted">{label}</p>
-      <div className="inline-flex rounded-lg border border-line bg-bg p-0.5">
-        {opts.map((o) => (
-          <button
-            key={o.v}
-            type="button"
-            onClick={() => onChange(o.v)}
-            className={`rounded-md px-3 py-1 text-sm font-medium transition ${
-              value === o.v ? "bg-card text-ink shadow-card" : "text-muted hover:text-ink"
-            }`}
-          >
-            {o.t}
-          </button>
-        ))}
+      <div className="grid grid-cols-10 gap-1">
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+          const on = value === n;
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(on ? null : n)}
+              aria-pressed={on}
+              className={`h-9 rounded-lg border text-sm font-semibold transition active:scale-95 ${
+                on ? `${t.on} shadow-card` : `border-line bg-bg text-ink ${t.hover}`
+              }`}
+            >
+              {n}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-1 flex justify-between text-[10px] text-muted">
+        <span>Low</span>
+        <span>High</span>
       </div>
     </div>
   );
 }
+
+// 0–6 as one-tap chips; more than that goes through "7+" and an exact count.
+const DRINK_OPTS = [0, 1, 2, 3, 4, 5, 6];
+
+function DrinkChip({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`h-9 rounded-full border text-sm font-semibold transition active:scale-95 sm:min-w-[2.75rem] sm:px-3 ${
+        on
+          ? "border-coral bg-coral text-white shadow-card"
+          : "border-line bg-bg text-ink hover:border-coral/50"
+      }`}
+    >
+      {children}
+    </button>
+  );
+};

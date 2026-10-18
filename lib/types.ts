@@ -226,6 +226,15 @@ export interface StepLog {
   createdAt: string; // ISO, first write (preserved on overwrite)
 }
 
+// One doc per day: users/{uid}/drinkLogs/d_YYYY-MM-DD (see lib/drinks.ts).
+export interface DrinkLog {
+  id: string; // "d_2026-10-15"
+  date: string; // YYYY-MM-DD the drinks were had
+  drinks: number;
+  updatedAt: string;
+  createdAt: string;
+}
+
 export interface FoodEntry {
   id: string;
   date: string; // YYYY-MM-DD
@@ -292,11 +301,11 @@ export interface MoodLog {
   id: string;
   date: string; // YYYY-MM-DD (for grouping/filtering)
   loggedAt: string; // ISO timestamp — the exact moment logged
-  mood: number; // 1–10
-  energy: number; // 1–10
+  mood?: number; // 1–10 (absent on old drinks-only logs)
+  energy?: number; // 1–10
   // structured context factors (all optional)
   caffeineCups?: number; // # coffees so far today — snapshotted from coffeeLogs at save time
-  alcoholDrinks?: number; // # alcoholic drinks
+  alcoholDrinks?: number; // legacy: drinks the day before; new drinks go in drinkLogs
   exercised?: boolean; // worked out today
   dinnerPlan?: boolean; // followed his dinner plan today — snapshotted from dinnerPlanLogs
   bedtime?: string; // "HH:MM" — time went to bed last night

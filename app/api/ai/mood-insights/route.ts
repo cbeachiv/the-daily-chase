@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { anthropic, CLAUDE_MODEL, textOf } from "@/lib/anthropic";
 import { verifyUser } from "@/lib/verifyUser";
 import type { MoodLog } from "@/lib/types";
+import { addDays } from "@/lib/dates";
 
 export const runtime = "nodejs";
 
 interface Body {
   logs?: MoodLog[]; // recent mood logs the client already has loaded
   coffeeTimes?: string[]; // ISO timestamps, one per individual coffee logged
+  drinks?: Record<string, number>; // YYYY-MM-DD -> alcoholic drinks had that day
 }
 
 export async function POST(req: Request) {
@@ -38,7 +40,8 @@ export async function POST(req: Request) {
       mood: l.mood,
       energy: l.energy,
       coffees: l.caffeineCups,
-      drinks: l.alcoholDrinks,
+      drinksThatDay: body.drinks?.[l.date],
+      drinksDayBefore: body.drinks?.[addDays(l.date, -1)],
       exercised: l.exercised,
       dinnerPlan: l.dinnerPlan,
       bedtime: l.bedtime,
@@ -52,7 +55,7 @@ export async function POST(req: Request) {
 
   const prompt = [
     `You are analyzing Chase's mood/energy logs to find what drives how he feels.`,
-    `Each entry has a timestamp, mood (1–10), energy (1–10), and context: coffees so far that day, alcoholic drinks, whether he exercised, whether he followed his dinner plan (dinnerPlan), bedtime/wake time (sleep), and an optional note.`,
+    `Each entry has a timestamp, mood (1–10), energy (1–10), and context: coffees so far that day, alcoholic drinks that day and the day before (drinksThatDay / drinksDayBefore; missing = not logged), whether he exercised, whether he followed his dinner plan (dinnerPlan), bedtime/wake time (sleep), and an optional note.`,
     `Logs (JSON):\n${JSON.stringify(compact)}`,
     ...(coffeeTimes.length
       ? [

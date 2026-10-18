@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { drinksByDate } from "@/lib/drinks";
 import type {
   CoffeeLog,
   DinnerPlanLog,
+  DrinkLog,
   FoodEntry,
   MoodLog,
   Travel,
@@ -28,6 +30,7 @@ export default function HealthCalendar({
   foods,
   wakeups,
   moods,
+  drinkLogs,
   coffees,
   dinnerPlans,
   travel,
@@ -40,6 +43,7 @@ export default function HealthCalendar({
   foods: FoodEntry[];
   wakeups: WakeupLog[];
   moods: MoodLog[];
+  drinkLogs: DrinkLog[];
   coffees: CoffeeLog[];
   dinnerPlans: DinnerPlanLog[];
   travel: Travel[];
@@ -97,8 +101,10 @@ export default function HealthCalendar({
       }
     }
 
-    return { wakeupSet, exercise, weight, calories, coffeeCount, dinnerPlanSet, mood, trip };
-  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, coffees, dinnerPlans, travel]);
+    const drinks = drinksByDate(drinkLogs, moods);
+
+    return { wakeupSet, exercise, weight, calories, coffeeCount, dinnerPlanSet, mood, trip, drinks };
+  }, [weights, workouts, lifts, cardio, foods, wakeups, moods, drinkLogs, coffees, dinnerPlans, travel]);
 
   const { cells, label } = useMemo(() => {
     const [y, m] = month.split("-").map(Number);
@@ -172,7 +178,7 @@ export default function HealthCalendar({
           const woke = byDate.wakeupSet.has(date);
           const exercises = byDate.exercise[date] ?? [];
           const trips = byDate.trip[date] ?? [];
-          const drinks = mood?.alcoholDrinks ?? 0;
+          const drinks = byDate.drinks[date] ?? 0;
           // A logged 5am wakeup is an explicit "got up at 5" signal, so it sets
           // the wake time to 5:00 AM; otherwise fall back to the mood log's time.
           const wakeTime = woke ? "05:00" : mood?.wakeTime;

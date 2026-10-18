@@ -6,8 +6,8 @@ export const runtime = "nodejs";
 
 interface Body {
   localTime: string; // e.g. "Mon 2:15 PM" — the user's real local time
-  mood: number; // 1–10
-  energy: number; // 1–10
+  mood?: number | null; // 1–10, null until he picks one
+  energy?: number | null; // 1–10
   context?: string; // compact summary of today's already-logged factors
   history?: unknown[]; // recent past logs so Claude can learn patterns
 }
@@ -27,7 +27,12 @@ export async function POST(req: Request) {
 
   const prompt = [
     `Chase is logging how he feels right now. It's ${body.localTime}.`,
-    `He rates his mood ${body.mood}/10 and energy ${body.energy}/10.`,
+    [
+      body.mood != null ? `He rates his mood ${body.mood}/10.` : "",
+      body.energy != null ? `He rates his energy ${body.energy}/10.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ") || "He hasn't rated his mood or energy yet.",
     body.context ? `Already noted today: ${body.context}` : "",
     hasHistory
       ? `Here are his recent past logs (newest first) — each with timestamp, mood, energy, coffees, drinks, exercised, dinnerPlan (whether he followed his dinner plan that day), bed/wake times, and any prior question (q) and his answer (a). STUDY these to learn his personal patterns and what tends to drive his mood/energy:\n${JSON.stringify(

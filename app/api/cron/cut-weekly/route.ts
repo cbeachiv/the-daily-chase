@@ -8,7 +8,7 @@ import { buildCutWeek, recapWeekFor, type CutWeek } from "@/lib/cutWeekly";
 import { TEMPLATES, type TemplateExercise } from "@/lib/workoutTemplates";
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import type { CardioLog } from "@/lib/cardio";
-import type { FoodEntry, MoodLog, StepLog, WaistLog, WeightLog } from "@/lib/types";
+import type { DrinkLog, FoodEntry, MoodLog, StepLog, WaistLog, WeightLog } from "@/lib/types";
 import { buildEmailHtml } from "./email";
 
 export const runtime = "nodejs";
@@ -110,7 +110,7 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: "No user" }, { status: 404 });
   const uid = user.uid;
 
-  const [weights, foods, lifts, cardio, waists, steps, moods, configSnap] = await Promise.all([
+  const [weights, foods, lifts, cardio, waists, steps, moods, drinkLogs, configSnap] = await Promise.all([
     colData<WeightLog>(uid, "weightLogs"),
     colData<FoodEntry>(uid, "foodEntries"),
     colData<LoggedSessionDoc>(uid, "liftSessions"),
@@ -118,13 +118,14 @@ export async function GET(req: Request) {
     colData<WaistLog>(uid, "waistLogs"),
     colData<StepLog>(uid, "stepLogs"),
     colData<MoodLog>(uid, "moodLogs"),
+    colData<DrinkLog>(uid, "drinkLogs"),
     adminDb().doc(`users/${uid}/workoutConfig/fall-2026`).get(),
   ]);
   const templates =
     (configSnap.data()?.templates as Record<string, TemplateExercise[]> | undefined) ??
     Object.fromEntries(TEMPLATES.map((t) => [t.key, t.exercises]));
 
-  const week = buildCutWeek({ weights, foods, lifts, cardio, waists, steps, moods, templates }, n);
+  const week = buildCutWeek({ weights, foods, lifts, cardio, waists, steps, moods, drinkLogs, templates }, n);
   const intro = await writeIntro(week);
 
   const avg = week.basisWeight;

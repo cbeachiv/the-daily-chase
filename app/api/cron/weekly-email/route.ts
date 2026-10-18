@@ -166,8 +166,9 @@ export async function GET(req: Request) {
   const weekMoods = moods.filter((m) => m.date >= weekStart);
   const mean = (xs: number[]) =>
     xs.length ? Math.round((xs.reduce((s, x) => s + x, 0) / xs.length) * 10) / 10 : null;
-  const avgMood = mean(weekMoods.map((m) => m.mood));
-  const avgEnergy = mean(weekMoods.map((m) => m.energy));
+  const ratings = (xs: (number | undefined)[]) => xs.filter((x): x is number => typeof x === "number");
+  const avgMood = mean(ratings(weekMoods.map((m) => m.mood)));
+  const avgEnergy = mean(ratings(weekMoods.map((m) => m.energy)));
 
   // --- Daily reflections digest --------------------------------------------
   const weekDailies = dailyReviews.filter(
