@@ -61,8 +61,14 @@ Source: Lisa's reply to Chase, cc Suzy. Her words, to be checked with Erik.
 ## Suzy's email (Oct 17, 2026)
 
 - **Erik teaches social studies at MHS.** **Verified** (staff bio, 2020 athletics article).
-- **Erik and Lisa have led many student mission trips,** possibly through the "Warriors BEyond" program (Suzy wasn't sure of the name). **Unverified.**
-- **2018 grads' trip:** the summer before senior year (so summer 2017), building a school in Ecuador, with a side trip to the Galapagos Islands by small boat. A Zach, probably Suzy's son, went. **Unverified;** confirm the year, the organization, and the name with Erik or Lisa.
+- **Mission trips (Lisa, Oct 17 reply-all, Suzy cc'd).** Lisa's account; confirm details with Erik.
+  - The program is now the **Warriors BEyond Global Travel program**, but that name and structure came after the first trips.
+  - **Nicaragua, 2016:** the first service trip. Mariemont hadn't had international student travel for many years, so it was a big risk for Erik and for the school. "It had to work and it had to be problem-free."
+  - **Ecuador, 2017:** service work in the Amazon, then a separate side trip to the Galapagos (the 2018 grads, the summer before senior year). Several rough small-boat rides: Lisa cried after the first day, and Erik threw up. Suzy remembers it as building a school; Lisa describes "our work in the Amazon," so confirm what they built.
+  - **Peru, 2018.**
+  - Erik and Lisa chaperoned all three. Around then, travel at Mariemont became a structured program with a dedicated staff member, and it now offers many international and service trips. Lisa: "Erik was a trailblazer!"
+  - Erik also chaperoned three more without Lisa: two service trips to the Dominican Republic and a tourist trip to Spain and Portugal.
+- **Lisa Vanags:** Spanish teacher and World Language Department Supervisor at Sycamore High School.
 
 ## Erik has half of the program's total wins
 

@@ -13,7 +13,7 @@
 3. **What they have meant to the community,** in the words of students, parents, and leaders.
 4. **What's next for Erik and Jeff** as they step away from coaching. Suzy's wording options: "passing the baton," "passing the torch," "moving into other endeavors."
 
-**Update from Suzy (email, Oct 17):** include a brief mention that Erik teaches social studies at MHS, and give a quick nod to Erik and Lisa leading student mission trips, likely through the Warriors BEyond program. Example: the 2018 grads' trip to build a school in Ecuador the summer before senior year, with a side trip to the Galapagos (a Zach, probably Suzy's son, was on it). This reverses her Oct 15 note to skip the classroom. Keep both short; soccer is still the heart of the piece.
+**Update from Suzy (email, Oct 17):** include a brief mention that Erik teaches social studies at MHS, and give a quick nod to Erik and Lisa leading student mission trips, which grew into the Warriors BEyond Global Travel program (Erik started it with the 2016 Nicaragua trip; details in `research.md`). Example: the 2018 grads' trip to build a school in Ecuador the summer before senior year, with a side trip to the Galapagos (a Zach, probably Suzy's son, was on it). This reverses her Oct 15 note to skip the classroom. Keep both short; soccer is still the heart of the piece.
 
 ## Reader
 
@@ -42,7 +42,7 @@ He was Erik's student as a freshman in Erik's first year teaching at Mariemont. 
 - Who is Nerl, and what is his record?
 - Is it Erik's 200th win as Mariemont head coach, or across his whole career (he also coached at Milford)? See `research.md`.
 - Is Erik's departure public, and how does he want it described?
-- Mission trips: is the program called Warriors BEyond? How many trips, where, and since when? Did Lisa co-lead them all?
+- Mission trips: Lisa answered (see `research.md`). Ask Erik what it took to get the 2016 Nicaragua trip approved, and what they built in Ecuador.
 - Is any recognition planned? Ask the athletic director (the player awards ceremony is usually in November).
 
 ## Authorship
