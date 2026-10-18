@@ -31,7 +31,8 @@ export default function MoodChart({
         datasets: [
           {
             label: "Mood",
-            data: sorted.map((l) => l.mood),
+            data: sorted.map((l) => l.mood ?? null),
+            spanGaps: true,
             borderColor: "#6366f1",
             backgroundColor: "rgba(99,102,241,0.12)",
             fill: false,
@@ -41,7 +42,8 @@ export default function MoodChart({
           },
           {
             label: "Energy",
-            data: sorted.map((l) => l.energy),
+            data: sorted.map((l) => l.energy ?? null),
+            spanGaps: true,
             borderColor: "#f59e0b",
             backgroundColor: "rgba(245,158,11,0.12)",
             fill: false,

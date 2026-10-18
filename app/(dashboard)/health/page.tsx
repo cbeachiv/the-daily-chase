@@ -5,6 +5,7 @@ import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import type {
   CoffeeLog,
   DinnerPlanLog,
+  DrinkLog,
   FoodEntry,
   MoodLog,
   Travel,
@@ -15,6 +16,7 @@ import type {
 import type { LoggedSessionDoc } from "@/lib/lifts";
 import type { CardioLog } from "@/lib/cardio";
 import { addDays, todayStr } from "@/lib/dates";
+import { DRINK_LOGS } from "@/lib/drinks";
 import WeightChart from "@/components/charts/WeightChart";
 import CaloriesChart from "@/components/charts/CaloriesChart";
 import MoodSection, { type OpenLogRequest } from "@/components/MoodSection";
@@ -38,6 +40,7 @@ export default function HealthPage() {
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
   const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
   const { data: moods } = useCollection<MoodLog>("moodLogs");
+  const { data: drinkLogs } = useCollection<DrinkLog>(DRINK_LOGS);
   const { data: coffees } = useCollection<CoffeeLog>("coffeeLogs");
   const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const { data: trips } = useCollection<Travel>("travel");
@@ -164,6 +167,7 @@ export default function HealthPage() {
         foods={foods}
         wakeups={wakeups}
         moods={moods}
+        drinkLogs={drinkLogs}
         coffees={coffees}
         dinnerPlans={dinnerPlans}
         travel={trips}

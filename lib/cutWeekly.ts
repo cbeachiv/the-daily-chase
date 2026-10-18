@@ -7,7 +7,8 @@
 import { addDays, sleepHours } from "@/lib/dates";
 import { mergeSessions, bestOf, type LoggedSessionDoc, type LiftSession } from "@/lib/lifts";
 import type { CardioLog } from "@/lib/cardio";
-import type { FoodEntry, MoodLog, StepLog, WaistLog, WeightLog } from "@/lib/types";
+import { drinksByDate } from "@/lib/drinks";
+import type { DrinkLog, FoodEntry, MoodLog, StepLog, WaistLog, WeightLog } from "@/lib/types";
 import type { TemplateExercise } from "@/lib/workoutTemplates";
 import {
   CUT,
@@ -33,6 +34,7 @@ export interface CutWeeklyInput {
   waists: WaistLog[];
   steps: StepLog[];
   moods: MoodLog[];
+  drinkLogs?: DrinkLog[];
   templates: Record<string, TemplateExercise[]>; // workout key -> exercises (for "go up" calls)
 }
 
@@ -235,23 +237,23 @@ export function buildCutWeek(input: CutWeeklyInput, n: number): CutWeek {
   const lowWeight = weighed.reduce<DayLine | null>((b, d) => (!b || d.weight! < b.weight! ? d : b), null);
   const highWeight = weighed.reduce<DayLine | null>((b, d) => (!b || d.weight! > b.weight! ? d : b), null);
 
-  // Mood logs: "Drinks Yesterday" on a log dated D counts for D-1; sleep on a
-  // log dated D is the night before D. Use each day's latest log.
+  // Sleep on a mood log dated D is the night before D. Use each day's latest log.
   const latestByDate = new Map<string, MoodLog>();
   for (const m of input.moods) {
     const cur = latestByDate.get(m.date);
     if (!cur || m.loggedAt > cur.loggedAt) latestByDate.set(m.date, m);
   }
+  const drinksOn = drinksByDate(input.drinkLogs ?? [], input.moods);
   let drinks: number | null = null;
   let drinkDays = 0;
   const sleeps: number[] = [];
   const moods: number[] = [];
   for (let i = 0; i < 7; i++) {
     const date = addDays(start, i);
-    const nextLog = latestByDate.get(addDays(date, 1));
-    if (nextLog && typeof nextLog.alcoholDrinks === "number") {
-      drinks = (drinks ?? 0) + nextLog.alcoholDrinks;
-      if (nextLog.alcoholDrinks > 0) drinkDays++;
+    const dayDrinks = drinksOn[date];
+    if (typeof dayDrinks === "number") {
+      drinks = (drinks ?? 0) + dayDrinks;
+      if (dayDrinks > 0) drinkDays++;
     }
     const log = latestByDate.get(date);
     if (log?.bedtime && log.wakeTime) {
