@@ -58,6 +58,12 @@ Source: Lisa's reply to Chase, cc Suzy. Her words, to be checked with Erik.
 - **Program wins since 1976:** Lisa doesn't know the total, but Erik does.
 - **Photos:** Lisa offered photos of the plaques on the wall of their study.
 
+## Suzy's email (Oct 17, 2026)
+
+- **Erik teaches social studies at MHS.** **Verified** (staff bio, 2020 athletics article).
+- **Erik and Lisa have led many student mission trips,** possibly through the "Warriors BEyond" program (Suzy wasn't sure of the name). **Unverified.**
+- **2018 grads' trip:** the summer before senior year (so summer 2017), building a school in Ecuador, with a side trip to the Galapagos Islands by small boat. A Zach, probably Suzy's son, went. **Unverified;** confirm the year, the organization, and the name with Erik or Lisa.
+
 ## Erik has half of the program's total wins
 
 - **Source of claim:** Lisa Vanags, relayed by Suzy.

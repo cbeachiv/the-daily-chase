@@ -13,7 +13,7 @@
 3. **What they have meant to the community,** in the words of students, parents, and leaders.
 4. **What's next for Erik and Jeff** as they step away from coaching. Suzy's wording options: "passing the baton," "passing the torch," "moving into other endeavors."
 
-Leave out his classroom teaching. This piece is about soccer.
+**Update from Suzy (email, Oct 17):** include a brief mention that Erik teaches social studies at MHS, and give a quick nod to Erik and Lisa leading student mission trips, likely through the Warriors BEyond program. Example: the 2018 grads' trip to build a school in Ecuador the summer before senior year, with a side trip to the Galapagos (a Zach, probably Suzy's son, was on it). This reverses her Oct 15 note to skip the classroom. Keep both short; soccer is still the heart of the piece.
 
 ## Reader
 
@@ -21,7 +21,7 @@ Mariemont families, current and former players, and people who know Erik. Many w
 
 ## Chase's connection
 
-He was Erik's student as a freshman in Erik's first year teaching at Mariemont. Keep it to one short paragraph, and frame it around soccer or community rather than the classroom.
+He was Erik's student as a freshman in Erik's first year teaching at Mariemont. Keep it to one short paragraph. Suzy likes that a former student is writing it, so the classroom connection can stay.
 
 ## People to talk to
 
@@ -42,6 +42,7 @@ He was Erik's student as a freshman in Erik's first year teaching at Mariemont. 
 - Who is Nerl, and what is his record?
 - Is it Erik's 200th win as Mariemont head coach, or across his whole career (he also coached at Milford)? See `research.md`.
 - Is Erik's departure public, and how does he want it described?
+- Mission trips: is the program called Warriors BEyond? How many trips, where, and since when? Did Lisa co-lead them all?
 - Is any recognition planned? Ask the athletic director (the player awards ceremony is usually in November).
 
 ## Authorship
