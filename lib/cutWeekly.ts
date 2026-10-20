@@ -333,6 +333,7 @@ function firstWith(sessionsDesc: LiftSession[], name: string) {
 export function recapWeekFor(today: string): number | null {
   const lastSunday = addDays(today, -((new Date(today + "T00:00:00").getDay() + 7) % 7 || 7));
   if (lastSunday < addDays(CUT.start, 6) || lastSunday > CUT_END) return null;
-  const n = Math.round((new Date(lastSunday + "T00:00:00").getTime() - new Date(CUT.start + "T00:00:00").getTime()) / (7 * 86400000)) + 1;
+  // Count from that week's Monday: measuring to the Sunday rounds 6/7 of a week up and lands one week ahead.
+  const n = Math.round((new Date(addDays(lastSunday, -6) + "T00:00:00").getTime() - new Date(CUT.start + "T00:00:00").getTime()) / (7 * 86400000)) + 1;
   return n >= 1 && n <= CUT.weeks ? n : null;
 }
