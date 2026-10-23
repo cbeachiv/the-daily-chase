@@ -20,7 +20,7 @@ export const maxDuration = 60;
 // `?week=N` recaps a specific plan week. `?preview=1` returns the HTML
 // without sending (still behind CRON_SECRET).
 
-const APP_BASE_URL = process.env.APP_BASE_URL || "https://thedailychase.com";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://home.thedailychase.com";
 
 async function colData<T>(uid: string, name: string): Promise<T[]> {
   const snap = await adminDb().collection(`users/${uid}/${name}`).get();

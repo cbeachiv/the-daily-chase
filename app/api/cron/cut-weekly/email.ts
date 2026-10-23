@@ -8,7 +8,7 @@ import { MIN_LOGGED_DAYS, type CutWeek, type DayLine, type LiftLine, type Status
 export interface CutEmailData {
   week: CutWeek;
   intro: string;
-  appUrl: string; // https://thedailychase.com
+  appUrl: string; // https://home.thedailychase.com
 }
 
 const PAGE = "#fffbf7";

@@ -62,7 +62,7 @@ const data = {
   ],
   aiQuestion:
     "You noticed you do best when you're shipping — what's the one thing you could put in motion Monday so next week starts in build mode?",
-  reviewUrl: "https://thedailychase.com/weekly-review?week=2026-06-20",
+  reviewUrl: "https://home.thedailychase.com/weekly-review?week=2026-06-20",
 };
 
 const html = buildEmailHtml(data);

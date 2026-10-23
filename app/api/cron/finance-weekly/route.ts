@@ -9,7 +9,7 @@ import { buildEmailHtml, type FinanceWeeklyEmailData } from "./email";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const APP_BASE_URL = process.env.APP_BASE_URL || "https://thedailychase.com";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://home.thedailychase.com";
 
 async function colData<T>(uid: string, name: string): Promise<T[]> {
   const snap = await adminDb().collection(`users/${uid}/${name}`).get();

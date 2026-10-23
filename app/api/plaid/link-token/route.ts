@@ -6,7 +6,7 @@ import { plaidClient } from "@/lib/plaid";
 
 export const runtime = "nodejs";
 
-const APP_BASE_URL = process.env.APP_BASE_URL || "https://thedailychase.com";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://home.thedailychase.com";
 
 // Creates a Link token. With no body → a normal "connect a new bank" token.
 // With { itemId } → an update-mode token to re-authenticate an existing item.
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const client = plaidClient();
     // OAuth banks (Chase, Capital One) require a registered redirect URI in
     // Production. Set PLAID_REDIRECT_URI to the page that hosts Plaid Link
-    // (e.g. https://thedailychase.com/finance) and register it in the dashboard.
+    // (e.g. https://home.thedailychase.com/finance) and register it in the dashboard.
     const redirectUri = process.env.PLAID_REDIRECT_URI;
     const base = {
       user: { client_user_id: uid },

@@ -48,7 +48,7 @@ const data: WeeklyEmailData = {
   ],
   reflectionHighlights: ["Mornings before the gym were the most focused blocks."],
   aiQuestion: "What would make Clean Kitchens App feel 'launched' to you?",
-  reviewUrl: "https://thedailychase.com/weekly-review?week=2026-06-27",
+  reviewUrl: "https://home.thedailychase.com/weekly-review?week=2026-06-27",
 };
 
 writeFileSync("/tmp/weekly-email-preview.html", buildEmailHtml(data));

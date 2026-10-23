@@ -7,7 +7,7 @@ import { buildEmailHtml, ADVISOR_NAME, type FinanceMonthlyEmailData } from "./em
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const APP_BASE_URL = process.env.APP_BASE_URL || "https://thedailychase.com";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://home.thedailychase.com";
 
 // Eastern wall-clock so the email lands in the morning year-round. Vercel crons
 // are UTC; we fire at two UTC hours and let exactly one pass this guard (EDT/EST).
