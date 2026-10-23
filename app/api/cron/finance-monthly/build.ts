@@ -231,6 +231,6 @@ export async function buildMonthlyEmailData(uid: string, month: string): Promise
     ira: fmtUSD(snap?.ira ?? 0),
     savings: fmtUSD(snap?.savings ?? 0),
     hugga: fmtUSD(snap ? snap.hugga ?? DEFAULT_HUGGA : 0),
-    appUrl: process.env.APP_BASE_URL || "https://thedailychase.com",
+    appUrl: process.env.APP_BASE_URL || "https://home.thedailychase.com",
   };
 }

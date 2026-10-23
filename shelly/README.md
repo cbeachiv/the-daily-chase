@@ -135,4 +135,4 @@ rebuilds loads from `laundryEvents` and merges the pre-2026-09-23 washer pauses.
 - Preview with real data, no send (from the main checkout):
   `npx tsx scripts/preview-laundry-email.ts --today 2026-09-27`
 - Test send to one address:
-  `curl -H "Authorization: Bearer $CRON_SECRET" "https://thedailychase.com/api/cron/laundry-weekly?to=you@example.com"`
+  `curl -H "Authorization: Bearer $CRON_SECRET" "https://home.thedailychase.com/api/cron/laundry-weekly?to=you@example.com"`
