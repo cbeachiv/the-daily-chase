@@ -37,3 +37,8 @@ serviceAccount*.json
 
 # Local finance backfill input (real $ figures; data lives in Firestore)
 scripts/finance-history.csv
+
+# Reference photos for drafts (rights not cleared; keep local)
+writing/drafts/*/photos/*.jpg
+writing/drafts/*/photos/*.jpeg
+writing/drafts/*/photos/*.png
