@@ -33,7 +33,7 @@ He was Erik's student as a freshman in Erik's first year teaching at Mariemont. 
 
 ## Interview logistics
 
-- Joint interview with Erik and Jeff, target Fri Oct 23 (backup: week of Oct 26). Photos at Kusel Stadium (Tom Crosby Field).
+- Joint interview with Erik and Jeff on Thu Oct 29, 2026 at Southerby's (Mariemont Inn). Photos at Kusel Stadium (Tom Crosby Field) if time allows.
 - Record with Otter (speaker labels) and a Voice Memos backup.
 - Community quotes can be short phone calls.
 
