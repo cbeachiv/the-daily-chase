@@ -102,6 +102,20 @@ Sources: Otter transcripts in `interview/` and Chase's handwritten notes (`inter
 - **2020:** no scrimmages that season; Erik thought the team could win it all in June 2020. Luke Brothers was an All-American.
 - **Both stepping down as coaches.** Jeff is staying involved with Mariemont soccer. Erik is retiring from teaching soon. OK to print (they described it themselves at the interview).
 
+## How rare is 200 wins in Ohio boys soccer? (researched Oct 30, 2026)
+
+- **No official count at 200.** The OHSAA state records page lists "Most Wins, All-Time (minimum 250)" for boys soccer coaches: **36 coaches in state history**. Coaches are added when a school, a reporter or a fan submits them, so the list may undercount. Verified directly. [OHSAA boys soccer records](https://ohsaa.org/sports/staterecords/boyssoccer)
+- **Top of the list:** Scott Molfenter, Dayton Carroll, 578 (the state record, set Oct 2025). Bob Hamlin of Bethel got his 500th on Aug 17, 2026, the fifth Ohio coach to do it.
+- **Cincinnati coaches on it, all retired:**
+  - Bill Mees, Indian Hill, 327
+  - John Basalyga, Turpin, 325
+  - Bruce Bagley, St. Bernard, 306
+  - Randy Hurley, Moeller, 278
+  - Steve Cummins, Lakota West, 255
+- **Below 250 (nobody keeps a list):** Brian Croston of Milford and Bill Simpson of Reading reached 200 (from news reports; dates unconfirmed).
+- **The math:** about 17 to 22 games a season including the tournament. Erik has averaged about 14 wins a season (MaxPreps, 2012 to 2025, about a 69% win rate). At 10 wins a season, 200 takes 20 years.
+- **Careful phrasing:** "The OHSAA record book lists only 36 boys soccer coaches in state history with 250 or more wins; it doesn't track 200." At his pace Erik would be about three seasons from that list, but he's stepping away, so frame it as how rare the company is, not as a goal.
+
 ## To confirm
 
 - Mariemont athletic director: Erik's official career win total, the previous record holder and his total, the program's all-time win total, and the program's first season.
