@@ -2,9 +2,9 @@
 
 From the two Otter recordings plus Chase's handwritten notes.
 
-- **Part 1:** "Interview #1", otid `HY2xM9C0OEIqC__J4D7dFH3uyJo`, started 7:01 PM. The audio cuts off around 29:40.
+- **Part 1:** "Interview #1", otid `HY2xM9C0OEIqC__J4D7dFH3uyJo`, started 6:21 PM. The audio cuts off around 29:40. Raw text: `transcript-part-1.txt`.
 - **Gap:** about 10 minutes weren't recorded between the two parts.
-- **Part 2:** "Interview #2", otid `rOmPVi9w1H6YxcwFZG77VdpXkwY`, about 29 minutes. Anything said after it ended exists only in `notes-handwritten.md`.
+- **Part 2:** "Interview #2", otid `rOmPVi9w1H6YxcwFZG77VdpXkwY`, started 7:01 PM, about 29 minutes. Raw text is still in Otter only (Chrome blocked the second download). Anything said after it ended exists only in `notes-handwritten.md`.
 
 How to read it:
 
@@ -96,7 +96,7 @@ How to read it:
 - **Erik, 1/21:15:** "Play this game like it's your last, because it might be."
 - **Erik, 1/21:26:** 18 of the top 22 returned. Luke Brothers (All-American) told him the seniors ran the halftime talks: Luke, Nick Comer, Kyle Ronick (?).
 - **Erik, 1/22:15:** the 2019 team lost 1-0 to Botkins in a rainstorm in Dayton despite outshooting them 31 to 2. They beat Botkins in the 2020 regional final: "Our guys had been waiting an entire year." The last four games went 15-2 on goals.
-- **Erik, 1/24:20:** "I said it to my buddy Ted on the front porch… 'Ted, I'm not gonna lie to you, man. I think we're gonna win state this year.'" Otter says "Ted Ackerman." **Is this Chase's dad, Ted?** Erik later asks Chase, "Didn't Ted, your dad's family, have the place up in New York?"
+- **Erik, 1/24:20:** "I said it to my buddy Ted on the front porch… 'Ted, I'm not gonna lie to you, man. I think we're gonna win state this year.'" Otter says "Ted Ackerman." Not Chase's dad (Chase, Oct 30); a friend and "mega fan." Ted reminded Erik of it that fall.
 - **Erik (likely), 1/27:51:** "We punch way above our weight… these kids are tough."
 
 ## What makes a great team
@@ -118,7 +118,7 @@ How to read it:
 - Jeff's years: "23 years" (Erik) vs. "since 2005" (Dinsmore bio), and "he's actually got seven more years on me" (1/0:37).
 - Who "Tom" was when Joe stepped down, and Joe's last name (the previous head coach).
 - Win 209 date (CHCA) and the 2013 CCD score (2-0).
-- "Ted" on the front porch.
+- "Ted" on the front porch: last name (Otter heard "Ackerman").
 - Mike Hanley's role and spelling. Quinn Buttig's spelling and quote.
 - The record count for 2013 (16-1-3, 7 goals allowed) vs. MaxPreps' 16-2-2.
 - Not printing the successor names. Erik also said "off the record" about one coach's family situation.
