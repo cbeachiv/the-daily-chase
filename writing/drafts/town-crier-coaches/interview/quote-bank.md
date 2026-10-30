@@ -122,3 +122,13 @@ How to read it:
 - Mike Hanley's role and spelling. Quinn Buttig's spelling and quote.
 - The record count for 2013 (16-1-3, 7 goals allowed) vs. MaxPreps' 16-2-2.
 - Not printing the successor names. Erik also said "off the record" about one coach's family situation.
+
+## Community voices
+
+### Luke Brothers (2020 state champion; scored twice in the final), LinkedIn message to Chase, Oct 30, 2026, 10:53 AM
+
+Verbatim (written, so no audio check is needed):
+
+> My experience being coached by Erik and Jeff was formative. Looking back, they always knew how to get the best out of each player and knew the right balance of when to direct and when to step back. I personally think of them as mentors and never hesitate to reach out to them for advice. I always remember Erik, after the 2020 state win, saying, "don't let this be the defining point of your life," and I carry that with me for every new accomplishment or milestone. Erik and Jeff were great coaches, but more importantly, they instilled in me a desire to continually push myself to become the best version of who I can be.
+
+He added: "hopefully something from that will do."

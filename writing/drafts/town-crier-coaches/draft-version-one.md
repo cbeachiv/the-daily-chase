@@ -21,6 +21,8 @@ I walked into Southerby's with my production crew (my Dad and 15 month old daugh
 
 {{Your bridge to the heart of it: it was never really about the wins.}} "We'd love to tell you it's winning," Erik said. "It's really not." Jeff said what he'll remember is "you see these guys coming in as freshmen, and you watch them come up through. And when they leave, they're great young men." You start working with kids as freshmen, and you teach them and coach them and watch them become leaders. And in 20 years together, Jeff said, "I have never heard him talk about any kid as a kid he doesn't like." Erik put it this way: "If you build the culture and you build the relationships, the success comes as a result of that."
 
+[Luke Brothers, who scored twice in the 2020 state final, still remembers what Erik told the team after it.] "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." {{Optional: one sentence of yours on why that line matters, or let it stand.}}
+
 {{One short paragraph, your connection.}} I'll never forget, on the first day of school, he talked in what seemed to be an Irish/Scottish accent. History class. I knew it was going to be very entertaining. He told me that every year he says he's not going to do it but ends up doing it. {{Optional final line of this paragraph: this is your first byline, 129 behind your mom, who has written for the Town Crier since 1999.}}
 
 {{One or two sentences on what's next: Jeff says he'll stay involved with Mariemont soccer "just not as a coach." Erik's teaching career is winding down too.}}
@@ -32,6 +34,6 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 ## Open before Sunday
 
 - **Erik:** closing quote confirmed by Erik (Oct 30). Still to confirm: the program record, the 2011 start, and whether he's OK with "his last on the sideline" as worded. Don't use "goodbye for now" (Chase, Oct 30).
-- **Tom Nerl:** the email is drafted, asking for the program record, previous record holder, first season and a quote.
-- **Optional community voice:** Quinn Buttig or Luke Brothers (texts drafted).
+- **Tom Nerl:** email sent Oct 30, asking for the program record, previous record holder, first season and a quote.
+- **Community voice:** Luke Brothers replied Oct 30 (in the draft; full quote in `interview/quote-bank.md`). Quinn Buttig text drafted, not yet sent.
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).
