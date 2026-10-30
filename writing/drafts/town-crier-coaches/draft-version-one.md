@@ -9,7 +9,7 @@
 
 ---
 
-## [Headline options: "200 Wins, One Partnership" / "Erik Vanags and Jeff Hinebaugh Say Goodbye for Now"]
+## [Headline options: "200 Wins, One Partnership" / "Erik Vanags and Jeff Hinebaugh: 200 Wins and Every Kid in Between"]
 
 I walked into Southerby's with my production crew (my Dad and 15 month old daughter Annie). Mariemont being Mariemont, Erik and Jeff were happy to see them. {{2 or 3 sentences: what that looked like. For example, Erik insisting on buying your dad's beer, or saying "Annie, it was great meeting you," then your dad and Annie heading home and the three of you settling in.}}
 

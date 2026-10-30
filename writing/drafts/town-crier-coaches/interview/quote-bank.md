@@ -20,7 +20,7 @@ How to read it:
 - **Erik, 1/3:05:** "My teaching career is coming to an end too, Chase. So I want to start removing myself. I don't want it to all be at once, like teaching, coaching, everything, and it's like, who am I?"
 - **Erik, 2/14:01:** "Hopefully we took the program here, and hopefully the next guys take it here."
 - **From the notes (not recorded):**
-  - "Goodbye for now."
+  - "Goodbye for now." (Don't use, per Chase.)
   - Follow my gut.
   - The program is in a great spot.
   - Young coaches are ready to take the reins.
