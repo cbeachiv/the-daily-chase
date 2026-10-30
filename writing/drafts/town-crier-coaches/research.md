@@ -80,9 +80,30 @@ Source: Lisa's reply to Chase, cc Suzy. Her words, to be checked with Erik.
 - **Source of claim:** Lisa Vanags, relayed by Suzy and Chase, Oct 2026.
 - **Status:** **Unverified.** No source found for Mariemont's first boys soccer season. 1976 is the year the OHSAA began sponsoring the state soccer tournament ([Wikipedia](https://en.wikipedia.org/wiki/List_of_OHSAA_soccer_champions)), so it is plausible but not confirmed.
 
+## Lisa's texts (Oct 23 to 29, 2026)
+
+Source: Lisa's iMessages to Chase. Photos logged in `photos/lisa-vanags.md`.
+
+- **Nerl is Tom Nerl,** who designed the 2020 state championship ring. All players and coaches got one. (Resolves the "Nerl" question from Suzy's call; whether he has a record or a quote to give is still open.)
+- **Erik knows Lisa contacted the Crier.** No longer a secret.
+- **Coach of the year awards:** state honors (the biggest), five from the Southwest District coaches (they vote), one from the National Soccer Coaches Association of America (2015 plaque), one from the CHL, and two from the OSSCA. Lisa: he "would kill me for mentioning all of his awards."
+- **Club coaching:** Cincinnati United for about 10 years, about 2 of them as Director of Coaching.
+- **Coached his son Noah** from Mariemont SAY soccer through CU club teams and MHS varsity.
+- **Lisa was at his first game** (Milford HS, 1997) and his last regular-season game (Thursday, Oct 15 or 22, 2026; check).
+- **Last home game:** a tournament game on Mariemont's field, photos sent Oct 29.
+
+## Interview (Oct 29, 2026, Southerby's)
+
+Sources: Otter transcripts in `interview/` and Chase's handwritten notes (`interview/notes-handwritten.md`).
+
+- **Head coach since 2011; at Mariemont since 2007** (Erik). Settles the start-year conflict: not 2010 or 2012. MaxPreps' blank 2011 season explains part of the 4-win gap.
+- **Win 209 came against CHCA** (Chase's margin note; confirm the date).
+- **Jeff: volunteer assistant for 23 years** (Erik), missed fewer than 5 games. Conflicts with "since 2005" (21 seasons) from his Dinsmore bio; ask which is right.
+- **2020:** no scrimmages that season; Erik thought the team could win it all in June 2020. Luke Brothers was an All-American.
+- **Both stepping down as coaches.** Jeff is staying involved with Mariemont soccer. Erik is retiring from teaching soon. OK to print (they described it themselves at the interview).
+
 ## To confirm
 
 - Mariemont athletic director: Erik's official career win total, the previous record holder and his total, the program's all-time win total, and the program's first season.
-- Nerl (per Suzy): his own record, plus a quote. He may be the previous record holder.
-- Erik himself during the interview: the exact head coach start year, and how the Ross game felt.
+- Tom Nerl: does he hold or know the program record, and is there a quote?
 - Other sources: @MMontMSoccer posts from Aug 20, 2026, Mariemont yearbooks, the athletics hall of fame.

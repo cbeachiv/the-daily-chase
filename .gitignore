@@ -42,3 +42,6 @@ scripts/finance-history.csv
 writing/drafts/*/photos/*.jpg
 writing/drafts/*/photos/*.jpeg
 writing/drafts/*/photos/*.png
+writing/drafts/*/photos/**/*.jpg
+writing/drafts/*/photos/**/*.jpeg
+writing/drafts/*/photos/**/*.png

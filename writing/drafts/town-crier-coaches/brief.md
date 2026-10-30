@@ -27,8 +27,8 @@ He was Erik's student as a freshman in Erik's first year teaching at Mariemont. 
 
 - **Erik:** the main interview. He's modest and wouldn't raise the milestone himself, so give the record as the reason for the story and ask him to talk about the players. Cell 513-238-8679. In town the week of Oct 26. He knows the program's all-time win total.
 - **Jeff Hinebaugh:** co-subject. His longtime assistant (since 2005), also retiring this year.
-- **Lisa Vanags:** she brought the story to Suzy and replied Oct 16 (see `research.md`). Reach out to Erik directly and **don't mention it was her idea.** She can send photos of the plaques in their study.
-- **Nerl:** quote plus "ask about his record." Who is Nerl? Possibly a former Mariemont coach who held the record before Erik.
+- **Lisa Vanags:** she brought the story to Suzy and replied Oct 16 (see `research.md`). As of Oct 23, Erik knows it was her idea. She sent 22 photos by text (`photos/lisa-vanags.md`).
+- **Tom Nerl:** designed the 2020 state ring (Lisa). Suzy's note was a quote plus "ask about his record."
 - **Students, parents, leaders:** 3 to 5 short quotes. Ideas: a player from the 2020 state title team, a current captain, a longtime team parent, the athletic director.
 
 ## Interview logistics
