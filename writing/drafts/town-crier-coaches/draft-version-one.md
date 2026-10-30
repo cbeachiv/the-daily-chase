@@ -23,15 +23,15 @@ I walked into Southerby's with my production crew (my Dad and 15 month old daugh
 
 {{One short paragraph, your connection.}} I'll never forget, on the first day of school, he talked in what seemed to be an Irish/Scottish accent. History class. I knew it was going to be very entertaining. He told me that every year he says he's not going to do it but ends up doing it. {{Optional final line of this paragraph: this is your first byline, 129 behind your mom, who has written for the Town Crier since 1999.}}
 
-{{One or two sentences on what's next: Jeff says he'll stay involved with Mariemont soccer "just not as a coach." Erik's teaching career is winding down too, and he called it "goodbye for now."}}
+{{One or two sentences on what's next: Jeff says he'll stay involved with Mariemont soccer "just not as a coach." Erik's teaching career is winding down too.}}
 
-When I asked Erik what he would say to every player he has coached, he said, "I love ya, and I hope you're doing well." {{Exact wording to confirm with Erik; it wasn't recorded.}}
+When I asked Erik what he would say to every player he has coached, he said, "I love ya, and I hope you're doing well."
 
 ---
 
 ## Open before Sunday
 
-- **Erik:** confirm the closing quote, "goodbye for now," and that the program record and the 2011 start are right. Also check whether he's OK with "his last on the sideline" as worded.
+- **Erik:** closing quote confirmed by Erik (Oct 30). Still to confirm: the program record, the 2011 start, and whether he's OK with "his last on the sideline" as worded. Don't use "goodbye for now" (Chase, Oct 30).
 - **Tom Nerl:** the email is drafted, asking for the program record, previous record holder, first season and a quote.
 - **Optional community voice:** Quinn Buttig or Luke Brothers (texts drafted).
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).

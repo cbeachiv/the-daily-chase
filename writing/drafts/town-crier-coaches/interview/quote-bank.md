@@ -106,8 +106,8 @@ How to read it:
 
 ## Closing lines (from the notes, not recorded)
 
-- **Erik, if he could say one thing to every player:** "I love you." "Thanks, and I love you." "I hope you're doing well." **The strongest candidate for the last line of the piece.** Confirm the exact words with Erik, since there's no audio.
-- "Goodbye for now."
+- **Erik, if he could say one thing to every player:** "I love ya, and I hope you're doing well." **Confirmed word for word by Erik, Oct 30. The last line of the piece.**
+- "Goodbye for now": don't use (Chase, Oct 30).
 
 ## Small world (for Chase's paragraph, or skip)
 
