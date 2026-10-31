@@ -11,8 +11,6 @@
 
 ## [200 Wins, Two Coaches, One Culture]
 
-I walked into Southerby's with my production crew (my Dad and 15 month old daughter Annie). Mariemont being Mariemont, Erik and Jeff were happy to see them. {{2 or 3 sentences: what that looked like. For example, Erik insisting on buying your dad's beer, or saying "Annie, it was great meeting you," then your dad and Annie heading home and the three of you settling in.}}
-
 [On August 20, Mariemont beat Ross 6-0. It was Erik Vanags's 200th win as head coach, the most in Mariemont boys soccer history.] {{Your sentence on how Erik found out. He didn't know until Lisa told him: "My wife reminded me… she made sure to get a picture of Jeff and I."}} [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
 
 200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association doesn't even track it. Its record book starts at 250 wins, and only 36 coaches in state history have made it.] [Vanags reached 209 with a win over CHCA. He has been head coach since 2011 and led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.] {{One sentence on how Erik reacts to being compared to Tom Crosby (215 wins) and Steve Peterson (203). He called them "freaking legends in the game" and said, "I don't look at us as in that pantheon."}}
