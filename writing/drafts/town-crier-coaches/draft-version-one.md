@@ -25,6 +25,8 @@ I walked into Southerby's with my production crew (my Dad and 15 month old daugh
 
 {{One short paragraph, your connection.}} I'll never forget, on the first day of school, he talked in what seemed to be an Irish/Scottish accent. History class. I knew it was going to be very entertaining. He told me that every year he says he's not going to do it but ends up doing it. {{Optional final line of this paragraph: this is your first byline, 129 behind your mom, who has written for the Town Crier since 1999.}}
 
+[Quinn Budig,] {{who Quinn is, e.g. "a 20XX graduate who played for both"}} [said their] "greatest impact has been in shaping them into men of character off it." {{Optional: the fuller quote: "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."}}
+
 {{One or two sentences on what's next: Jeff says he'll stay involved with Mariemont soccer "just not as a coach." Erik's teaching career is winding down too.}}
 
 When I asked Erik what he would say to every player he has coached, he said, "I love ya, and I hope you're doing well."
@@ -35,5 +37,5 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 
 - **Erik:** closing quote confirmed by Erik (Oct 30). Still to confirm: the program record, the 2011 start, and whether he's OK with "his last on the sideline" as worded. Don't use "goodbye for now" (Chase, Oct 30).
 - **Tom Nerl:** email sent Oct 30, asking for the program record, previous record holder, first season and a quote.
-- **Community voice:** Luke Brothers replied Oct 30 (in the draft; full quote in `interview/quote-bank.md`). Quinn Buttig text drafted, not yet sent.
+- **Community voice:** Luke Brothers replied Oct 30 (in the draft; full quote in `interview/quote-bank.md`). Quinn Budig replied (in the draft; full quote in the quote bank).
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).

@@ -73,7 +73,7 @@ How to read it:
 - **Jeff, 2/14:24:** "You see these guys coming in as freshmen, and you watch them come up through. And when they leave, they're great young men, and you get proud of it."
 - **Erik, 2/15:05:** "We'd love to tell you it's winning. It's really not." Jeff: "It's the culture, the growth." Chase: "You guys are the same person."
 - **Jeff, 2/15:17:** "I coached the dad and the son… they've got kids, they've got families… No doubt they were going to be great dads, they're going to be great husbands."
-- **2/16:00:** "I was with Quinn Buttig last night, and he said he'd give a quote." **A lead for a former-player quote.**
+- **2/16:00:** "I was with Quinn Budig last night, and he said he'd give a quote." **A lead for a former-player quote.**
 - **2/16:16:** Max came in as a sophomore, "this little whippy, skinny kid," and now "he's got a beard and he looks like he's bench pressing a truck."
 - **Erik, 2/16:33, a candidate thesis line:** "That's the reality: it's the relationships you build. I think if you build the culture and you build the relationships, the success comes as a result of that."
 - **Erik, 2/17:04:** "Soccer is a player's game… You can only hope that you've prepared your boys to meet those moments, and that's going to help them later in life."
@@ -119,7 +119,7 @@ How to read it:
 - Who "Tom" was when Joe stepped down, and Joe's last name (the previous head coach).
 - Win 209 date (CHCA) and the 2013 CCD score (2-0).
 - "Ted" on the front porch: last name (Otter heard "Ackerman").
-- Mike Hanley's role and spelling. Quinn Buttig's spelling and quote.
+- Mike Hanley's role and spelling. Quinn Budig's spelling and quote.
 - The record count for 2013 (16-1-3, 7 goals allowed) vs. MaxPreps' 16-2-2.
 - Not printing the successor names. Erik also said "off the record" about one coach's family situation.
 
@@ -132,3 +132,9 @@ Verbatim (written, so no audio check is needed):
 > My experience being coached by Erik and Jeff was formative. Looking back, they always knew how to get the best out of each player and knew the right balance of when to direct and when to step back. I personally think of them as mentors and never hesitate to reach out to them for advice. I always remember Erik, after the 2020 state win, saying, "don't let this be the defining point of your life," and I carry that with me for every new accomplishment or milestone. Erik and Jeff were great coaches, but more importantly, they instilled in me a desire to continually push myself to become the best version of who I can be.
 
 He added: "hopefully something from that will do."
+
+### Quinn Budig, sent to Chase Oct 30 or 31, 2026
+
+Verbatim (written; Chase's spelling of the last name, where Otter heard "Buttig"):
+
+> "Coach Vanags and Coach Hinebaugh have been pillars of the Mariemont soccer program and community for years. Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
