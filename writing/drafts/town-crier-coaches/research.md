@@ -121,3 +121,10 @@ Sources: Otter transcripts in `interview/` and Chase's handwritten notes (`inter
 - Mariemont athletic director: Erik's official career win total, the previous record holder and his total, the program's all-time win total, and the program's first season.
 - Tom Nerl: does he hold or know the program record, and is there a quote?
 - Other sources: @MMontMSoccer posts from Aug 20, 2026, Mariemont yearbooks, the athletics hall of fame.
+
+## Confirmed by Chase (Nov 1, 2026)
+
+- Erik's 200 wins are the Mariemont boys soccer program record. **Verified.**
+- Erik has been head coach since 2011. **Verified.**
+- Luke Brothers scored twice in the 2020 Division III state final. **Verified.**
+- The article says Erik thinks the program is in a great spot, and leaves out his retirement from teaching (Chase's call).

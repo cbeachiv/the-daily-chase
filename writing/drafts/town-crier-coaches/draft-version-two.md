@@ -29,7 +29,7 @@ I'll never forget, on the first day of school, he talked in what seemed to be an
 
 Quinn Budig graduated in 2011 and was in my class. "Coach Vanags and Coach Hinebaugh have been pillars of the Mariemont soccer program and community for years," [he said.] "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
 
-"I will stay involved with Mariemont soccer, just not as a coach," Jeff said. "I'm always going to be a fan, a supporter." [Erik, who is retiring from teaching soon, said the program is in a great spot.]
+"I will stay involved with Mariemont soccer, just not as a coach," Jeff said. "I'm always going to be a fan, a supporter." [Erik said the program is in a great spot.]
 
 Mariemont is a special place with special people who not only live in Mariemont, but teach in Mariemont, and take the time to coach in Mariemont.
 
@@ -48,9 +48,8 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 
 ## Open before sending
 
-- **Erik:** confirm the program record, the 2011 start, "his last on the sideline," "retiring from teaching soon" and "the program is in a great spot" (from your handwritten notes, not the recording). Don't use "goodbye for now."
+- **Confirmed by Chase (Nov 1):** the program record, the 2011 start as head coach, Luke's two goals in the 2020 state final, and "the program is in a great spot." The teaching line is out.
+- **Erik:** OK with "his last on the sideline" as worded? Don't use "goodbye for now."
 - **Erik's "freaking legends" quote:** the transcript doesn't label the speaker; it's very likely Erik. Check the audio at part 1, 8:25.
-- **Tom Nerl:** email sent Oct 30, asking for the program record, previous record holder, first season and a quote.
 - **Jeff's tenure:** 23 years (Erik at the interview) vs. since 2005 (his Dinsmore bio).
-- **Luke Brothers:** "scored twice in the 2020 state final" comes from earlier research; confirm.
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).
