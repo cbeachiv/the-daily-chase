@@ -37,3 +37,36 @@ Jeff is a selfless, happy go lucky guy. Always encouraging and never negative, v
 **5. The ending.**
 I think the last line should be about me asking Erik if he had one thing to say to players it would be "I love ya and hope you're doing well". I'm not sure of the exact quote hopefully it has it in the transcript.
 (Not in either recording; it came after part 2 ended. Confirm the wording with Erik.)
+
+## Round 3 (Nov 1, 2026)
+
+**1. Why 200 is worth writing about.**
+Not many coaches get to 100 wins, let alone 200 wins. Tom Crosby is at (I forget what number) and Steve Peterson is at (another crazy number) I played for both of them so the fact that Erik is in the same air is worthy of being written about.
+(Fact for the numbers, from Lisa's Oct 16 email: Crosby 215 in football, Peterson 203 in lacrosse.)
+
+**2. Erik not knowing about win 200.**
+Erik is incredibly humble, it's always about the team.
+
+**3. Their reaction to Crosby and Peterson.**
+They didn't seem worthy of being in the same conversation of those legends, but it's just them being them (humble).
+
+**4. Why Erik won't do the story without Jeff.**
+Erik believes him and Jeff are a package deal, a one-two punch.
+
+**5. The picture of the two of them.**
+All of it has the same through line - they're on the same page as not only coaches, but people.
+
+**6. "It's really not" about winning.**
+I do believe him, what he cares about is developing young freshman boys into graduating senior men.
+
+**7. Luke's line.**
+Erik's coaching is still playing out for his players 6 years later.
+
+**8. Erik as a teacher.**
+He really cared about you as a person, not just your test score.
+
+**9. Quinn Budig.**
+Quinn graduated in 2011 and was in my class.
+
+**10. What readers should feel.**
+I hope they feel that Mariemont is a special place with special people who not only live in Mariemont, but teach in Mariemont, and take the time to coach in Mariemont.
