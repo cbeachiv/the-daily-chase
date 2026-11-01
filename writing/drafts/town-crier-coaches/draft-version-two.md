@@ -21,7 +21,7 @@ Erik believes him and Jeff are a package deal, a one-two punch. "Everybody alway
 
 Jeff is a selfless, happy go lucky guy. Always encouraging and never negative, very similar to Erik. [In Erik's first preseason, the two each looked up the same opponent on an obscure soccer database.] "We both were like, did we just become best friends?" Erik said. "One of the best parts is you get to work with your best friend." All of it has the same through line: they're on the same page as not only coaches, but people.
 
-"We'd love to tell you it's winning," Erik said. "It's really not." I do believe him. What he cares about is developing young freshman boys into graduating senior men. Jeff said, "I have never heard him talk about any kid as a kid he doesn't like." Erik put it this way: "If you build the culture and you build the relationships, the success comes as a result of that."
+"We'd love to tell you it's winning," Erik said. "It's really not." I do believe him. What he cares about is developing young freshman boys into graduating senior men. Jeff said, "I have never heard (Erik) talk about any kid as a kid he doesn't like." Erik put it this way: "If you build the culture and you build the relationships, the success comes as a result of that."
 
 [Luke Brothers, who scored twice in the 2020 state final, still remembers what Erik told the team after it.] "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." Erik's coaching is still playing out for his players six years later.
 
