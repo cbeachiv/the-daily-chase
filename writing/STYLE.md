@@ -93,7 +93,6 @@ Avoid:
 - [ ] Sensitive details cleared with the subject.
 - [ ] Within the editor's word count, with photos and captions.
 - [ ] The opening is a scene or moment, and the news is in the first two paragraphs.
-- [ ] Chase wrote at least 75% of the words (see `CLAUDE.md`).
 - [ ] Checked against `VOICE.md`, with no em dashes.
 
 ## Confirmed lessons

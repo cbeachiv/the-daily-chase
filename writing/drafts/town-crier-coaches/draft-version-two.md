@@ -4,14 +4,14 @@
 
 - **Plain text** is Chase's own words from `chase-answers.md` (rounds 1 to 3). Spelling and punctuation are fixed; word changes are listed under "Changes from version one."
 - **"Quoted text"** is Erik, Jeff, Luke or Quinn, from `interview/quote-bank.md`.
-- **[Bracketed text]** is Claude's: facts, connective words and the headline. This is what the 25% cap counts.
+- **[Bracketed text]** is Claude's: facts, connective words and the headline. (The 25% cap was dropped Nov 1.)
 - **{{Double braces}}** are gaps. None are left in the body.
 
 ---
 
 ## [200 Wins, Two Coaches, One Culture]
 
-[On August 20, Mariemont beat Ross 6-0, and Erik Vanags got his 200th win as head coach of Mariemont boys soccer, the most in the program's history.] Tom Crosby is at [215 in football] and Steve Peterson is at [203 in lacrosse]. The fact that Erik is in the same air is worthy of being written about. [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
+[On August 20, Mariemont beat Ross 6-0, and Erik Vanags got his 200th win as head coach of Mariemont boys soccer, the most in the program's history.] [Only two other Mariemont coaches have reached 200: Tom Crosby, with 215 wins in football, and Steve Peterson, with 203 in lacrosse.] [Erik is now in that company, and that's worth writing about.] [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
 
 200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association's boys soccer record book doesn't even list 200. It starts at 250 wins, and only 36 coaches in state history have made it.] Since starting as head coach in 2011, Erik has won more games a season (13.1) than any of the Cincinnati coaches in that record book. [Vanags reached 210 on October 31, beating top-seeded Oakwood 3-0 in the district final. He led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.]
 
@@ -19,7 +19,7 @@
 
 Erik believes him and Jeff are a package deal, a one-two punch. "Everybody always calls me the head coach," Erik said. "I'm like, Jeff's been a part of every decision." [Jeff has coached with the program for 23 years without taking a salary,] and Erik asked me not to call him a volunteer. "Volunteer, you think, oh, it's part time," he said. "The day we lose at the end of the season, that night we're together planning the next season."
 
-Jeff is a selfless, happy go lucky guy. Always encouraging and never negative, very similar to Erik. [In Erik's first preseason, the two each looked up the same opponent on an obscure soccer database.] "We both were like, did we just become best friends?" Erik said. "One of the best parts is you get to work with your best friend." All of it has the same through line: they're on the same page as not only coaches, but people.
+Jeff is selfless, always encouraging and never negative, very similar to Erik. [In Erik's first preseason, the two each looked up the same opponent on an obscure soccer database.] "We both were like, did we just become best friends?" Erik said. "One of the best parts is you get to work with your best friend." All of it has the same through line: they're on the same page as not only coaches, but people.
 
 "We'd love to tell you it's winning," Erik said. "It's really not." I do believe him. What he cares about is developing young freshman boys into graduating senior men. Jeff said, "I have never heard (Erik) talk about any kid as a kid he doesn't like." Erik put it this way: "If you build the culture and you build the relationships, the success comes as a result of that."
 
