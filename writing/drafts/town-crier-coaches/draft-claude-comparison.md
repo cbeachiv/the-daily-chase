@@ -6,7 +6,7 @@ Chase asked for this draft to compare against `draft-version-two.md`. The 75/25 
 
 ## 200 Wins, Two Coaches, One Culture
 
-Not many coaches get to 100 wins, let alone 200. On August 20, when Mariemont beat Ross 6-0, Erik Vanags got his 200th as head coach, the most in Mariemont boys soccer history, and he didn't know it. "I think Lisa knew. I didn't know," he said. His wife knew, though. "She made sure to get a picture of Jeff and I."
+Not many coaches get to 100 wins, let alone 200. On August 20, when Mariemont beat Ross 6-0, Erik Vanags got his 200th as head coach, the most in Mariemont boys soccer history, and he didn't know it. "I think Lisa (Erik's wife) knew. I didn't know," he said. "She made sure to get a picture of Jeff and I."
 
 That picture of Erik and Jeff Hinebaugh means a little more now. This fall is the last on the sideline for both of them.
 
