@@ -50,6 +50,6 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 
 - **Confirmed by Chase (Nov 1):** the program record, the 2011 start as head coach, Luke's two goals in the 2020 state final, "the program is in a great spot," the "freaking legends" quote is Erik's, and Jeff's 23 years. The teaching line is out.
 - **Win total:** 210 after the Oct 31 district final against Oakwood. If Mariemont wins in the regional, update the number before the Crier goes to print.
-- **Pace line:** "more games a season (13.1) than any of the Cincinnati coaches" is true for the four with years listed (Basalyga 13.0, Cummins 12.1, Mees 11.3, Bagley 10.2). The OHSAA list gives no years for Randy Hurley of Moeller (278-173-88), so his pace can't be checked. See `research.md`.
+- **Pace line:** checked against all five Cincinnati coaches in the record book: Erik 13.1, Basalyga 13.0, Cummins 12.1, Mees 11.3, Bagley 10.2, and Randy Hurley about 9.6 (29 seasons at Moeller, 1987 to 2015, worked out in `research.md`).
 - **Erik:** OK with "his last on the sideline" as worded? Don't use "goodbye for now."
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).

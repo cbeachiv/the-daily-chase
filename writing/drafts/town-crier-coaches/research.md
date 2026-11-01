@@ -150,3 +150,16 @@ Source: [OHSAA boys soccer records](https://ohsaa.org/sports/staterecords/boysso
   - The year ranges may include seasons a coach missed.
   - Chris Marsh's 503 includes wins outside Ohio.
   - Erik's 2011 season isn't on MaxPreps, so his win rate leaves it out.
+
+### Randy Hurley, Moeller: his seasons worked out (Nov 1, 2026)
+
+The OHSAA list gives Hurley's record (278-173-88) but no years. Pieced together from:
+
+- **Start: fall 1987.** A 1987-88 Moeller soccer preview (Moeller's issuu archive, as quoted in search results) calls him the new head coach. He had been an assistant at Lakota from 1983 to 1986 and Mason's head coach in 1986.
+- **End: fall 2015.** Mike Welker's Dec 16, 2024 farewell release ([letsgobigmoe.com](https://letsgobigmoe.com/news/2024/12/16/mike-welker-steps-down-as-moeller-head-soccer-coach.aspx)) says Welker spent 14 years in the program, five as JV coach under "Coach Hurley," then nine as head coach (134-30-25). Nine seasons back from 2024 means Welker started in fall 2016. [MaxPreps](https://www.maxpreps.com/oh/cincinnati/archbishop-moeller-fighting-crusaders/soccer/history/) lists Hurley through fall 2014, Welker from fall 2016, and a "Karen Wood" for fall 2015, which is likely a data-entry name. Welker's five JV years under Hurley (2011 to 2015) put Hurley's last season at 2015.
+- **Result:** fall 1987 to fall 2015 = **29 seasons**. 278 / 29 = **9.6 wins a season** (59.7% win rate). Check: 539 games over 29 seasons is 18.6 games a season, which fits.
+- **Caveats:**
+  - If the 2015 season belonged to someone else, it's 28 seasons and 9.9 a season.
+  - If the OHSAA total includes his 1986 Mason season, it's 30 seasons and 9.3.
+  - Either way he's well below Erik's 13.1.
+- **So the Cincinnati line holds for all five coaches:** Erik 13.1, Basalyga 13.0, Cummins 12.1, Mees 11.3, Bagley 10.2, Hurley about 9.6.
