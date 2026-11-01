@@ -13,7 +13,7 @@
 
 Not many coaches get to 100 wins, let alone 200 wins. [On August 20, Mariemont beat Ross 6-0, and Erik Vanags got his 200th as head coach of Mariemont boys soccer, the most in the program's history.] Tom Crosby is at [215 in football] and Steve Peterson is at [203 in lacrosse]. I played for both of them, so the fact that Erik is in the same air is worthy of being written about. [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
 
-200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association doesn't even track it. Its record book starts at 250 wins, and only 36 coaches in state history have made it.] [Vanags reached 209 with a win over CHCA. He has been head coach since 2011 and led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.]
+200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association doesn't even track it. Its record book starts at 250 wins, and only 36 coaches in state history have made it.] [Vanags reached 210 on October 31, when Mariemont beat top-seeded Oakwood 3-0 in the district final. He has been head coach since 2011 and led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.]
 
 "Those two guys, they are freaking legends in the game," Erik said. "I don't look at us as in that pantheon or category." They didn't feel worthy of being in the same conversation of those legends, but it's just them being them. Erik is incredibly humble, it's always about the team. [Win 200 nearly slipped by him.] "I think Lisa knew. I didn't know," he said. "She made sure to get a picture of Jeff and I."
 
@@ -48,8 +48,7 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 
 ## Open before sending
 
-- **Confirmed by Chase (Nov 1):** the program record, the 2011 start as head coach, Luke's two goals in the 2020 state final, and "the program is in a great spot." The teaching line is out.
+- **Confirmed by Chase (Nov 1):** the program record, the 2011 start as head coach, Luke's two goals in the 2020 state final, "the program is in a great spot," the "freaking legends" quote is Erik's, and Jeff's 23 years. The teaching line is out.
+- **Win total:** 210 after the Oct 31 district final against Oakwood. If Mariemont wins in the regional, update the number before the Crier goes to print.
 - **Erik:** OK with "his last on the sideline" as worded? Don't use "goodbye for now."
-- **Erik's "freaking legends" quote:** the transcript doesn't label the speaker; it's very likely Erik. Check the audio at part 1, 8:25.
-- **Jeff's tenure:** 23 years (Erik at the interview) vs. since 2005 (his Dinsmore bio).
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).

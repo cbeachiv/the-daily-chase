@@ -128,3 +128,6 @@ Sources: Otter transcripts in `interview/` and Chase's handwritten notes (`inter
 - Erik has been head coach since 2011. **Verified.**
 - Luke Brothers scored twice in the 2020 Division III state final. **Verified.**
 - The article says Erik thinks the program is in a great spot, and leaves out his retirement from teaching (Chase's call).
+- Win 209 came against CHCA, 1-0, in the district semifinal (Oct 27). Win 210 came against #1 Oakwood, 3-0, in the district final at Princeton (Oct 31), so Mariemont won the district title (school athletics schedule, screenshot from Chase). **Verified.**
+- The "freaking legends" quote (part 1, 8:25) is Erik's. **Verified** by Chase.
+- Jeff: use 23 years (Chase's call, over the 2005 date in his Dinsmore bio).
