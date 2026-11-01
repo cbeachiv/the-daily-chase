@@ -11,7 +11,7 @@
 
 ## [200 Wins, Two Coaches, One Culture]
 
-Not many coaches get to 100 wins, let alone 200 wins. [On August 20, Mariemont beat Ross 6-0, and Erik Vanags got his 200th as head coach of Mariemont boys soccer, the most in the program's history.] Tom Crosby is at [215 in football] and Steve Peterson is at [203 in lacrosse]. The fact that Erik is in the same air is worthy of being written about. [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
+[On August 20, Mariemont beat Ross 6-0, and Erik Vanags got his 200th win as head coach of Mariemont boys soccer, the most in the program's history.] Tom Crosby is at [215 in football] and Steve Peterson is at [203 in lacrosse]. The fact that Erik is in the same air is worthy of being written about. [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
 
 200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association's boys soccer record book doesn't even list 200. It starts at 250 wins, and only 36 coaches in state history have made it.] Since starting as head coach in 2011, Erik has won more games a season (13.1) than any of the Cincinnati coaches in that record book. [Vanags reached 210 on October 31, beating top-seeded Oakwood 3-0 in the district final. He led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.]
 
@@ -39,7 +39,7 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 
 ## Changes from version one
 
-- **New opening.** Your round 3 answer ("Not many coaches get to 100 wins…") now leads, with the Crosby and Peterson numbers filled in from Lisa's email.
+- **Opening.** Starts with the Ross win. Chase cut "Not many coaches get to 100 wins, let alone 200" (Nov 1). The Crosby and Peterson numbers come from Lisa's email.
 - **One word changed:** "They didn't *seem* worthy" became "didn't *feel* worthy," so it can't read as your own verdict on them. Change it back if you prefer.
 - **Cut for repetition:** Jeff's "coming in as freshmen" quote and your round 2 line "You start working with kids as freshmen…" both said the same thing as your new line "developing young freshman boys into graduating senior men," which stays.
 - **Cut:** "And in 20 years together" before Jeff's quote, since it clashed with the 23 years earlier.
