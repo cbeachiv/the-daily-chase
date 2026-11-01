@@ -13,7 +13,7 @@
 
 Not many coaches get to 100 wins, let alone 200 wins. [On August 20, Mariemont beat Ross 6-0, and Erik Vanags got his 200th as head coach of Mariemont boys soccer, the most in the program's history.] Tom Crosby is at [215 in football] and Steve Peterson is at [203 in lacrosse]. The fact that Erik is in the same air is worthy of being written about. [This fall is also his last on the sideline, and Jeff Hinebaugh's.]
 
-200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association's boys soccer record book doesn't even list 200. It starts at 250 wins, and only 36 coaches in state history have made it.] [Vanags reached 210 on October 31, beating top-seeded Oakwood 3-0 in the district final. He has been head coach since 2011 and led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.]
+200 is an extremely hard number to get to as a head coach in boys high school soccer. [The Ohio High School Athletic Association's boys soccer record book doesn't even list 200. It starts at 250 wins, and only 36 coaches in state history have made it.] Erik has won more games a season (13.1) than any of the Cincinnati coaches in that record book. [Vanags reached 210 on October 31, beating top-seeded Oakwood 3-0 in the district final. He has been head coach since 2011 and led the Warriors to an undefeated 23-0 Division III state championship in 2020. He was named Ohio's coach of the year in 2015 and 2020.]
 
 "Those two guys, they are freaking legends in the game," Erik said. "I don't look at us as in that pantheon or category." They didn't feel worthy of being in the same conversation of those legends, but it's just them being them. Erik is incredibly humble, it's always about the team. [Win 200 nearly slipped by him.] "I think Lisa (Erik's wife) knew. I didn't know," he said. "She made sure to get a picture of Jeff and I."
 
@@ -50,5 +50,6 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
 
 - **Confirmed by Chase (Nov 1):** the program record, the 2011 start as head coach, Luke's two goals in the 2020 state final, "the program is in a great spot," the "freaking legends" quote is Erik's, and Jeff's 23 years. The teaching line is out.
 - **Win total:** 210 after the Oct 31 district final against Oakwood. If Mariemont wins in the regional, update the number before the Crier goes to print.
+- **Pace line:** "more games a season (13.1) than any of the Cincinnati coaches" is true for the four with years listed (Basalyga 13.0, Cummins 12.1, Mees 11.3, Bagley 10.2). The OHSAA list gives no years for Randy Hurley of Moeller (278-173-88), so his pace can't be checked. See `research.md`.
 - **Erik:** OK with "his last on the sideline" as worded? Don't use "goodbye for now."
 - **Photos:** 06, 21 and 09 from Lisa (`photos/lisa-vanags.md`).
