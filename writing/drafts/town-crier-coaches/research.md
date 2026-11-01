@@ -131,3 +131,22 @@ Sources: Otter transcripts in `interview/` and Chase's handwritten notes (`inter
 - Win 209 came against CHCA, 1-0, in the district semifinal (Oct 27). Win 210 came against #1 Oakwood, 3-0, in the district final at Princeton (Oct 31), so Mariemont won the district title (school athletics schedule, screenshot from Chase). **Verified.**
 - The "freaking legends" quote (part 1, 8:25) is Erik's. **Verified** by Chase.
 - Jeff: use 23 years (Chase's call, over the 2005 date in his Dinsmore bio).
+
+## Wins per season: Erik vs. the OHSAA 250-win coaches (Nov 1, 2026)
+
+Source: [OHSAA boys soccer records](https://ohsaa.org/sports/staterecords/boyssoccer), "Most Wins, All-Time (minimum 250)," fetched Nov 1, 2026. Seasons are counted from the years listed for each coach (inclusive). Randy Hurley and Dan Roads have no years listed, so they are left out, which leaves 34 coaches to compare.
+
+- **Erik:** 210 wins in 16 seasons (2011 to 2026, with 2026 still going) = **13.1 wins a season**. Win rate 73.8% (MaxPreps, 2012 to 2025: 194-60-27).
+- **Rank:** 13th of 35 by wins per season, ahead of 22 of the 34 coaches on the list. Their median is 12.6.
+- **Career length:** the median coach on the list coached about 29 to 30 seasons. Only five reached 250 in careers of 21 seasons or fewer: Ian Hamilton (17), Brian Stevens (18), Tom Hatfield (18), Scott Downing (20) and Steve Cummins (21).
+- **At his pace,** 250 would take about 19 seasons, so roughly three more.
+- **Cincinnati coaches on the list:** Erik's 13.1 a season is higher than all four who have years listed:
+  - John Basalyga, Turpin: 13.0 a season (325 in 25 seasons)
+  - Steve Cummins, Lakota West: 12.1 (255 in 21)
+  - Bill Mees, Indian Hill: 11.3 (327 in 29)
+  - Bruce Bagley, St. Bernard: 10.2 (306 in 30)
+- **Top of the list by pace:** Brian Stevens, Centerville, 19.4 (349 in 18); Mike McLaughlin, St. Ignatius, 17.5 (543 in 31); Scott Molfenter, Carroll, 16.1 (578 in 36).
+- **Caveats:**
+  - The year ranges may include seasons a coach missed.
+  - Chris Marsh's 503 includes wins outside Ohio.
+  - Erik's 2011 season isn't on MaxPreps, so his win rate leaves it out.
