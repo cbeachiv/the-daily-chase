@@ -12,7 +12,7 @@ That picture of Erik and Jeff Hinebaugh means a little more now. This fall is th
 
 The Ohio High School Athletic Association's boys soccer record book only lists coaches with 250 or more wins, and just 36 in state history have made it. Erik has been head coach since 2011. He won the Division III state title in 2020 with a 23-0 team, was Ohio's coach of the year in 2015 and 2020, and got win 210 on October 31, when Mariemont beat top-seeded Oakwood 3-0 in the district final.
 
-In Mariemont, the only coaches in that air are Tom Crosby, with 215 wins in football, and Steve Peterson, with 203 in lacrosse. I played for both of them. When I brought them up, Erik wouldn't hear it. "Those two guys, they are freaking legends in the game," he said. "I don't look at us as in that pantheon or category." That's Erik. It's always about the team.
+In Mariemont, the only coaches in that air are Tom Crosby, with 215 wins in football, and Steve Peterson, with 203 in lacrosse. When I brought them up, Erik wouldn't hear it. "Those two guys, they are freaking legends in the game," he said. "I don't look at us as in that pantheon or category." That's Erik. It's always about the team.
 
 It's also always about Jeff. Erik wouldn't do this story without him. "Everybody always calls me the head coach," Erik said. "I'm like, Jeff's been a part of every decision." Jeff has coached with the program for 23 years without taking a salary, and Erik asked me not to call him a volunteer. "Volunteer, you think, oh, it's part time," he said. "The day we lose at the end of the season, that night we're together planning the next season."
 
@@ -40,4 +40,4 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
   - **Luke:** "scored twice in that final."
 - **Facts to check:**
   - **Freshman year:** confirmed by Chase. He was a freshman in 2007, Erik's first year teaching.
-- **Your lines kept close to verbatim:** "Not many coaches get to 100 wins, let alone 200," "I played for both of them," "It's always about the team," the Jeff description, "on the same page as coaches and as people," the accent and test score lines, and the Mariemont line.
+- **Your lines kept close to verbatim:** "Not many coaches get to 100 wins, let alone 200," "It's always about the team," the Jeff description, "on the same page as coaches and as people," the accent and test score lines, and the Mariemont line.
