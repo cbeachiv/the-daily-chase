@@ -25,7 +25,7 @@ Jeff is a selfless, happy go lucky guy. Always encouraging and never negative, v
 
 [Luke Brothers, who scored twice in the 2020 state final, still remembers what Erik told the team after it.] "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." Erik's coaching is still playing out for his players six years later.
 
-I'll never forget, on the first day of school, he talked in what seemed to be an Irish/Scottish accent. History class. I knew it was going to be very entertaining. He told me that every year he says he's not going to do it but ends up doing it. He really cared about you as a person, not just your test score.
+I'll never forget, on the first day of my freshman year in 2007 (Erik's first year teaching), he talked in what seemed to be an Irish/Scottish accent. History class. I knew it was going to be very entertaining. He told me that every year he says he's not going to do it but ends up doing it. He really cared about you as a person, not just your test score.
 
 Quinn Budig graduated in 2011 and was in my class. "Coach Vanags and Coach Hinebaugh have been pillars of the Mariemont soccer program and community for years," [he said.] "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
 
