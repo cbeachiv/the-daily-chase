@@ -10,7 +10,7 @@ Not many coaches get to 100 wins, let alone 200. On August 20, when Mariemont be
 
 That picture of Erik and Jeff Hinebaugh means a little more now. This fall is the last on the sideline for both of them.
 
-The Ohio High School Athletic Association doesn't even keep track below 250, and only 36 boys soccer coaches in state history have reached that. Erik has been head coach since 2011. He won the Division III state title in 2020 with a 23-0 team, was Ohio's coach of the year in 2015 and 2020, and got win 210 on October 31, when Mariemont beat top-seeded Oakwood 3-0 in the district final.
+The Ohio High School Athletic Association's boys soccer record book only lists coaches with 250 or more wins, and just 36 in state history have made it. Erik has been head coach since 2011. He won the Division III state title in 2020 with a 23-0 team, was Ohio's coach of the year in 2015 and 2020, and got win 210 on October 31, when Mariemont beat top-seeded Oakwood 3-0 in the district final.
 
 In Mariemont, the only coaches in that air are Tom Crosby, with 215 wins in football, and Steve Peterson, with 203 in lacrosse. I played for both of them. When I brought them up, Erik wouldn't hear it. "Those two guys, they are freaking legends in the game," he said. "I don't look at us as in that pantheon or category." That's Erik. It's always about the team.
 
