@@ -22,7 +22,7 @@ Ask them what it's all for, and it isn't the wins. "We'd love to tell you it's w
 
 His players carry it with them. Luke Brothers scored twice in the 2020 state final. "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." Quinn Budig, who graduated with me in 2011, put it this way: "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
 
-I saw it in the classroom too. On the first day of freshman history, Erik taught in what seemed to be an Irish or Scottish accent, and I knew it was going to be a fun year. He told me he swears every year he won't do it, and every year he does. He really cared about you as a person, not just your test score.
+I saw it in the classroom too. On the first day of my freshman year in 2007 (Erik's first year teaching), he taught history in what seemed to be an Irish or Scottish accent, and I knew it was going to be a fun year. He told me he swears every year he won't do it, and every year he does. He really cared about you as a person, not just your test score.
 
 Jeff isn't going far. "I will stay involved with Mariemont soccer, just not as a coach," he said. "I'm always going to be a fan, a supporter." Erik thinks the program is in a great spot, with young coaches who "buy into the culture we've established, and of course, we want them to build their own."
 
@@ -39,5 +39,5 @@ When I asked Erik what he would say to every player he has coached, he said, "I 
   - **Erik on the next coaches:** part 1, 2:03. This doesn't name Colin or Soren.
   - **Luke:** "scored twice in that final."
 - **Facts to check:**
-  - **"Freshman history":** the draft assumes you had Erik as a freshman. Your memory notes say you were a freshman in his first year teaching.
+  - **Freshman year:** confirmed by Chase. He was a freshman in 2007, Erik's first year teaching.
 - **Your lines kept close to verbatim:** "Not many coaches get to 100 wins, let alone 200," "I played for both of them," "It's always about the team," the Jeff description, "on the same page as coaches and as people," the accent and test score lines, and the Mariemont line.
