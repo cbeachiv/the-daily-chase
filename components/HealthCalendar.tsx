@@ -236,7 +236,7 @@ export default function HealthCalendar({
                   )}
                   {drinks > 0 && (
                     <span className="text-coral" title="Alcoholic drinks">
-                      🍷 {drinks}
+                      🍺 {drinks}
                     </span>
                   )}
                   {coffees > 0 && <span title="Coffees">☕ {coffees}</span>}
@@ -276,7 +276,7 @@ export default function HealthCalendar({
         <span>🏋️ lift</span>
         <span>🏃 cardio</span>
         <span>🙂 mood</span>
-        <span>🍷 drinks</span>
+        <span>🍺 drinks</span>
         <span>✈️ travel</span>
         <span>⚖️ weight</span>
         <span>☕ coffee</span>
