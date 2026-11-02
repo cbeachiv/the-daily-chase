@@ -556,7 +556,7 @@ export default function MoodSection({
 
             <div className="space-y-4">
               <Row
-                icon="🍷"
+                icon="🍺"
                 label="Drinks"
                 hint={
                   drinksOnDate === undefined
@@ -852,7 +852,7 @@ export default function MoodSection({
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
                   {!!l.caffeineCups && <span>☕ {l.caffeineCups}</span>}
-                  {!!drinksOn[l.date] && <span>🍷 {drinksOn[l.date]}</span>}
+                  {!!drinksOn[l.date] && <span>🍺 {drinksOn[l.date]}</span>}
                   {l.exercised && <span>🏃 exercised</span>}
                   {l.dinnerPlan && <span>🫐🥭 dinner plan</span>}
                   {slept !== null && <span>🛏 {slept}h</span>}

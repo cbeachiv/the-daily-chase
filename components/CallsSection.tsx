@@ -14,7 +14,7 @@ function prettyClock(time: string): string {
   return `${hr}:${String(m).padStart(2, "0")} ${am ? "AM" : "PM"}`;
 }
 
-const COLLAPSE_KEY = "calls_collapsed";
+const COLLAPSE_KEY = "calls_collapsed_v2";
 
 export default function CallsSection() {
   const today = todayStr();
@@ -30,11 +30,11 @@ export default function CallsSection() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
-  // Collapsed state is remembered per browser so the card stays folded between visits.
-  const [collapsed, setCollapsed] = useState(false);
+  // Collapsed by default; opening it is remembered per browser.
+  const [collapsed, setCollapsed] = useState(true);
   useEffect(() => {
     try {
-      setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
+      setCollapsed(localStorage.getItem(COLLAPSE_KEY) !== "0");
     } catch {}
   }, []);
   function toggleCollapsed(next = !collapsed) {

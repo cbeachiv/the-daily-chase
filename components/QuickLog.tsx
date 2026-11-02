@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCollection, addItem, updateItem, deleteItem } from "@/lib/data";
 import { auth } from "@/lib/firebase/client";
-import type { DinnerPlanLog, FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
+import type { FoodEntry, WakeupLog, WeightLog, Workout } from "@/lib/types";
 import { todayStr } from "@/lib/dates";
 
 export default function QuickLog() {
@@ -11,7 +11,6 @@ export default function QuickLog() {
   const { data: workouts, uid } = useCollection<Workout>("workouts");
   const { data: weights } = useCollection<WeightLog>("weightLogs");
   const { data: foods } = useCollection<FoodEntry>("foodEntries");
-  const { data: dinnerPlans } = useCollection<DinnerPlanLog>("dinnerPlanLogs");
   const { data: wakeups } = useCollection<WakeupLog>("wakeupLogs");
 
   const [open, setOpen] = useState<"weight" | "calories" | null>(null);
@@ -48,10 +47,6 @@ export default function QuickLog() {
 
   const todayWorkout = useMemo(() => workouts.find((w) => w.date === today), [workouts, today]);
   const todayWakeup = useMemo(() => wakeups.find((w) => w.date === today), [wakeups, today]);
-  const todayDinnerPlan = useMemo(
-    () => dinnerPlans.find((d) => d.date === today),
-    [dinnerPlans, today]
-  );
   const todayWeight = useMemo(() => weights.find((w) => w.date === today), [weights, today]);
   const todayCalories = useMemo(
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + f.calories, 0),
@@ -61,13 +56,6 @@ export default function QuickLog() {
     () => foods.filter((f) => f.date === today).reduce((s, f) => s + (f.proteinG ?? 0), 0),
     [foods, today]
   );
-
-  // Yes/no per day: did Chase follow his dinner plan? One doc per day, like wakeups.
-  async function toggleDinnerPlan() {
-    if (!uid) return;
-    if (todayDinnerPlan) await deleteItem(uid, "dinnerPlanLogs", todayDinnerPlan.id);
-    else await addItem(uid, "dinnerPlanLogs", { date: today, loggedAt: new Date().toISOString() });
-  }
 
   async function toggleWakeup() {
     if (!uid) return;
@@ -109,7 +97,7 @@ export default function QuickLog() {
   return (
     <section>
       <h2 className="section-title mb-3">Quick log</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <button
           onClick={toggleWakeup}
           className={`${tile} ${todayWakeup ? "border-amber bg-amber/10" : ""}`}
@@ -118,21 +106,6 @@ export default function QuickLog() {
           <span className="text-2xl">{todayWakeup ? "🌅" : "⏰"}</span>
           <span className="text-xs font-semibold">
             {todayWakeup ? "Up at 5am" : "5am Wakeup"}
-          </span>
-        </button>
-
-        <button
-          onClick={toggleDinnerPlan}
-          className={`${tile} ${todayDinnerPlan ? "border-teal bg-teal/10" : ""}`}
-          title={
-            todayDinnerPlan
-              ? "Tap to undo today's dinner plan"
-              : "Followed your dinner plan? Tap to log it"
-          }
-        >
-          <span className="text-2xl">{todayDinnerPlan ? "✅" : "🫐🥭"}</span>
-          <span className="text-xs font-semibold">
-            {todayDinnerPlan ? "Plan ✓" : "Dinner Plan"}
           </span>
         </button>
 
