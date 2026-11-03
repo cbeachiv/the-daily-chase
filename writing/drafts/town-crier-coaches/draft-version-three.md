@@ -22,7 +22,7 @@ Only two other Mariemont coaches have reached 200: Tom Crosby, with 215 wins in 
 
 They hit it off in Erik's first preseason, when each of them, on his own, looked up the same opponent on an obscure soccer database. "We both were like, did we just become best friends?" Erik said. Jeff's version: "Step Brothers, 100% Step Brothers." Sitting with them, you see they're on the same page as coaches and as people.
 
-Tom Nerl, Mariemont's athletic director, remembers Erik taking over as head coach after practices had already started one season and how quickly Jeff adopted him as head coach. "Erik and Jeff have the perfect coaching relationship: they are friends off the field, and Erik as the head coach trusts Jeff's judgement and input as an assistant coach." Together, he said, they "have built a strong tradition of excellence and accountability to the program where success is an expectation."
+Tom Nerl, Mariemont's athletic director, remembers Erik stepping in as head coach after practices had already started one season, and Jeff taking him under his wing. "Erik and Jeff have the perfect coaching relationship: they are friends off the field, and Erik as the head coach trusts Jeff's judgement and input as an assistant coach." Together, he said, they "have built a strong tradition of excellence and accountability to the program where success is an expectation."
 
 Ask them what it's all for, and it isn't the wins. "We'd love to tell you it's winning," Erik said. "It's really not." Jeff said what he'll remember is "you see these guys coming in as freshmen, and you watch them come up through. And when they leave, they're great young men." In all their years together, Jeff said, "I have never heard (Erik) talk about any kid as a kid he doesn't like."
 
