@@ -163,3 +163,10 @@ The OHSAA list gives Hurley's record (278-173-88) but no years. Pieced together 
   - If the OHSAA total includes his 1986 Mason season, it's 30 seasons and 9.3.
   - Either way he's well below Erik's 13.1.
 - **So the Cincinnati line holds for all five coaches:** Erik 13.1, Basalyga 13.0, Cummins 12.1, Mees 11.3, Bagley 10.2, Hurley about 9.6.
+
+## Tom Nerl's reply (Nov 2, 2026)
+
+- **Erik's record:** 210-72-33 after the Oct 31 district final against Oakwood. **Verified** (athletic director).
+- **Program record:** Nerl "does not have the program record." Chase confirmed it on Nov 1.
+- **"14 years as the head coach":** this doesn't match Erik's 2011 start, which would make 2026 his 16th season. His record supports 2011: MaxPreps has him at 194-60-27 for 2012 to 2025, and 2026 was about 12-3-3. That leaves roughly a 4-9-3 season for 2011, which MaxPreps doesn't have. So keep 2011 and 16 seasons, and don't use Nerl's "14 years." Nerl also says Erik took over "after the start of practices one season."
+- **Quotes used in version three:** "the perfect coaching relationship" and "a strong tradition of excellence and accountability to the program where success is an expectation."
