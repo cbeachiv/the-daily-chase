@@ -1,6 +1,6 @@
 # Draft version three: final for Suzy (Nov 3, 2026)
 
-Built from the comparison draft Suzy received on Nov 1, plus Tom Nerl's Nov 2 reply (his quote and Erik's record). This is the version going to the Crier as a Word doc.
+Built from the comparison draft Suzy received on Nov 1, plus Tom Nerl's Nov 2 reply (his quote and Erik's record). This is the version going to the Crier as a Word doc. Chase's own edits from Nov 3 are applied: he cut the classroom and "special place" paragraphs, the Jeff description and Nerl's "adopted" line, and rewrote the what's-next paragraph.
 
 ---
 
@@ -20,19 +20,15 @@ Only two other Mariemont coaches have reached 200: Tom Crosby, with 215 wins in 
 
 "Everybody always calls me the head coach," Erik said. "I'm like, Jeff's been a part of every decision." Jeff has coached with the program for 23 years without taking a salary, and Erik asked me not to call him a volunteer. "Volunteer, you think, oh, it's part time," he said. "The day we lose at the end of the season, that night we're together planning the next season."
 
-They hit it off in Erik's first preseason, when each of them, on his own, looked up the same opponent on an obscure soccer database. "We both were like, did we just become best friends?" Erik said. Jeff's version: "Step Brothers, 100% Step Brothers." Jeff is selfless, always encouraging and never negative, a lot like Erik. Sitting with them, you see they're on the same page as coaches and as people.
+They hit it off in Erik's first preseason, when each of them, on his own, looked up the same opponent on an obscure soccer database. "We both were like, did we just become best friends?" Erik said. Jeff's version: "Step Brothers, 100% Step Brothers." Sitting with them, you see they're on the same page as coaches and as people.
 
-Tom Nerl, Mariemont's athletic director, remembers Erik taking over as head coach after practices had already started one season. "I think maybe Jeff adopted Erik as a head coach," Nerl said. "Erik and Jeff have the perfect coaching relationship: they are friends off the field, and Erik as the head coach trusts Jeff's judgement and input as an assistant coach." Together, he said, they "have built a strong tradition of excellence and accountability to the program where success is an expectation."
+Tom Nerl, Mariemont's athletic director, remembers Erik taking over as head coach after practices had already started one season. "Erik and Jeff have the perfect coaching relationship: they are friends off the field, and Erik as the head coach trusts Jeff's judgement and input as an assistant coach." Together, he said, they "have built a strong tradition of excellence and accountability to the program where success is an expectation."
 
 Ask them what it's all for, and it isn't the wins. "We'd love to tell you it's winning," Erik said. "It's really not." Jeff said what he'll remember is "you see these guys coming in as freshmen, and you watch them come up through. And when they leave, they're great young men." In all their years together, Jeff said, "I have never heard (Erik) talk about any kid as a kid he doesn't like."
 
-His players carry it with them. Luke Brothers scored twice in the 2020 state final. "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." Quinn Budig, who graduated with me in 2011, put it this way: "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
+His players carry it with them. Luke Brothers scored twice in the 2020 state final. "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." Quinn Budig, who graduated in 2011, put it this way: "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
 
-I saw it in the classroom too. On the first day of my freshman year in 2007 (Erik's first year teaching), he taught history in what seemed to be an Irish or Scottish accent, and I knew it was going to be a fun year. He told me he swears every year he won't do it, and every year he does. He really cared about you as a person, not just your test score.
-
-Jeff isn't going far. "I will stay involved with Mariemont soccer, just not as a coach," he said. "I'm always going to be a fan, a supporter." Erik thinks the program is in a great spot, with young coaches who "buy into the culture we've established, and of course, we want them to build their own."
-
-Mariemont is a special place with special people, who not only live here but teach here and take the time to coach here.
+Jeff and Erik both mentioned that they will stay involved with Mariemont soccer at some level and that they will always be fans and supporters. Erik thinks the program is in a great spot, with coaches who "buy into the culture we've established, and of course, we want them to build their own."
 
 When I asked Erik what he would say to every player he has coached, he said, "I love ya, and I hope you're doing well."
 
