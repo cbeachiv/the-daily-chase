@@ -1,0 +1,13 @@
+{
+  "enabledPlugins": {
+    "compound-writing@compound-writing": true
+  },
+  "extraKnownMarketplaces": {
+    "compound-writing": {
+      "source": {
+        "source": "github",
+        "repo": "EveryInc/compound-writing"
+      }
+    }
+  }
+}
