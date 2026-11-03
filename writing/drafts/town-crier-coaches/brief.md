@@ -3,7 +3,7 @@
 - **Publication:** Mariemont Town Crier, December 2026 issue
 - **Editor:** Suzy Weinland (mariemonttowncrier@gmail.com). Call notes: `editor-call-2026-10-15.md`
 - **Deadline:** November 1, 2026
-- **Length:** about 700 to 900 words with 2 to 3 photos; Suzy hasn't given a word count yet
+- **Length:** about 700 to 900 words with 2 to 3 photos; Suzy asked for 700 to 900 on the Oct 15 call
 - **Form:** warm tribute and profile (see `STYLE.md`, primary structure)
 
 ## Focus (Suzy, Oct 15)

@@ -42,3 +42,9 @@ Suzy's options:
 
 - **Lisa Vanags:** 513-233-3745, vanagsl@sycamoreschools.org (works at Sycamore Schools)
 - **Erik Vanags:** 513-238-8679, evanags@mariemontschools.org
+
+## Length and placement (from Chase's Apple Note of the call, added Nov 3)
+
+- Suzy asked for **700 to 900 words**. 500 words fills half a page.
+- She's hoping for the front page.
+- The final article is 660 words. Chase decided on Nov 3 that it works as is.
