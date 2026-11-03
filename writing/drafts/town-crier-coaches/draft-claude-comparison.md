@@ -14,7 +14,7 @@ The Ohio High School Athletic Association's boys soccer record book only lists c
 
 Only two other Mariemont coaches have reached 200: Tom Crosby, with 215 wins in football, and Steve Peterson, with 203 in lacrosse. When I brought them up, Erik wouldn't hear it. "Those two guys, they are freaking legends in the game," he said. "I don't look at us as in that pantheon or category." That's Erik. It's always about the team.
 
-It's also always about Jeff. Erik wouldn't do this story without him. "Everybody always calls me the head coach," Erik said. "I'm like, Jeff's been a part of every decision." Jeff has coached with the program for 23 years without taking a salary, and Erik asked me not to call him a volunteer. "Volunteer, you think, oh, it's part time," he said. "The day we lose at the end of the season, that night we're together planning the next season."
+"Everybody always calls me the head coach," Erik said. "I'm like, Jeff's been a part of every decision." Jeff has coached with the program for 23 years without taking a salary, and Erik asked me not to call him a volunteer. "Volunteer, you think, oh, it's part time," he said. "The day we lose at the end of the season, that night we're together planning the next season."
 
 They hit it off in Erik's first preseason, when each of them, on his own, looked up the same opponent on an obscure soccer database. "We both were like, did we just become best friends?" Erik said. Jeff's version: "Step Brothers, 100% Step Brothers." Jeff is selfless, always encouraging and never negative, a lot like Erik. Sitting with them, you see they're on the same page as coaches and as people.
 
