@@ -170,3 +170,9 @@ The OHSAA list gives Hurley's record (278-173-88) but no years. Pieced together 
 - **Program record:** Nerl "does not have the program record." Chase confirmed it on Nov 1.
 - **"14 years as the head coach":** this doesn't match Erik's 2011 start, which would make 2026 his 16th season. His record supports 2011: MaxPreps has him at 194-60-27 for 2012 to 2025, and 2026 was about 12-3-3. That leaves roughly a 4-9-3 season for 2011, which MaxPreps doesn't have. So keep 2011 and 16 seasons, and don't use Nerl's "14 years." Nerl also says Erik took over "after the start of practices one season."
 - **Quotes used in version three:** "the perfect coaching relationship" and "a strong tradition of excellence and accountability to the program where success is an expectation."
+
+## Residency (Nov 8, 2026)
+
+- **Jeff Hinebaugh:** lived in Mariemont since 1993 (confirmed with Jeff via Chase). County records show 6925 Crystal Springs (bought Feb 1998, sold Feb 2005) and 6600 Mariemont Ave (since Dec 2004); the 1993 to 1998 home isn't in the auditor's Mariemont records, so likely a rental.
+- **Erik Vanags:** lived in Mariemont since 2009 (3757 Indianview, bought Aug 2009) and has taught at Mariemont High School since 2007 (confirmed with Erik via Chase).
+- **Why it's in the piece:** Kim Beach suggested it (Nov 4) since some readers may not know they're residents.

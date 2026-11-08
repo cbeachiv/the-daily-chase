@@ -28,7 +28,7 @@ Ask them what it's all for, and it isn't the wins. "We'd love to tell you it's w
 
 His players carry it with them. Luke Brothers scored twice in the 2020 state final. "I always remember Erik, after the 2020 state win, saying, 'Don't let this be the defining point of your life,'" Brothers said. "I carry that with me for every new accomplishment or milestone." Quinn Budig, who graduated in 2011, put it this way: "Their passion for the game and belief in every athlete have helped countless players succeed on the field, but their greatest impact has been in shaping them into men of character off it."
 
-Jeff and Erik both mentioned that they will stay involved with Mariemont soccer at some level and that they will always be fans and supporters. Erik thinks the program is in a great spot, with coaches who "buy into the culture we've established, and of course, we want them to build their own."
+They aren't going far. Jeff has lived in Mariemont since 1993, and Erik has lived here since 2009 and taught at Mariemont High School since 2007. Jeff and Erik both mentioned that they will stay involved with Mariemont soccer at some level and that they will always be fans and supporters. Erik thinks the program is in a great spot, with coaches who "buy into the culture we've established, and of course, we want them to build their own."
 
 When I asked Erik what he would say to every player he has coached, he said, "I love ya, and I hope you're doing well."
 
