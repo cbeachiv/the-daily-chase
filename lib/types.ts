@@ -430,30 +430,20 @@ export interface DesignFile {
   createdAt: string;
 }
 
-// ── Mariemont House ────────────────────────────────────────────────────────
-// users/{uid}/housePlan — a single doc (id "mariemont") of editable
-// affordability assumptions for the house plan. Defaults live in lib/house.ts
-// (HOUSE_PLAN_DEFAULTS); the page merges defaults under the doc so it renders
-// before the doc exists. Fields named *Pct are fractions (0.25 = 25%) except
-// ratePct, which is an annual percentage (6.0 = 6%) to match how rates read.
-export interface HousePlan {
-  id: string; // = "mariemont"
-  purchasePrice: number;
-  downPaymentPct: number; // fraction of price, e.g. 0.25
-  ratePct: number; // annual mortgage rate in percent, e.g. 6.0
-  termYears: number;
-  closingCostPct: number; // fraction of price, e.g. 0.02
-  reserveMonths: number; // months of full carry held back as reserves
-  supportLow: number; // expected outside support range, low end ($)
-  supportHigh: number; // high end ($)
-  windowStart: string; // "YYYY-MM" — target purchase window
-  windowEnd: string; // "YYYY-MM"
-  carryComfort: number; // monthly all-in payment that feels comfortable ($)
-  propertyTaxPct: number; // fraction of value per year, e.g. 0.022
-  insurancePct: number; // fraction of value per year, e.g. 0.004
-  sarahDesignFee: number; // Sarah's gross design fee for the Hugga expansion ($)
-  createdAt: string;
-  updatedAt?: string;
+// ── Mariemont House outreach ───────────────────────────────────────────────
+// users/{uid}/houseOutreach — the houses Chase has contacted about buying.
+// Written only by scripts/sync-mariemont-report.mjs from the report's
+// outreach.json (kept out of git: the repo is public).
+export interface HouseOutreach {
+  id: string;
+  property: string;
+  owner: string;
+  contacted: string;
+  method: string;
+  status: string;
+  color: "g" | "o" | "b" | "n" | "r";
+  notes: string;
+  sortOrder: number;
 }
 
 // ── Finance ────────────────────────────────────────────────────────────────
