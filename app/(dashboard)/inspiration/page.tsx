@@ -1,7 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import HomeInspiration from "@/components/HomeInspiration";
-
+// Home Inspiration now lives at the top of the Mariemont House tab.
 export default function InspirationPage() {
-  return <HomeInspiration />;
+  redirect("/mariemont-house");
 }

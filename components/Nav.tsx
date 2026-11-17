@@ -26,8 +26,8 @@ const OTHER: Tab[] = [
   { href: "/travel", label: "Travel", icon: "M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" },
   { href: "/code", label: "Code", icon: "M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12" },
   { href: "/finance", label: "Finance", icon: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" },
+  { href: "/mariemont-house", label: "Mariemont House", icon: "M3 11l9-8 9 8M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" },
   { href: "/interiors", label: "Sarah Beach Interiors", icon: "M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3M3 11h18a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1zM5 18v2M19 18v2" },
-  { href: "/inspiration", label: "Home Inspiration", icon: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" },
   { href: "/projects", label: "Projects", icon: "M3 7h7l2 2h9v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
   { href: "/quotes", label: "Quotes", icon: "M10 11H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2zm0 0c0 3-1 4-3 5m13-5h-4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2zm0 0c0 3-1 4-3 5" },
 ];
@@ -67,6 +67,11 @@ function TabIcon({ tab }: { tab: Tab }) {
   return <Icon d={tab.icon} />;
 }
 
+// A tab stays highlighted on its sub-pages (e.g. /mariemont-house/brief).
+function isActive(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
 export default function Nav() {
   const pathname = usePathname();
   const { signOut } = useAuth();
@@ -77,18 +82,18 @@ export default function Nav() {
     setMenuOpen(false);
   }, [pathname]);
 
-  const onOther = OTHER.some((t) => pathname === t.href);
+  const onOther = OTHER.some((t) => isActive(pathname, t.href));
 
   return (
     <>
       {/* Desktop / tablet: top bar */}
-      <header className="sticky top-0 z-20 hidden border-b border-line bg-bg/90 backdrop-blur sm:block">
+      <header className="sticky top-0 z-20 hidden border-b border-line bg-bg/90 backdrop-blur print:hidden sm:block">
         <nav className="mx-auto flex max-w-content items-center gap-1 px-6 py-3">
           <span className="mr-4 bg-gradient-to-r from-sky via-indigo to-teal bg-clip-text text-lg font-extrabold tracking-tight text-transparent">
             The Daily Chase
           </span>
           {PRIMARY.map((t) => {
-            const active = pathname === t.href;
+            const active = isActive(pathname, t.href);
             return (
               <Link
                 key={t.href}
@@ -122,7 +127,7 @@ export default function Nav() {
                 />
                 <div className="absolute left-0 z-30 mt-2 w-44 overflow-hidden rounded-lg border border-line bg-card py-1 shadow-card-hover">
                   {OTHER.map((t) => {
-                    const active = pathname === t.href;
+                    const active = isActive(pathname, t.href);
                     return (
                       <Link
                         key={t.href}
@@ -150,9 +155,9 @@ export default function Nav() {
       </header>
 
       {/* Mobile: bottom tab bar */}
-      <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-card/95 backdrop-blur sm:hidden">
+      <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-card/95 backdrop-blur print:hidden sm:hidden">
         {PRIMARY.map((t) => {
-          const active = pathname === t.href;
+          const active = isActive(pathname, t.href);
           return (
             <Link
               key={t.href}
@@ -187,7 +192,7 @@ export default function Nav() {
             onClick={(e) => e.stopPropagation()}
           >
             {OTHER.map((t) => {
-              const active = pathname === t.href;
+              const active = isActive(pathname, t.href);
               return (
                 <Link
                   key={t.href}

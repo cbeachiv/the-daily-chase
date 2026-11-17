@@ -28,7 +28,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen">
       <Nav />
-      <main className="mx-auto max-w-content px-4 pb-28 pt-5 sm:px-6 sm:pb-12">
+      <main className="mx-auto max-w-content px-4 pb-28 pt-5 print:max-w-none print:p-0 sm:px-6 sm:pb-12">
         {children}
       </main>
     </div>
