@@ -402,7 +402,7 @@ export default function HomeInspiration() {
     >
       <header className="flex items-baseline justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Home Inspiration</h1>
+          <h2 className="text-xl font-extrabold tracking-tight">Home Inspiration</h2>
           <p className="text-sm text-muted">
             {pins.length} {pins.length === 1 ? "pin" : "pins"}
             {busy > 0 && <span className="ml-2 text-indigo">· adding {busy}…</span>}
